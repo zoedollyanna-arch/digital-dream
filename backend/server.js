@@ -21,7 +21,7 @@ const PORT = process.env.PORT || 3000;
 
 // --- Middleware ---
 app.use(cors({
-    origin: process.env.ALLOWED_ORIGINS === '*' ? '*' : process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim())
+    origin: !process.env.ALLOWED_ORIGINS || process.env.ALLOWED_ORIGINS === '*' ? '*' : process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim())
 }));
 app.use(express.json({ limit: '1mb' }));
 
