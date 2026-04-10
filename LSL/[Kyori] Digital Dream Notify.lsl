@@ -6,7 +6,7 @@
 // ============================================
 
 // --- Configuration ---
-string  SERVER_URL  = "http://YOUR_SERVER:3000";  // UPDATE to your backend URL
+string  SERVER_URL  = "https://digital-dream-jbqb.onrender.com";
 float   CHECK_INTERVAL = 10.0;                     // Notification check interval (seconds)
 integer GLOW_FACE   = ALL_SIDES;                    // Prim face to glow on notification
 
@@ -27,23 +27,7 @@ key     gCheckRequest = NULL_KEY;
 flashNotify()
 {
     if (!gEnabled) return;
-
-    // Quick glow pulse
-    llSetLinkPrimitiveParamsFast(LINK_THIS, [
-        PRIM_GLOW, GLOW_FACE, 0.15
-    ]);
-    llSleep(0.3);
-    llSetLinkPrimitiveParamsFast(LINK_THIS, [
-        PRIM_GLOW, GLOW_FACE, 0.05
-    ]);
-    llSleep(0.3);
-    llSetLinkPrimitiveParamsFast(LINK_THIS, [
-        PRIM_GLOW, GLOW_FACE, 0.1
-    ]);
-    llSleep(0.5);
-    llSetLinkPrimitiveParamsFast(LINK_THIS, [
-        PRIM_GLOW, GLOW_FACE, 0.0
-    ]);
+    // No visual flash on HUD — notifications are text-only
 }
 
 // Send IM notification to the owner
@@ -67,18 +51,6 @@ checkUnread()
 setUnreadGlow(integer hasUnread)
 {
     gHasUnread = hasUnread;
-    if (hasUnread)
-    {
-        llSetLinkPrimitiveParamsFast(LINK_THIS, [
-            PRIM_GLOW, GLOW_FACE, 0.05
-        ]);
-    }
-    else
-    {
-        llSetLinkPrimitiveParamsFast(LINK_THIS, [
-            PRIM_GLOW, GLOW_FACE, 0.0
-        ]);
-    }
 }
 
 // --- Events ---
@@ -92,7 +64,6 @@ default
             gOwnerName = llKey2Name(gOwner);
 
         llSetTimerEvent(CHECK_INTERVAL);
-        llOwnerSay("🔔 Notification module ready.");
     }
 
     on_rez(integer start)
@@ -114,13 +85,11 @@ default
             if (msg == "ENABLE")
             {
                 gEnabled = TRUE;
-                llOwnerSay("🔔 Notifications enabled.");
             }
             else if (msg == "DISABLE")
             {
                 gEnabled = FALSE;
                 setUnreadGlow(FALSE);
-                llOwnerSay("🔕 Notifications disabled.");
             }
             else if (msg == "CHECK")
             {

@@ -26,22 +26,22 @@
         .progress-bar {
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 18px 0 0;
+            gap: 8px;
+            padding: 24px 0 0;
             z-index: 10;
         }
 
         .progress-dot {
-            width: 8px;
-            height: 8px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
             background: var(--border-subtle);
             transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .progress-dot.active {
-            width: 24px;
-            border-radius: 4px;
+            width: 36px;
+            border-radius: 6px;
             background: var(--primary);
         }
 
@@ -51,10 +51,10 @@
         }
 
         .step-label {
-            font-size: 11px;
+            font-size: 16px;
             font-weight: 500;
             color: var(--text-muted);
-            margin-left: 8px;
+            margin-left: 10px;
             letter-spacing: 0.3px;
         }
 
@@ -73,7 +73,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 24px 32px 40px;
+            padding: 20px 40px 30px;
             opacity: 0;
             transform: translateX(60px);
             pointer-events: none;
@@ -95,123 +95,117 @@
 
         /* ── Welcome Orb ── */
         .welcome-orb {
-            width: 120px;
-            height: 120px;
-            border-radius: 36px;
+            width: 140px;
+            height: 140px;
+            border-radius: 40px;
             background: linear-gradient(135deg, #C2E9FB 0%, #A1C4FD 50%, #E8D5F5 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 28px;
-            box-shadow:
-                0 12px 40px rgba(161, 196, 253, 0.35),
-                inset 0 -2px 6px rgba(255, 255, 255, 0.4);
+            margin-bottom: 30px;
+            box-shadow: 0 12px 40px rgba(161, 196, 253, 0.35);
             animation: orbBreathe 4s ease-in-out infinite;
             position: relative;
         }
 
-        .welcome-orb::after {
-            content: '';
-            position: absolute;
-            inset: -6px;
-            border-radius: 40px;
-            background: linear-gradient(135deg, rgba(161, 196, 253, 0.2), rgba(232, 213, 245, 0.15));
-            filter: blur(12px);
-            z-index: -1;
-            animation: orbBreathe 4s ease-in-out infinite reverse;
-        }
-
         .welcome-orb i {
-            font-size: 48px;
+            font-size: 56px;
             color: #fff;
             filter: drop-shadow(0 2px 8px rgba(0,0,0,0.1));
         }
 
         @keyframes orbBreathe {
-            0%, 100% { transform: scale(1); box-shadow: 0 12px 40px rgba(161,196,253,0.35), inset 0 -2px 6px rgba(255,255,255,0.4); }
-            50% { transform: scale(1.04); box-shadow: 0 16px 50px rgba(161,196,253,0.45), inset 0 -2px 6px rgba(255,255,255,0.5); }
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.04); }
         }
 
         /* ── Success Orb ── */
         .success-orb {
-            width: 110px;
-            height: 110px;
+            width: 130px;
+            height: 130px;
             border-radius: 50%;
             background: linear-gradient(135deg, #34C759 0%, #30D158 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 28px;
-            box-shadow:
-                0 10px 40px rgba(52, 199, 89, 0.35),
-                inset 0 -2px 6px rgba(255,255,255,0.2);
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(52, 199, 89, 0.35);
             animation: successPulse 2s ease-in-out infinite;
         }
 
         .success-orb i {
-            font-size: 44px;
+            font-size: 52px;
             color: #fff;
         }
 
         @keyframes successPulse {
             0%, 100% { box-shadow: 0 10px 40px rgba(52,199,89,0.35); }
-            50% { box-shadow: 0 10px 60px rgba(52,199,89,0.5), 0 0 80px rgba(52,199,89,0.15); }
+            50% { box-shadow: 0 10px 60px rgba(52,199,89,0.5); }
         }
 
         /* ── Titles ── */
         .ob-title {
-            font-size: 30px;
+            font-size: 36px;
             font-weight: 600;
             letter-spacing: -0.5px;
             color: var(--text-primary);
             text-align: center;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
         }
 
         .ob-subtitle {
-            font-size: 15px;
+            font-size: 20px;
             font-weight: 400;
             color: var(--text-muted);
             text-align: center;
             line-height: 1.5;
-            max-width: 280px;
+            max-width: 500px;
         }
 
         /* ── Glass Panel ── */
         .ob-panel {
             width: 100%;
-            max-width: 340px;
-            margin-top: 28px;
-            padding: 24px;
-            background: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
+            max-width: 520px;
+            margin-top: 24px;
+            padding: 28px;
+            background: #FFFFFF;
+            border: 1px solid rgba(0, 0, 0, 0.08);
             border-radius: 22px;
-            box-shadow:
-                0 8px 32px rgba(0, 0, 0, 0.06),
-                0 1px 3px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+        }
+
+        @supports (backdrop-filter: blur(1px)) {
+            .ob-panel {
+                background: rgba(255, 255, 255, 0.85);
+                backdrop-filter: blur(24px);
+                -webkit-backdrop-filter: blur(24px);
+            }
         }
 
         [data-theme="dark"] .ob-panel {
-            background: rgba(44, 44, 46, 0.55);
+            background: #2C2C2E;
             border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        @supports (backdrop-filter: blur(1px)) {
+            [data-theme="dark"] .ob-panel {
+                background: rgba(44, 44, 46, 0.85);
+            }
         }
 
         /* ── Onboarding Input ── */
         .ob-input {
             width: 100%;
-            padding: 14px 18px;
+            padding: 18px 20px;
             background: rgba(120, 120, 128, 0.07);
-            border: 1.5px solid transparent;
+            border: 2px solid transparent;
             border-radius: 14px;
             color: var(--text-primary);
             font-family: var(--font);
-            font-size: 16px;
+            font-size: 20px;
             font-weight: 400;
             outline: none;
             transition: all 0.3s ease;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
         }
 
         .ob-input::placeholder {
@@ -221,21 +215,21 @@
         .ob-input:focus {
             border-color: var(--primary);
             background: rgba(0, 122, 255, 0.04);
-            box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.12), inset 0 1px 3px rgba(0, 0, 0, 0.02);
+            box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.12);
         }
 
         .ob-input-label {
-            font-size: 13px;
+            font-size: 17px;
             font-weight: 500;
             color: var(--text-secondary);
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             display: block;
         }
 
         .ob-input-hint {
-            font-size: 12px;
+            font-size: 15px;
             color: var(--text-muted);
-            margin-top: 8px;
+            margin-top: 10px;
             line-height: 1.4;
         }
 
@@ -246,20 +240,19 @@
             justify-content: center;
             gap: 8px;
             width: 100%;
-            max-width: 300px;
-            padding: 15px 28px;
-            margin-top: 28px;
+            max-width: 440px;
+            padding: 18px 32px;
+            margin-top: 24px;
             border: none;
             border-radius: 100px;
             background: var(--primary);
             color: #fff;
             font-family: var(--font);
-            font-size: 16px;
+            font-size: 20px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
             box-shadow: 0 6px 20px rgba(0, 122, 255, 0.25);
-            letter-spacing: 0.1px;
         }
 
         .ob-btn:hover {
@@ -269,17 +262,16 @@
 
         .ob-btn:active {
             transform: scale(0.97);
-            box-shadow: 0 4px 14px rgba(0, 122, 255, 0.2);
         }
 
         .ob-btn-secondary {
             background: none;
             color: var(--text-muted);
-            font-size: 14px;
+            font-size: 18px;
             font-weight: 500;
             box-shadow: none;
             margin-top: 12px;
-            padding: 10px;
+            padding: 12px;
             cursor: pointer;
             border: none;
             font-family: var(--font);
@@ -316,27 +308,27 @@
         }
 
         .ob-toggle-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            font-size: 20px;
             color: #fff;
             flex-shrink: 0;
         }
 
         .ob-toggle-text .ob-label {
-            font-size: 15px;
+            font-size: 19px;
             font-weight: 500;
             color: var(--text-primary);
         }
 
         .ob-toggle-text .ob-desc {
-            font-size: 12px;
+            font-size: 15px;
             color: var(--text-muted);
-            margin-top: 1px;
+            margin-top: 2px;
         }
 
         /* ── Theme Selector (inline) ── */
@@ -352,11 +344,11 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
-            padding: 10px 0;
+            padding: 14px 0;
             border-radius: 12px;
             border: 2px solid transparent;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 17px;
             font-weight: 500;
             color: var(--text-secondary);
             background: rgba(120, 120, 128, 0.06);
@@ -398,13 +390,13 @@
         }
 
         .ob-connect-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 24px;
             color: #fff;
             flex-shrink: 0;
         }
@@ -414,19 +406,19 @@
         }
 
         .ob-connect-info .ob-label {
-            font-size: 15px;
+            font-size: 19px;
             font-weight: 500;
             color: var(--text-primary);
         }
 
         .ob-connect-info .ob-desc {
-            font-size: 12px;
+            font-size: 15px;
             color: var(--text-muted);
-            margin-top: 1px;
+            margin-top: 2px;
         }
 
         .ob-connect-badge {
-            font-size: 12px;
+            font-size: 15px;
             font-weight: 500;
             color: var(--text-muted);
         }
@@ -436,20 +428,23 @@
         }
 
         /* ── Fade-in children stagger ── */
+        .screen.active .ob-stagger > * {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                        transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .screen.active .ob-stagger > *:nth-child(1) { transition-delay: 0.1s; }
+        .screen.active .ob-stagger > *:nth-child(2) { transition-delay: 0.2s; }
+        .screen.active .ob-stagger > *:nth-child(3) { transition-delay: 0.3s; }
+        .screen.active .ob-stagger > *:nth-child(4) { transition-delay: 0.4s; }
+        .screen.active .ob-stagger > *:nth-child(5) { transition-delay: 0.5s; }
+        .screen.active .ob-stagger > *:nth-child(6) { transition-delay: 0.6s; }
+
         .ob-stagger > * {
             opacity: 0;
             transform: translateY(12px);
-            animation: obFadeUp 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-        }
-        .ob-stagger > *:nth-child(1) { animation-delay: 0.1s; }
-        .ob-stagger > *:nth-child(2) { animation-delay: 0.2s; }
-        .ob-stagger > *:nth-child(3) { animation-delay: 0.3s; }
-        .ob-stagger > *:nth-child(4) { animation-delay: 0.4s; }
-        .ob-stagger > *:nth-child(5) { animation-delay: 0.5s; }
-        .ob-stagger > *:nth-child(6) { animation-delay: 0.6s; }
-
-        @keyframes obFadeUp {
-            to { opacity: 1; transform: translateY(0); }
+            transition: opacity 0.3s ease, transform 0.3s ease;
         }
 
         /* ── Confetti dots (success screen) ── */
@@ -641,18 +636,6 @@
 
             requestAnimationFrame(() => {
                 next.classList.add('active');
-                // Re-trigger stagger animations
-                const stagger = next.querySelector('.ob-stagger');
-                if (stagger) {
-                    stagger.style.animation = 'none';
-                    stagger.offsetHeight; // force reflow
-                    stagger.style.animation = '';
-                    stagger.querySelectorAll(':scope > *').forEach(child => {
-                        child.style.animation = 'none';
-                        child.offsetHeight;
-                        child.style.animation = '';
-                    });
-                }
             });
 
             currentStep = step;
@@ -759,7 +742,8 @@
             document.querySelector('.onboarding-wrap').style.transition = 'opacity 0.5s ease';
             document.querySelector('.onboarding-wrap').style.opacity = '0';
             setTimeout(() => {
-                window.location.href = 'index.html';
+                // Preserve URL params (uuid, name) when redirecting
+                window.location.href = 'index.html' + window.location.search;
             }, 500);
         }
 
@@ -767,13 +751,24 @@
         document.addEventListener('DOMContentLoaded', () => {
             // If already completed onboarding, go home
             if (localStorage.getItem('dd-onboarded') === 'true') {
-                window.location.replace('index.html');
+                window.location.replace('index.html' + window.location.search);
                 return;
             }
 
-            // Pre-fill name if already stored
+            // Auto-fill name from URL params (passed by LSL Core) or localStorage
+            const params = new URLSearchParams(window.location.search);
+            const urlName = params.get('name');
             const savedName = localStorage.getItem('dd-name');
-            if (savedName) document.getElementById('obName').value = savedName;
+            const nameInput = document.getElementById('obName');
+            if (urlName) {
+                nameInput.value = decodeURIComponent(urlName);
+            } else if (savedName) {
+                nameInput.value = savedName;
+            }
+
+            // Store uuid if passed
+            const uuid = params.get('uuid');
+            if (uuid) localStorage.setItem('dd-uuid', uuid);
 
             // Check discord state
             if (localStorage.getItem('dd-discord-config')) {
@@ -783,7 +778,7 @@
             }
 
             // Enter key on name input
-            document.getElementById('obName').addEventListener('keydown', (e) => {
+            nameInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') saveProfile();
             });
         });

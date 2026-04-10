@@ -6,7 +6,7 @@
 // ============================================
 
 // --- Configuration ---
-string  SERVER_URL = "http://YOUR_SERVER:3000";  // UPDATE to your backend URL
+string  SERVER_URL = "https://digital-dream-jbqb.onrender.com";
 float   POLL_INTERVAL = 5.0;                      // How often to check for pending messages (seconds)
 
 // Link message channels
@@ -112,7 +112,6 @@ default
         gOwnerName = llGetDisplayName(gOwner);
         if (gOwnerName == "" || gOwnerName == "???")
             gOwnerName = llKey2Name(gOwner);
-        llOwnerSay("💬 Messenger module ready.");
     }
 
     on_rez(integer start)

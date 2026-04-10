@@ -6,8 +6,8 @@
 // ============================================
 
 // --- Configuration ---
-string  SERVER_URL = "http://YOUR_SERVER:3000";  // UPDATE to your backend URL
-integer MOAP_FACE  = 1;                           // Face number for media display
+string  SERVER_URL = "https://digital-dream-jbqb.onrender.com";
+integer MOAP_FACE  = 4;                           // Face 4 = MOAP screen display
 
 // Link message channels
 integer CH_MOAP = 3010;
@@ -50,20 +50,14 @@ screenOff()
     llClearLinkMedia(LINK_THIS, MOAP_FACE);
     gScreenOn = FALSE;
     gCurrentUrl = "";
-
-    // Darken the prim face to look like a powered-off screen
-    llSetLinkPrimitiveParamsFast(LINK_THIS, [
-        PRIM_COLOR, MOAP_FACE, <0.05, 0.05, 0.1>, 1.0,
-        PRIM_GLOW, MOAP_FACE, 0.0
-    ]);
 }
 
 screenOn()
 {
-    // Restore screen appearance
+    // Set blank white texture so media renders on the prim face
     llSetLinkPrimitiveParamsFast(LINK_THIS, [
-        PRIM_COLOR, MOAP_FACE, <1.0, 1.0, 1.0>, 1.0,
-        PRIM_GLOW, MOAP_FACE, 0.02
+        PRIM_TEXTURE, MOAP_FACE, TEXTURE_BLANK, <1.0, 1.0, 0.0>, ZERO_VECTOR, 0.0,
+        PRIM_COLOR, MOAP_FACE, <1.0, 1.0, 1.0>, 1.0
     ]);
     initScreen();
 }
@@ -75,7 +69,6 @@ default
     {
         gOwner = llGetOwner();
         screenOff();  // Start powered off
-        llOwnerSay("📺 MOAP Engine ready.");
     }
 
     on_rez(integer start)

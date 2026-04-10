@@ -9,7 +9,7 @@
     <script>
         // First-time setup redirect
         if (localStorage.getItem('dd-onboarded') !== 'true') {
-            window.location.replace('onboarding.html');
+            window.location.replace('onboarding.html' + window.location.search);
         }
     </script>
 </head>

@@ -3,7 +3,7 @@
    ============================================ */
 const DDConfig = {
     // Backend server URL - UPDATE THIS to your deployed server
-    API_BASE: 'http://localhost:3000',
+    API_BASE: 'https://digital-dream-jbqb.onrender.com',
 
     // App version
     VERSION: '2.0.0',

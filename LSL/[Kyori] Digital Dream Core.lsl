@@ -5,21 +5,23 @@
 // ============================================
 
 // --- Configuration ---
-string  SERVER_URL  = "http://YOUR_SERVER:3000";  // UPDATE to your backend URL
-integer MOAP_FACE   = 1;                            // Prim face for MOAP display
-integer SCREEN_LINK = LINK_THIS;                    // Link number of screen prim (LINK_THIS if root)
+string  SERVER_URL  = "https://digital-dream-jbqb.onrender.com";
+integer MOAP_FACE   = 4;                            // Face 4 on link 2 = MOAP screen
+integer SCREEN_LINK = 2;                            // Link 2 = MOAP screen prim
+integer IPAD_LINK   = 1;                            // Link 1 = iPad HUD outline
 
 // Link message channels (for inter-script communication)
 integer CH_MESSENGER = 3001;
 integer CH_NOTIFY    = 3002;
 integer CH_CORE      = 3000;
+integer CH_MOAP      = 3010;
 
 // --- State ---
 key     gOwner;
 string  gOwnerName;
 integer gOwnerChan;
 integer gListenHandle;
-string  gCurrentApp = "home";
+string  gCurrentApp = "off";
 
 // --- Functions ---
 integer ownerChan(key id)
@@ -27,29 +29,19 @@ integer ownerChan(key id)
     return -1 - (integer)("0x" + llGetSubString((string)id, 0, 7));
 }
 
-// Set MOAP URL on the screen face
+// Tell MOAP script to load a page URL on the screen
 setScreen(string page)
 {
     string url = SERVER_URL + "/" + page
         + "?uuid=" + llEscapeURL((string)gOwner)
         + "&name=" + llEscapeURL(gOwnerName);
 
-    llSetLinkMedia(SCREEN_LINK, MOAP_FACE, [
-        PRIM_MEDIA_CURRENT_URL, url,
-        PRIM_MEDIA_HOME_URL, url,
-        PRIM_MEDIA_AUTO_PLAY, TRUE,
-        PRIM_MEDIA_AUTO_SCALE, TRUE,
-        PRIM_MEDIA_AUTO_ZOOM, FALSE,
-        PRIM_MEDIA_PERMS_INTERACT, PRIM_MEDIA_PERM_ANYONE,
-        PRIM_MEDIA_PERMS_CONTROL, PRIM_MEDIA_PERM_NONE,
-        PRIM_MEDIA_WIDTH_PIXELS, 1024,
-        PRIM_MEDIA_HEIGHT_PIXELS, 1024
-    ]);
+    llMessageLinked(LINK_SET, CH_MOAP, "URL:" + url, gOwner);
 }
 
 clearScreen()
 {
-    llClearLinkMedia(SCREEN_LINK, MOAP_FACE);
+    llMessageLinked(LINK_SET, CH_MOAP, "SCREEN_OFF", gOwner);
 }
 
 showMainMenu(key user)
@@ -82,7 +74,6 @@ routeApp(string app)
     {
         clearScreen();
         gCurrentApp = "off";
-        llOwnerSay("📱 Digital Dream powered off.");
         return;
     }
     else if (app == "Home")
@@ -90,8 +81,6 @@ routeApp(string app)
         gCurrentApp = "home";
         setScreen("index.html");
     }
-
-    llOwnerSay("📱 Opening " + app + "...");
 }
 
 registerWithServer()
@@ -116,7 +105,6 @@ default
         gOwnerName = llGetDisplayName(gOwner);
         if (gOwnerName == "" || gOwnerName == "???")
             gOwnerName = llKey2Name(gOwner);
-        llOwnerSay("📱 Digital Dream Tablet v1.0 ready. Touch to open.");
     }
 
     on_rez(integer start)
@@ -135,13 +123,16 @@ default
         key toucher = llDetectedKey(0);
         if (toucher != gOwner) return;
 
+        // Only respond to touches on the iPad HUD outline (link 1)
+        integer link = llDetectedLinkNumber(0);
+        if (link != IPAD_LINK) return;
+
         if (gCurrentApp == "off" || gCurrentApp == "")
         {
             // Power on - show home screen
             gCurrentApp = "home";
             setScreen("index.html");
             registerWithServer();
-            llOwnerSay("📱 Digital Dream powered on!");
         }
 
         showMainMenu(toucher);
