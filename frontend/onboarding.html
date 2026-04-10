@@ -27,7 +27,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 24px 0 0;
+            padding: 16px 0 0;
             z-index: 10;
         }
 
@@ -73,7 +73,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 20px 40px 30px;
+            padding: 20px 30px 20px;
             opacity: 0;
             transform: translateX(60px);
             pointer-events: none;
@@ -95,21 +95,21 @@
 
         /* ── Welcome Orb ── */
         .welcome-orb {
-            width: 140px;
-            height: 140px;
-            border-radius: 40px;
+            width: 100px;
+            height: 100px;
+            border-radius: 30px;
             background: linear-gradient(135deg, #C2E9FB 0%, #A1C4FD 50%, #E8D5F5 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             box-shadow: 0 12px 40px rgba(161, 196, 253, 0.35);
             animation: orbBreathe 4s ease-in-out infinite;
             position: relative;
         }
 
         .welcome-orb i {
-            font-size: 56px;
+            font-size: 40px;
             color: #fff;
             filter: drop-shadow(0 2px 8px rgba(0,0,0,0.1));
         }
@@ -121,20 +121,20 @@
 
         /* ── Success Orb ── */
         .success-orb {
-            width: 130px;
-            height: 130px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
             background: linear-gradient(135deg, #34C759 0%, #30D158 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             box-shadow: 0 10px 40px rgba(52, 199, 89, 0.35);
             animation: successPulse 2s ease-in-out infinite;
         }
 
         .success-orb i {
-            font-size: 52px;
+            font-size: 38px;
             color: #fff;
         }
 
@@ -145,7 +145,7 @@
 
         /* ── Titles ── */
         .ob-title {
-            font-size: 36px;
+            font-size: 28px;
             font-weight: 600;
             letter-spacing: -0.5px;
             color: var(--text-primary, #1C1C1E);
@@ -154,20 +154,20 @@
         }
 
         .ob-subtitle {
-            font-size: 20px;
+            font-size: 16px;
             font-weight: 400;
             color: var(--text-muted, #8E8E93);
             text-align: center;
             line-height: 1.5;
-            max-width: 500px;
+            max-width: 400px;
         }
 
         /* ── Glass Panel ── */
         .ob-panel {
             width: 100%;
-            max-width: 520px;
-            margin-top: 24px;
-            padding: 28px;
+            max-width: 420px;
+            margin-top: 16px;
+            padding: 20px;
             background: #FFFFFF;
             border: 1px solid rgba(0, 0, 0, 0.08);
             border-radius: 22px;
@@ -196,13 +196,13 @@
         /* ── Onboarding Input ── */
         .ob-input {
             width: 100%;
-            padding: 18px 20px;
+            padding: 14px 16px;
             background: rgba(120, 120, 128, 0.07);
             border: 2px solid transparent;
             border-radius: 14px;
             color: var(--text-primary, #1C1C1E);
             font-family: var(--font, 'Inter', -apple-system, sans-serif);
-            font-size: 20px;
+            font-size: 16px;
             font-weight: 400;
             outline: none;
             transition: all 0.3s ease;
@@ -219,7 +219,7 @@
         }
 
         .ob-input-label {
-            font-size: 17px;
+            font-size: 15px;
             font-weight: 500;
             color: var(--text-secondary, #3C3C43);
             margin-bottom: 10px;
@@ -240,15 +240,15 @@
             justify-content: center;
             gap: 8px;
             width: 100%;
-            max-width: 440px;
-            padding: 18px 32px;
-            margin-top: 24px;
+            max-width: 380px;
+            padding: 14px 24px;
+            margin-top: 16px;
             border: none;
             border-radius: 100px;
             background: var(--primary, #007AFF);
             color: #fff;
             font-family: var(--font, 'Inter', -apple-system, sans-serif);
-            font-size: 20px;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -493,7 +493,7 @@
                 <div class="ob-stagger" style="display:flex;flex-direction:column;align-items:center">
                     <div class="welcome-orb">
                         <i class="fas fa-tablet-alt" aria-hidden="true"></i>
-                        <span class="fa-fallback" style="display:none;font-size:56px;color:#fff">&#x1F4F1;</span>
+                        <span class="fa-fallback" style="display:none;font-size:40px;color:#fff">&#x1F4F1;</span>
                     </div>
                     <div class="ob-title">Welcome</div>
                     <div class="ob-subtitle">Let's get your tablet set up. It only takes a moment.</div>
@@ -596,7 +596,7 @@
                 <div class="ob-stagger" style="display:flex;flex-direction:column;align-items:center">
                     <div class="success-orb">
                         <i class="fas fa-check" aria-hidden="true"></i>
-                        <span class="fa-fallback" style="display:none;font-size:52px;color:#fff">&#x2713;</span>
+                        <span class="fa-fallback" style="display:none;font-size:38px;color:#fff">&#x2713;</span>
                     </div>
                     <div class="ob-title">All Set</div>
                     <div class="ob-subtitle">Your tablet is ready to use. Enjoy the experience.</div>

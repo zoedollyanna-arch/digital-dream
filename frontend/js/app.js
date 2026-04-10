@@ -148,10 +148,34 @@ const DreamApp = {
     init() {
         this.initTheme();
         this.initStatusBar();
+        this.applyZoom();
         // Store user info from URL params if present
         const uuid = this.getParam('uuid');
         const name = this.getParam('name');
         if (uuid || name) this.setUser(uuid, name);
+    },
+
+    /* --- Zoom Management --- */
+    ZOOM_MIN: 100,
+    ZOOM_MAX: 200,
+    ZOOM_STEP: 10,
+    ZOOM_DEFAULT: 150,
+
+    getZoom() {
+        var z = parseInt(localStorage.getItem('dd-zoom'), 10);
+        return (z >= this.ZOOM_MIN && z <= this.ZOOM_MAX) ? z : this.ZOOM_DEFAULT;
+    },
+
+    setZoom(level) {
+        level = Math.max(this.ZOOM_MIN, Math.min(this.ZOOM_MAX, level));
+        localStorage.setItem('dd-zoom', level);
+        this.applyZoom();
+        return level;
+    },
+
+    applyZoom() {
+        var z = this.getZoom();
+        document.documentElement.style.zoom = (z / 100);
     }
 };
 

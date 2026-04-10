@@ -25,6 +25,12 @@
         .about-logo { font-size: 48px; margin-bottom: 8px; }
         .storage-bar { height: 6px; background: var(--bg-input); border-radius: 3px; overflow: hidden; margin-top: 6px; }
         .storage-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+        .zoom-controls { display: flex; align-items: center; gap: 12px; }
+        .zoom-btn { width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid var(--border-subtle, rgba(0,0,0,0.08)); background: var(--bg-input, rgba(120,120,128,0.08)); color: var(--text-primary, #1C1C1E); font-size: 18px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
+        .zoom-btn:hover { background: var(--primary, #007AFF); color: #fff; border-color: var(--primary, #007AFF); }
+        .zoom-btn:disabled { opacity: 0.3; cursor: default; }
+        .zoom-btn:disabled:hover { background: var(--bg-input, rgba(120,120,128,0.08)); color: var(--text-primary, #1C1C1E); border-color: var(--border-subtle, rgba(0,0,0,0.08)); }
+        .zoom-level { font-size: 16px; font-weight: 600; color: var(--text-primary, #1C1C1E); min-width: 48px; text-align: center; }
     </style>
 </head>
 <body>
@@ -86,6 +92,28 @@
                     <div class="theme-option theme-dark-opt" data-theme="dark" onclick="selectTheme('dark')" title="Dark">🌙</div>
                     <div class="theme-option theme-light-opt" data-theme="light" onclick="selectTheme('light')" title="Light">☀️</div>
                     <div class="theme-option theme-neon-opt" data-theme="neon" onclick="selectTheme('neon')" title="Neon">⚡</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Display -->
+        <div class="settings-section">
+            <div class="section-title">Display</div>
+
+            <div class="settings-item">
+                <div class="setting-left">
+                    <div class="setting-icon" style="background:linear-gradient(135deg,#FF9F0A,#FF6723)">
+                        <i class="fas fa-search-plus" style="color:#fff;font-size:12px"></i>
+                    </div>
+                    <div>
+                        <div class="setting-label">Zoom Level</div>
+                        <div class="setting-desc">Adjust text and UI size</div>
+                    </div>
+                </div>
+                <div class="zoom-controls">
+                    <button class="zoom-btn" id="zoomOut" onclick="changeZoom(-1)">−</button>
+                    <span class="zoom-level" id="zoomLevel">150%</span>
+                    <button class="zoom-btn" id="zoomIn" onclick="changeZoom(1)">+</button>
                 </div>
             </div>
         </div>
@@ -338,7 +366,23 @@
             setTimeout(() => location.href = 'index.html', 300);
         }
 
-        document.addEventListener('DOMContentLoaded', loadSettings);
+        function changeZoom(dir) {
+            var current = DreamApp.getZoom();
+            var next = current + (dir * DreamApp.ZOOM_STEP);
+            next = DreamApp.setZoom(next);
+            updateZoomUI(next);
+        }
+
+        function updateZoomUI(level) {
+            document.getElementById('zoomLevel').textContent = level + '%';
+            document.getElementById('zoomOut').disabled = (level <= DreamApp.ZOOM_MIN);
+            document.getElementById('zoomIn').disabled = (level >= DreamApp.ZOOM_MAX);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSettings();
+            updateZoomUI(DreamApp.getZoom());
+        });
     </script>
 </body>
 </html>
