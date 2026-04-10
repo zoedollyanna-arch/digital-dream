@@ -196,6 +196,14 @@ html, body {
     50% { opacity: 1; transform: scale(1.05); }
 }
 
+/* --- Wallpaper Overrides --- */
+.tablet-bg.wp-sunset { background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 25%, #FEC89A 50%, #FFD93D 75%, #FF6B6B 100%) !important; background-size: 400% 400% !important; }
+.tablet-bg.wp-ocean  { background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #6B8DD6 50%, #8E37D7 75%, #667eea 100%) !important; background-size: 400% 400% !important; }
+.tablet-bg.wp-forest { background: linear-gradient(135deg, #11998e 0%, #38ef7d 25%, #43B692 50%, #11998e 75%, #38ef7d 100%) !important; background-size: 400% 400% !important; }
+.tablet-bg.wp-candy  { background: linear-gradient(135deg, #f093fb 0%, #f5576c 25%, #fda085 50%, #f093fb 75%, #f5576c 100%) !important; background-size: 400% 400% !important; }
+.tablet-bg.wp-space  { background: linear-gradient(135deg, #0f0c29 0%, #302b63 25%, #24243e 50%, #0f0c29 75%, #302b63 100%) !important; background-size: 400% 400% !important; }
+.tablet-bg.wp-cotton { background: linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 25%, #F0E6FF 50%, #8EC5FC 75%, #E0C3FC 100%) !important; background-size: 400% 400% !important; }
+
 /* --- Status Bar (iOS style) --- */
 .status-bar {
     display: flex;
@@ -492,6 +500,7 @@ html, body {
 .icon-dreamstore { background: linear-gradient(180deg, #BF5AF2 0%, #9B59B6 100%); }
 .icon-browser { background: linear-gradient(180deg, #5AC8FA 0%, #007AFF 100%); }
 .icon-discord { background: linear-gradient(180deg, #7B83EB 0%, #5865F2 100%); }
+.icon-contacts { background: linear-gradient(180deg, #FFD60A 0%, #FF9F0A 100%); }
 .icon-settings { background: linear-gradient(180deg, #8E8E93 0%, #636366 100%); }
 .icon-texts { background: linear-gradient(180deg, #4CD964 0%, #34C759 100%); }
 
@@ -1500,6 +1509,36 @@ html, body {
 .animate-slideUp { animation: slideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
 .animate-scaleIn { animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
 .animate-pulse { animation: pulse 2s infinite; }
+
+/* Page load entrance animation */
+.app-container { animation: pageEnter 0.35s ease-out; }
+
+@keyframes pageEnter {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Tap ripple effect for interactive elements */
+.app-icon:active, .nav-item:active, .settings-item:active,
+.glass-card:active, .btn:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+}
+
+.app-icon, .nav-item, .settings-item, .glass-card, .btn {
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Smooth icon hover bounce */
+.app-icon:hover .icon-circle {
+    animation: iconBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes iconBounce {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.12); }
+    100% { transform: scale(1); }
+}
 
 /* Staggered animation delays */
 .animate-stagger-1 { animation-delay: 0.05s; animation-fill-mode: both; }

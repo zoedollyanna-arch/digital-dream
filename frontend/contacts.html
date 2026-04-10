@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Contacts - Digital Dream</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* Apple-style contacts */
+        .contacts-search { padding: 8px 16px 4px; }
+        .contacts-search input {
+            width: 100%; padding: 8px 12px 8px 32px;
+            border-radius: 10px; border: none; font-size: 14px;
+            background: var(--glass-bg); color: var(--text-primary);
+            backdrop-filter: blur(12px);
+        }
+        .contacts-search i {
+            position: absolute; left: 26px; top: 50%; transform: translateY(-50%);
+            color: var(--text-muted); font-size: 13px;
+        }
+
+        /* Section headers */
+        .section-letter {
+            padding: 4px 16px; font-size: 13px; font-weight: 700;
+            color: var(--text-primary); background: var(--glass-bg);
+            backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 2;
+        }
+
+        /* Contact rows */
+        .contact-row {
+            display: flex; align-items: center; padding: 10px 16px; gap: 12px;
+            cursor: pointer; transition: background 0.15s;
+            border-bottom: 1px solid var(--border-glass);
+        }
+        .contact-row:active { background: var(--glass-bg); }
+        .contact-row .c-avatar {
+            width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 16px; color: #fff;
+        }
+        .contact-row .c-info { flex: 1; min-width: 0; }
+        .contact-row .c-name {
+            font-size: 15px; font-weight: 500; color: var(--text-primary);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .contact-row .c-uuid {
+            font-size: 11px; color: var(--text-muted);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .contact-row .c-fav { color: #FFD60A; font-size: 14px; }
+
+        /* Contact detail view */
+        .detail-header {
+            text-align: center; padding: 24px 16px 16px;
+        }
+        .detail-avatar {
+            width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 32px; font-weight: 700; color: #fff;
+        }
+        .detail-name { font-size: 22px; font-weight: 700; color: var(--text-primary); }
+        .detail-uuid { font-size: 12px; color: var(--text-muted); margin-top: 2px; word-break: break-all; }
+
+        /* Action buttons row */
+        .action-row {
+            display: flex; gap: 8px; padding: 12px 16px; justify-content: center;
+        }
+        .action-btn {
+            flex: 1; max-width: 90px; text-align: center; padding: 10px 4px;
+            border-radius: 12px; background: var(--glass-bg);
+            backdrop-filter: blur(12px); border: 1px solid var(--border-glass);
+            cursor: pointer; transition: background 0.15s;
+        }
+        .action-btn:active { background: rgba(0,122,255,0.15); }
+        .action-btn i { font-size: 18px; color: var(--primary); display: block; margin-bottom: 4px; }
+        .action-btn span { font-size: 10px; color: var(--primary); font-weight: 500; }
+
+        /* Detail info cards */
+        .detail-section {
+            margin: 8px 16px; border-radius: 12px; overflow: hidden;
+            background: var(--glass-bg); backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+        }
+        .detail-row {
+            padding: 12px 14px; border-bottom: 1px solid var(--border-glass);
+        }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; }
+        .detail-value { font-size: 15px; color: var(--text-primary); margin-top: 2px; word-break: break-all; }
+        .detail-value.editable { color: var(--primary); cursor: pointer; }
+
+        /* Delete contact */
+        .danger-btn {
+            display: block; width: calc(100% - 32px); margin: 12px auto;
+            padding: 12px; text-align: center; border-radius: 12px;
+            background: var(--glass-bg); backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass); color: #FF3B30;
+            font-size: 15px; font-weight: 500; cursor: pointer;
+        }
+        .danger-btn:active { background: rgba(255,59,48,0.12); }
+
+        /* Add/Edit form */
+        .form-group { padding: 0 16px; margin-bottom: 12px; }
+        .form-group label {
+            display: block; font-size: 12px; font-weight: 600;
+            color: var(--text-muted); text-transform: uppercase;
+            letter-spacing: 0.3px; margin-bottom: 4px;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%; padding: 10px 12px; border-radius: 10px; border: none;
+            background: var(--glass-bg); color: var(--text-primary);
+            font-size: 15px; backdrop-filter: blur(12px);
+        }
+        .form-group textarea { resize: none; height: 60px; font-family: inherit; }
+        .form-actions { display: flex; gap: 8px; padding: 12px 16px; }
+        .form-actions button {
+            flex: 1; padding: 12px; border-radius: 12px; font-size: 15px;
+            font-weight: 600; cursor: pointer; border: none;
+        }
+        .btn-cancel { background: var(--glass-bg); color: var(--text-primary); }
+        .btn-save { background: var(--primary); color: #fff; }
+
+        /* Empty state */
+        .contacts-empty {
+            text-align: center; padding: 60px 20px; color: var(--text-muted);
+        }
+        .contacts-empty i { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
+        .contacts-empty h3 { font-size: 18px; color: var(--text-primary); margin-bottom: 4px; }
+        .contacts-empty p { font-size: 13px; }
+
+        /* Scrollable contact list */
+        .contacts-list { overflow-y: auto; flex: 1; padding-bottom: 70px; }
+
+        /* Alphabet sidebar (subtle) */
+        .alpha-bar {
+            position: fixed; right: 2px; top: 50%; transform: translateY(-50%);
+            display: flex; flex-direction: column; align-items: center; z-index: 5;
+        }
+        .alpha-bar span {
+            font-size: 9px; font-weight: 700; color: var(--primary);
+            padding: 1px 3px; cursor: pointer; line-height: 1.2;
+        }
+
+        .app-container { display: flex; flex-direction: column; }
+    </style>
+</head>
+<body>
+    <div class="tablet-bg"></div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <div class="status-left"><span class="status-time" id="statusTime">12:00 PM</span></div>
+        <div class="status-right">
+            <i class="fas fa-wifi"></i><i class="fas fa-signal"></i>
+            <div class="battery"><div class="battery-bar"><div class="battery-fill"></div></div></div>
+        </div>
+    </div>
+
+    <!-- App Content -->
+    <div class="app-container">
+
+        <!-- === LIST VIEW === -->
+        <div id="listView">
+            <div class="app-header">
+                <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+                <div class="app-title">Contacts</div>
+                <button class="btn btn-sm btn-primary" onclick="showAddForm()" style="border-radius:20px">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+
+            <div class="contacts-search" style="position:relative">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search" oninput="filterList()">
+            </div>
+
+            <div class="contacts-list" id="contactsList">
+                <div class="contacts-empty" id="emptyState">
+                    <i class="fas fa-user-plus"></i>
+                    <h3>No Contacts</h3>
+                    <p>Tap + to add your first contact</p>
+                </div>
+            </div>
+
+            <!-- Alphabet sidebar -->
+            <div class="alpha-bar" id="alphaBar"></div>
+        </div>
+
+        <!-- === DETAIL VIEW === -->
+        <div id="detailView" style="display:none">
+            <div class="app-header">
+                <button class="back-btn" onclick="showList()"><i class="fas fa-chevron-left"></i></button>
+                <div class="app-title">Contact</div>
+                <button class="btn btn-sm" onclick="showEditForm()" style="border-radius:20px;color:var(--primary);background:transparent">
+                    Edit
+                </button>
+            </div>
+
+            <div class="detail-header">
+                <div class="detail-avatar" id="dAvatar">?</div>
+                <div class="detail-name" id="dName">—</div>
+                <div class="detail-uuid" id="dUuid">—</div>
+            </div>
+
+            <div class="action-row">
+                <div class="action-btn" onclick="sendText()">
+                    <i class="fas fa-comment"></i>
+                    <span>Message</span>
+                </div>
+                <div class="action-btn" onclick="toggleFavorite()">
+                    <i id="dFavIcon" class="far fa-star"></i>
+                    <span id="dFavLabel">Favorite</span>
+                </div>
+                <div class="action-btn" onclick="copyUUID()">
+                    <i class="fas fa-copy"></i>
+                    <span>Copy UUID</span>
+                </div>
+            </div>
+
+            <div class="detail-section" id="dInfoSection">
+                <!-- Populated by JS -->
+            </div>
+
+            <div class="danger-btn" onclick="confirmDelete()">Delete Contact</div>
+        </div>
+
+        <!-- === ADD / EDIT FORM === -->
+        <div id="formView" style="display:none">
+            <div class="app-header">
+                <button class="back-btn" onclick="cancelForm()"><i class="fas fa-chevron-left"></i></button>
+                <div class="app-title" id="formTitle">New Contact</div>
+            </div>
+
+            <div style="padding-top:12px">
+                <div class="form-group">
+                    <label>UUID (Avatar Key)</label>
+                    <input type="text" id="fUuid" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+                </div>
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="fName" placeholder="Display name">
+                </div>
+                <div class="form-group">
+                    <label>Phone (optional)</label>
+                    <input type="text" id="fPhone" placeholder="SL phone number or label">
+                </div>
+                <div class="form-group">
+                    <label>Email (optional)</label>
+                    <input type="text" id="fEmail" placeholder="Email or IM address">
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="fNotes" placeholder="Add notes..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button class="btn-cancel" onclick="cancelForm()">Cancel</button>
+                    <button class="btn-save" onclick="saveContact()">Save</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="messages.html" class="nav-item"><i class="fas fa-comment"></i><span>Chat</span></a>
+        <a href="dreamstore.html" class="nav-item"><i class="fas fa-store"></i><span>Store</span></a>
+        <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        var contacts = [];
+        var currentContact = null;
+        var editingId = null; // null = adding, string = editing
+
+        function nameToHue(name) {
+            var hash = 0;
+            for (var i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            return Math.abs(hash) % 360;
+        }
+
+        function initial(name) {
+            return (name || '?')[0].toUpperCase();
+        }
+
+        // ─── Data Layer ───
+
+        async function loadContacts() {
+            try {
+                var data = await DreamApp.apiGet('/api/contacts?uuid=' + encodeURIComponent(DreamApp.getUserId()));
+                if (data && data.contacts) {
+                    contacts = data.contacts;
+                }
+            } catch (e) {
+                console.warn('[Contacts] Load failed:', e.message);
+            }
+            renderList();
+        }
+
+        async function apiSaveContact(payload) {
+            return await DreamApp.apiPost('/api/contacts', payload);
+        }
+
+        async function apiUpdateContact(id, payload) {
+            var res = await fetch(DDConfig.API_BASE + '/api/contacts/' + encodeURIComponent(id) + '?uuid=' + encodeURIComponent(DreamApp.getUserId()), {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) throw new Error('Update failed');
+            return res.json();
+        }
+
+        async function apiDeleteContact(id) {
+            var res = await fetch(DDConfig.API_BASE + '/api/contacts/' + encodeURIComponent(id) + '?uuid=' + encodeURIComponent(DreamApp.getUserId()), {
+                method: 'DELETE'
+            });
+            if (!res.ok) throw new Error('Delete failed');
+            return res.json();
+        }
+
+        async function apiToggleFavorite(id) {
+            var res = await fetch(DDConfig.API_BASE + '/api/contacts/' + encodeURIComponent(id) + '/favorite?uuid=' + encodeURIComponent(DreamApp.getUserId()), {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            if (!res.ok) throw new Error('Favorite failed');
+            return res.json();
+        }
+
+        // ─── List View ───
+
+        function renderList() {
+            var container = document.getElementById('contactsList');
+            var emptyEl = document.getElementById('emptyState');
+
+            if (contacts.length === 0) {
+                container.innerHTML = '';
+                container.appendChild(emptyEl);
+                emptyEl.style.display = '';
+                document.getElementById('alphaBar').innerHTML = '';
+                return;
+            }
+            emptyEl.style.display = 'none';
+
+            // Group by first letter, favorites first
+            var favs = contacts.filter(function(c) { return c.favorite; });
+            var others = contacts.filter(function(c) { return !c.favorite; });
+
+            var html = '';
+
+            // Favorites section
+            if (favs.length) {
+                html += '<div class="section-letter"><i class="fas fa-star" style="color:#FFD60A;margin-right:4px"></i> Favorites</div>';
+                favs.forEach(function(c) { html += contactRowHtml(c); });
+            }
+
+            // Alphabetical sections
+            var grouped = {};
+            others.forEach(function(c) {
+                var letter = (c.name || '?')[0].toUpperCase();
+                if (!/[A-Z]/.test(letter)) letter = '#';
+                if (!grouped[letter]) grouped[letter] = [];
+                grouped[letter].push(c);
+            });
+
+            var letters = Object.keys(grouped).sort();
+            letters.forEach(function(letter) {
+                html += '<div class="section-letter">' + DreamApp.escapeHtml(letter) + '</div>';
+                grouped[letter].forEach(function(c) { html += contactRowHtml(c); });
+            });
+
+            container.innerHTML = html;
+
+            // Build alpha sidebar
+            var alphaHtml = '';
+            if (favs.length) alphaHtml += '<span onclick="scrollToLetter(\'★\')">★</span>';
+            letters.forEach(function(l) {
+                alphaHtml += '<span onclick="scrollToLetter(\'' + l + '\')">' + l + '</span>';
+            });
+            document.getElementById('alphaBar').innerHTML = alphaHtml;
+        }
+
+        function contactRowHtml(c) {
+            var hue = nameToHue(c.name || '');
+            var init = initial(c.name);
+            var id = c._id || c.id || '';
+            return '<div class="contact-row" onclick="openDetail(\'' + DreamApp.escapeHtml(id) + '\')">'
+                + '<div class="c-avatar" style="background:hsl(' + hue + ',55%,50%)">' + init + '</div>'
+                + '<div class="c-info">'
+                + '<div class="c-name">' + DreamApp.escapeHtml(c.name) + '</div>'
+                + '<div class="c-uuid">' + DreamApp.escapeHtml(c.uuid || '') + '</div>'
+                + '</div>'
+                + (c.favorite ? '<i class="fas fa-star c-fav"></i>' : '')
+                + '</div>';
+        }
+
+        function scrollToLetter(letter) {
+            var headers = document.querySelectorAll('.section-letter');
+            for (var i = 0; i < headers.length; i++) {
+                var text = headers[i].textContent.trim();
+                if (letter === '★' && text.includes('Favorites')) {
+                    headers[i].scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    return;
+                }
+                if (text === letter) {
+                    headers[i].scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    return;
+                }
+            }
+        }
+
+        function filterList() {
+            var q = document.getElementById('searchInput').value.trim().toLowerCase();
+            var rows = document.querySelectorAll('.contact-row');
+            var headers = document.querySelectorAll('.section-letter');
+            rows.forEach(function(row) {
+                var name = row.querySelector('.c-name').textContent.toLowerCase();
+                var uuid = row.querySelector('.c-uuid').textContent.toLowerCase();
+                row.style.display = (name.includes(q) || uuid.includes(q)) ? '' : 'none';
+            });
+            // Hide empty section headers
+            headers.forEach(function(hdr) {
+                var next = hdr.nextElementSibling;
+                var hasVisible = false;
+                while (next && !next.classList.contains('section-letter')) {
+                    if (next.style.display !== 'none') hasVisible = true;
+                    next = next.nextElementSibling;
+                }
+                hdr.style.display = hasVisible ? '' : 'none';
+            });
+        }
+
+        // ─── Detail View ───
+
+        function openDetail(id) {
+            currentContact = contacts.find(function(c) { return (c._id || c.id) === id; });
+            if (!currentContact) return;
+
+            var hue = nameToHue(currentContact.name || '');
+            document.getElementById('dAvatar').style.background = 'hsl(' + hue + ',55%,50%)';
+            document.getElementById('dAvatar').textContent = initial(currentContact.name);
+            document.getElementById('dName').textContent = currentContact.name || '—';
+            document.getElementById('dUuid').textContent = currentContact.uuid || '—';
+
+            // Favorite icon
+            var favIcon = document.getElementById('dFavIcon');
+            var favLabel = document.getElementById('dFavLabel');
+            if (currentContact.favorite) {
+                favIcon.className = 'fas fa-star';
+                favLabel.textContent = 'Unfavorite';
+            } else {
+                favIcon.className = 'far fa-star';
+                favLabel.textContent = 'Favorite';
+            }
+
+            // Info section
+            var infoHtml = '';
+            infoHtml += '<div class="detail-row"><div class="detail-label">UUID</div><div class="detail-value">' + DreamApp.escapeHtml(currentContact.uuid || '') + '</div></div>';
+            if (currentContact.phone) {
+                infoHtml += '<div class="detail-row"><div class="detail-label">Phone</div><div class="detail-value">' + DreamApp.escapeHtml(currentContact.phone) + '</div></div>';
+            }
+            if (currentContact.email) {
+                infoHtml += '<div class="detail-row"><div class="detail-label">Email</div><div class="detail-value">' + DreamApp.escapeHtml(currentContact.email) + '</div></div>';
+            }
+            if (currentContact.notes) {
+                infoHtml += '<div class="detail-row"><div class="detail-label">Notes</div><div class="detail-value">' + DreamApp.escapeHtml(currentContact.notes) + '</div></div>';
+            }
+            infoHtml += '<div class="detail-row"><div class="detail-label">Added</div><div class="detail-value">' + DreamApp.timeAgo(currentContact.createdAt || currentContact.updatedAt || new Date().toISOString()) + '</div></div>';
+            document.getElementById('dInfoSection').innerHTML = infoHtml;
+
+            switchView('detailView');
+        }
+
+        function sendText() {
+            if (!currentContact) return;
+            // Navigate to messages with this contact pre-selected
+            var uuid = encodeURIComponent(currentContact.uuid || '');
+            var name = encodeURIComponent(currentContact.name || '');
+            window.location.href = 'messages.html?contact=' + uuid + '&contactName=' + name;
+        }
+
+        async function toggleFavorite() {
+            if (!currentContact) return;
+            var id = currentContact._id || currentContact.id;
+            try {
+                var result = await apiToggleFavorite(id);
+                currentContact.favorite = result.favorite;
+                var favIcon = document.getElementById('dFavIcon');
+                var favLabel = document.getElementById('dFavLabel');
+                if (result.favorite) {
+                    favIcon.className = 'fas fa-star';
+                    favLabel.textContent = 'Unfavorite';
+                    DreamApp.toast('Added to favorites', 'success');
+                } else {
+                    favIcon.className = 'far fa-star';
+                    favLabel.textContent = 'Favorite';
+                    DreamApp.toast('Removed from favorites', 'info');
+                }
+            } catch (e) {
+                DreamApp.toast('Failed to update favorite', 'error');
+            }
+        }
+
+        function copyUUID() {
+            if (!currentContact) return;
+            try {
+                navigator.clipboard.writeText(currentContact.uuid);
+                DreamApp.toast('UUID copied!', 'success');
+            } catch (e) {
+                // Fallback
+                var ta = document.createElement('textarea');
+                ta.value = currentContact.uuid;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                DreamApp.toast('UUID copied!', 'success');
+            }
+        }
+
+        function confirmDelete() {
+            if (!currentContact) return;
+            if (!confirm('Delete ' + currentContact.name + '?')) return;
+            deleteContact();
+        }
+
+        async function deleteContact() {
+            var id = currentContact._id || currentContact.id;
+            try {
+                await apiDeleteContact(id);
+                contacts = contacts.filter(function(c) { return (c._id || c.id) !== id; });
+                currentContact = null;
+                DreamApp.toast('Contact deleted', 'info');
+                showList();
+            } catch (e) {
+                DreamApp.toast('Failed to delete', 'error');
+            }
+        }
+
+        // ─── Add / Edit Form ───
+
+        function showAddForm() {
+            editingId = null;
+            document.getElementById('formTitle').textContent = 'New Contact';
+            document.getElementById('fUuid').value = '';
+            document.getElementById('fName').value = '';
+            document.getElementById('fPhone').value = '';
+            document.getElementById('fEmail').value = '';
+            document.getElementById('fNotes').value = '';
+            document.getElementById('fUuid').removeAttribute('readonly');
+            switchView('formView');
+        }
+
+        function showEditForm() {
+            if (!currentContact) return;
+            editingId = currentContact._id || currentContact.id;
+            document.getElementById('formTitle').textContent = 'Edit Contact';
+            document.getElementById('fUuid').value = currentContact.uuid || '';
+            document.getElementById('fName').value = currentContact.name || '';
+            document.getElementById('fPhone').value = currentContact.phone || '';
+            document.getElementById('fEmail').value = currentContact.email || '';
+            document.getElementById('fNotes').value = currentContact.notes || '';
+            // UUID shouldn't change during edit
+            document.getElementById('fUuid').setAttribute('readonly', 'true');
+            switchView('formView');
+        }
+
+        function cancelForm() {
+            if (editingId) {
+                switchView('detailView');
+            } else {
+                showList();
+            }
+        }
+
+        async function saveContact() {
+            var uuid = document.getElementById('fUuid').value.trim();
+            var name = document.getElementById('fName').value.trim();
+            var phone = document.getElementById('fPhone').value.trim();
+            var email = document.getElementById('fEmail').value.trim();
+            var notes = document.getElementById('fNotes').value.trim();
+
+            if (!uuid) { DreamApp.toast('UUID is required', 'error'); return; }
+            if (!name) { DreamApp.toast('Name is required', 'error'); return; }
+
+            // Basic UUID format check (loose — allow SL keys)
+            if (uuid.length < 10) { DreamApp.toast('UUID looks too short', 'error'); return; }
+
+            try {
+                if (editingId) {
+                    // Update
+                    var result = await apiUpdateContact(editingId, { name: name, phone: phone, email: email, notes: notes });
+                    // Update local
+                    var idx = contacts.findIndex(function(c) { return (c._id || c.id) === editingId; });
+                    if (idx !== -1) {
+                        contacts[idx].name = name;
+                        contacts[idx].phone = phone;
+                        contacts[idx].email = email;
+                        contacts[idx].notes = notes;
+                    }
+                    currentContact = contacts[idx] || currentContact;
+                    DreamApp.toast('Contact updated', 'success');
+                    openDetail(editingId);
+                } else {
+                    // Create
+                    var result = await apiSaveContact({
+                        owner: DreamApp.getUserId(),
+                        uuid: uuid,
+                        name: name,
+                        phone: phone,
+                        email: email,
+                        notes: notes
+                    });
+                    if (result && result.contact) {
+                        contacts.push(result.contact);
+                        // Re-sort
+                        contacts.sort(function(a, b) {
+                            if (a.favorite !== b.favorite) return b.favorite ? 1 : -1;
+                            return (a.name || '').localeCompare(b.name || '');
+                        });
+                    }
+                    DreamApp.toast(name + ' added!', 'success');
+                    showList();
+                }
+            } catch (e) {
+                if (e.message && e.message.includes('409')) {
+                    DreamApp.toast('Contact with this UUID already exists', 'error');
+                } else {
+                    DreamApp.toast('Failed to save contact', 'error');
+                }
+            }
+        }
+
+        // ─── View Switching ───
+
+        function switchView(viewId) {
+            ['listView', 'detailView', 'formView'].forEach(function(id) {
+                document.getElementById(id).style.display = (id === viewId) ? '' : 'none';
+            });
+        }
+
+        function showList() {
+            renderList();
+            switchView('listView');
+        }
+
+        // ─── Init ───
+
+        document.addEventListener('DOMContentLoaded', function() {
+            DreamApp.init();
+            loadContacts();
+        });
+    </script>
+</body>
+</html>

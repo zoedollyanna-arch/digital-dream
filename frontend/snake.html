@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Dream Snake - Digital Dream</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .snake-wrap { padding: 12px; max-width: 440px; margin: 0 auto; text-align: center; }
+        .snake-stats {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 16px; background: var(--bg-glass, rgba(255,255,255,0.45));
+            border: 1px solid var(--border-glass, rgba(255,255,255,0.35));
+            border-radius: 14px; margin-bottom: 10px; font-size: 13px; font-weight: 600;
+        }
+        .snake-canvas-wrap {
+            position: relative; display: inline-block; border-radius: 14px; overflow: hidden;
+            border: 2px solid var(--border-glass, rgba(255,255,255,0.35));
+        }
+        #snakeCanvas { display: block; background: #1a1a2e; }
+        .snake-overlay {
+            position: absolute; inset: 0; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.65); color: #fff; border-radius: 14px;
+        }
+        .snake-overlay h2 { font-size: 22px; margin-bottom: 6px; }
+        .snake-overlay p { font-size: 13px; opacity: 0.8; margin-bottom: 14px; }
+        .snake-overlay button {
+            padding: 10px 28px; border-radius: 100px; border: none;
+            background: var(--primary, #007AFF); color: #fff;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            font-family: var(--font, 'Inter', sans-serif);
+        }
+        .dpad {
+            margin-top: 10px; display: grid;
+            grid-template-columns: 60px 60px 60px;
+            grid-template-rows: 50px 50px 50px;
+            gap: 4px; justify-content: center;
+        }
+        .dpad-btn {
+            border-radius: 12px; border: none; font-size: 20px; cursor: pointer;
+            background: var(--bg-glass, rgba(255,255,255,0.45));
+            border: 1px solid var(--border-glass, rgba(255,255,255,0.35));
+            color: var(--text-primary, #1C1C1E); display: flex;
+            align-items: center; justify-content: center;
+            font-family: var(--font, 'Inter', sans-serif);
+        }
+        .dpad-btn:active { background: rgba(0,122,255,0.15); transform: scale(0.92); }
+        .dpad-empty { visibility: hidden; }
+    </style>
+</head>
+<body>
+    <div class="tablet-bg"></div>
+    <div class="status-bar">
+        <div class="status-left"><span class="status-time" id="statusTime">12:00 PM</span></div>
+        <div class="status-right">
+            <i class="fas fa-wifi"></i><i class="fas fa-signal"></i>
+            <div class="battery"><div class="battery-bar"><div class="battery-fill"></div></div></div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <div class="app-header">
+            <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+            <div class="app-title">Dream Snake <small>Retro classic</small></div>
+        </div>
+        <div class="snake-wrap">
+            <div class="snake-stats">
+                <span>Score: <strong id="sScore">0</strong></span>
+                <span>Best: <strong id="sBest">0</strong></span>
+            </div>
+            <div class="snake-canvas-wrap">
+                <canvas id="snakeCanvas" width="280" height="280"></canvas>
+                <div class="snake-overlay" id="sOverlay">
+                    <h2 id="sOTitle">Dream Snake</h2>
+                    <p id="sOMsg">Tap Play to start!</p>
+                    <button onclick="startGame()">Play</button>
+                </div>
+            </div>
+            <div class="dpad">
+                <div class="dpad-empty"></div>
+                <button class="dpad-btn" onclick="setDir(0,-1)"><i class="fas fa-chevron-up"></i></button>
+                <div class="dpad-empty"></div>
+                <button class="dpad-btn" onclick="setDir(-1,0)"><i class="fas fa-chevron-left"></i></button>
+                <button class="dpad-btn" onclick="setDir(0,1)"><i class="fas fa-chevron-down"></i></button>
+                <button class="dpad-btn" onclick="setDir(1,0)"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="messages.html" class="nav-item"><i class="fas fa-comment"></i><span>Chat</span></a>
+        <a href="dreamstore.html" class="nav-item"><i class="fas fa-store"></i><span>Store</span></a>
+        <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        var canvas = document.getElementById('snakeCanvas');
+        var ctx = canvas.getContext('2d');
+        var GRID = 20, COLS = canvas.width / GRID, ROWS = canvas.height / GRID;
+        var snake = [], food = { x: 10, y: 10 }, dir, nextDir, score, best, interval, running;
+
+        var snakeData = {};
+
+        async function loadBest() {
+            var dbData = await DreamApp.loadAppData('snake');
+            if (dbData && typeof dbData === 'object') {
+                snakeData = dbData;
+                best = snakeData.best || 0;
+            } else {
+                best = parseInt(localStorage.getItem('dd-snake-best') || '0', 10);
+                snakeData = { best: best };
+                if (best) DreamApp.saveAppData('snake', snakeData);
+            }
+            document.getElementById('sBest').textContent = best;
+        }
+
+        function startGame() {
+            snake = [{x:7,y:7},{x:6,y:7},{x:5,y:7}];
+            dir = {x:1,y:0}; nextDir = {x:1,y:0};
+            score = 0; running = true;
+            document.getElementById('sScore').textContent = '0';
+            document.getElementById('sOverlay').style.display = 'none';
+            spawnFood();
+            if (interval) clearInterval(interval);
+            interval = setInterval(tick, 130);
+        }
+
+        function spawnFood() {
+            do { food = { x: Math.floor(Math.random()*COLS), y: Math.floor(Math.random()*ROWS) }; }
+            while (snake.some(function(s){ return s.x===food.x && s.y===food.y; }));
+        }
+
+        function setDir(dx, dy) {
+            if (!running) return;
+            if (dir.x === -dx && dir.y === 0 && dx !== 0) return;
+            if (dir.y === -dy && dir.x === 0 && dy !== 0) return;
+            nextDir = {x:dx,y:dy};
+        }
+
+        document.addEventListener('keydown', function(e) {
+            var map = { ArrowUp:[0,-1], ArrowDown:[0,1], ArrowLeft:[-1,0], ArrowRight:[1,0],
+                        w:[0,-1], s:[0,1], a:[-1,0], d:[1,0] };
+            var d = map[e.key];
+            if (d) { e.preventDefault(); setDir(d[0],d[1]); }
+        });
+
+        function tick() {
+            dir = nextDir;
+            var head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+
+            if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) { gameOver(); return; }
+            if (snake.some(function(s){ return s.x===head.x && s.y===head.y; })) { gameOver(); return; }
+
+            snake.unshift(head);
+
+            if (head.x === food.x && head.y === food.y) {
+                score++;
+                document.getElementById('sScore').textContent = score;
+                DreamApp.playTap();
+                spawnFood();
+            } else {
+                snake.pop();
+            }
+            draw();
+        }
+
+        function draw() {
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            /* grid lines */
+            ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+            for (var x = 0; x < COLS; x++) { ctx.beginPath(); ctx.moveTo(x*GRID,0); ctx.lineTo(x*GRID,canvas.height); ctx.stroke(); }
+            for (var y = 0; y < ROWS; y++) { ctx.beginPath(); ctx.moveTo(0,y*GRID); ctx.lineTo(canvas.width,y*GRID); ctx.stroke(); }
+
+            if (food) {
+                ctx.fillStyle = '#FF6B9D';
+                ctx.beginPath();
+                ctx.arc(food.x*GRID+GRID/2, food.y*GRID+GRID/2, GRID/2-2, 0, Math.PI*2);
+                ctx.fill();
+            }
+
+            (snake || []).forEach(function(s, i) {
+                ctx.fillStyle = i === 0 ? '#5AC8FA' : '#007AFF';
+                ctx.beginPath();
+                ctx.roundRect(s.x*GRID+1, s.y*GRID+1, GRID-2, GRID-2, 4);
+                ctx.fill();
+            });
+        }
+
+        function gameOver() {
+            running = false;
+            clearInterval(interval);
+            if (score > best) {
+                best = score;
+                snakeData.best = best;
+                DreamApp.saveAppData('snake', snakeData);
+                document.getElementById('sBest').textContent = best;
+                DreamApp.toast('New high score!', 'success');
+            }
+            DreamApp.playNotification();
+            document.getElementById('sOTitle').textContent = 'Game Over';
+            document.getElementById('sOMsg').textContent = 'Score: ' + score;
+            document.getElementById('sOverlay').style.display = '';
+        }
+
+        /* roundRect polyfill for older CEF */
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r) {
+                this.moveTo(x+r,y);
+                this.lineTo(x+w-r,y); this.quadraticCurveTo(x+w,y,x+w,y+r);
+                this.lineTo(x+w,y+h-r); this.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+                this.lineTo(x+r,y+h); this.quadraticCurveTo(x,y+h,x,y+h-r);
+                this.lineTo(x,y+r); this.quadraticCurveTo(x,y,x+r,y);
+            };
+        }
+
+        document.addEventListener('DOMContentLoaded', async function() { await loadBest(); draw(); });
+    </script>
+</body>
+</html>

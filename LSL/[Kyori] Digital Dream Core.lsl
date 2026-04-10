@@ -105,6 +105,14 @@ default
         gOwnerName = llGetDisplayName(gOwner);
         if (gOwnerName == "" || gOwnerName == "???")
             gOwnerName = llKey2Name(gOwner);
+
+        // Auto-boot: show loading screen immediately on attach/rez
+        if (llGetAttached() != 0)
+        {
+            gCurrentApp = "boot";
+            setScreen("boot.html");
+            registerWithServer();
+        }
     }
 
     on_rez(integer start)
@@ -118,6 +126,24 @@ default
             llResetScript();
     }
 
+    attach(key id)
+    {
+        if (id != NULL_KEY)
+        {
+            // Just attached — auto-boot if not already running
+            if (gCurrentApp == "off" || gCurrentApp == "")
+            {
+                gOwner = llGetOwner();
+                gOwnerName = llGetDisplayName(gOwner);
+                if (gOwnerName == "" || gOwnerName == "???")
+                    gOwnerName = llKey2Name(gOwner);
+                gCurrentApp = "boot";
+                setScreen("boot.html");
+                registerWithServer();
+            }
+        }
+    }
+
     touch_start(integer n)
     {
         key toucher = llDetectedKey(0);
@@ -129,10 +155,11 @@ default
 
         if (gCurrentApp == "off" || gCurrentApp == "")
         {
-            // Power on - show home screen
-            gCurrentApp = "home";
-            setScreen("index.html");
+            // Power on from off state — boot sequence
+            gCurrentApp = "boot";
+            setScreen("boot.html");
             registerWithServer();
+            return;
         }
 
         showMainMenu(toucher);

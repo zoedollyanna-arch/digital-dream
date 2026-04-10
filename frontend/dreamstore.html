@@ -135,13 +135,23 @@
                 { id: 'trivia', name: 'Dream Trivia', desc: 'Fun quiz challenges', icon: 'fas fa-brain', color: '#FF2D55', tag: 'popular', page: 'trivia.html' },
                 { id: 'memory', name: 'Memory Match', desc: 'Card matching game', icon: 'fas fa-th', color: '#5AC8FA', tag: 'new', page: 'memory.html' },
                 { id: 'tictactoe', name: 'Tic-Tac-Toe', desc: 'Classic X & O game', icon: 'fas fa-times', color: '#007AFF', tag: '', page: 'tictactoe.html' },
-                { id: 'snake', name: 'Dream Snake', desc: 'Retro snake game', icon: 'fas fa-snake', color: '#34C759', tag: 'new', page: 'snake.html' }
+                { id: 'snake', name: 'Dream Snake', desc: 'Retro snake game', icon: 'fas fa-gamepad', color: '#34C759', tag: 'new', page: 'snake.html' }
             ],
             social: [
                 { id: 'doodle', name: 'Doodle Pad', desc: 'Draw & share art', icon: 'fas fa-paint-brush', color: '#BF5AF2', tag: 'popular', page: 'doodle.html' },
                 { id: 'photos', name: 'Photo Album', desc: 'Save SL snapshots', icon: 'fas fa-camera', color: '#FF6259', tag: '', page: 'photos.html' }
             ]
         };
+        var installingApps = {};
+
+        function wait(ms) {
+            return new Promise(function(resolve) { setTimeout(resolve, ms); });
+        }
+
+        function findApp(id) {
+            var all = storeApps.productivity.concat(storeApps.games, storeApps.social);
+            return all.find(function(app) { return app.id === id; });
+        }
 
         function getInstalled() {
             return JSON.parse(localStorage.getItem('dd-installed-apps') || '[]');
@@ -149,20 +159,42 @@
 
         function setInstalled(list) {
             localStorage.setItem('dd-installed-apps', JSON.stringify(list));
+            DreamApp.syncSetting('installedApps', list);
         }
 
         function isInstalled(id) {
             return getInstalled().indexOf(id) !== -1;
         }
 
-        function installApp(id) {
+        async function installApp(id) {
+            if (installingApps[id] || isInstalled(id)) return;
+
+            var app = findApp(id);
             var list = getInstalled();
+            if (!app) return;
+
+            installingApps[id] = true;
+            renderStore();
+
+            var progress = 0;
+            DreamApp.toast('Downloading ' + app.name + '... 0%');
+            while (progress < 100) {
+                await wait(140);
+                progress = Math.min(100, progress + Math.floor(Math.random() * 18) + 8);
+                DreamApp.toast('Downloading ' + app.name + '... ' + progress + '%');
+            }
+
+            DreamApp.toast('Installing ' + app.name + '...');
+            await wait(700);
+
             if (list.indexOf(id) === -1) {
                 list.push(id);
                 setInstalled(list);
             }
+
+            delete installingApps[id];
             renderStore();
-            DreamApp.toast('App installed!', 'success');
+            DreamApp.toast(app.name + ' installed!', 'success');
         }
 
         function uninstallApp(id) {
@@ -186,6 +218,8 @@
             if (installed) {
                 btn = '<button class="store-btn store-btn-open" onclick="event.stopPropagation();openApp(\'' + DreamApp.escapeHtml(app.page) + '\')">Open</button>'
                     + ' <button class="store-btn" style="background:none;color:var(--danger,#FF3B30);font-size:10px;padding:6px 8px" onclick="event.stopPropagation();uninstallApp(\'' + DreamApp.escapeHtml(app.id) + '\')" title="Remove"><i class="fas fa-trash"></i></button>';
+            } else if (installingApps[app.id]) {
+                btn = '<button class="store-btn store-btn-get" disabled style="opacity:.75">...</button>';
             } else {
                 btn = '<button class="store-btn store-btn-get" onclick="event.stopPropagation();installApp(\'' + DreamApp.escapeHtml(app.id) + '\')">GET</button>';
             }

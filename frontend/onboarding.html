@@ -746,6 +746,12 @@
         /* ── Finish ── */
         function finishOnboarding() {
             localStorage.setItem('dd-onboarded', 'true');
+
+            // Save profile to backend for persistence across reattach
+            DreamApp.saveProfile();
+
+            DreamApp.playSuccess();
+
             document.querySelector('.onboarding-wrap').style.transition = 'opacity 0.5s ease';
             document.querySelector('.onboarding-wrap').style.opacity = '0';
             setTimeout(() => {

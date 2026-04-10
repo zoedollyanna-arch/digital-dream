@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Digital Dream</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            width: 100vw; height: 100vh; overflow: hidden;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 30%, #f093fb 60%, #a1c4fd 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease infinite;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* ── Cloud Layer ── */
+        .cloud-layer {
+            position: fixed; inset: 0; pointer-events: none; overflow: hidden;
+        }
+
+        .cloud {
+            position: absolute;
+            background: rgba(255,255,255,0.25);
+            border-radius: 50%;
+            filter: blur(20px);
+        }
+
+        .cloud-1 {
+            width: 300px; height: 120px; top: 10%; left: -30%;
+            animation: cloudDrift1 12s ease-in-out infinite;
+        }
+        .cloud-2 {
+            width: 250px; height: 100px; top: 30%; right: -25%;
+            animation: cloudDrift2 15s ease-in-out infinite;
+            animation-delay: 2s;
+        }
+        .cloud-3 {
+            width: 200px; height: 80px; top: 55%; left: -20%;
+            animation: cloudDrift1 18s ease-in-out infinite;
+            animation-delay: 4s; opacity: 0.6;
+        }
+        .cloud-4 {
+            width: 350px; height: 140px; top: 75%; right: -35%;
+            animation: cloudDrift2 14s ease-in-out infinite;
+            animation-delay: 1s; opacity: 0.4;
+        }
+        .cloud-5 {
+            width: 180px; height: 70px; top: 20%; left: 30%;
+            animation: cloudFloat 6s ease-in-out infinite;
+            opacity: 0.3;
+        }
+
+        @keyframes cloudDrift1 {
+            0% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(120vw) translateY(-20px); }
+            100% { transform: translateX(0) translateY(0); }
+        }
+        @keyframes cloudDrift2 {
+            0% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(-120vw) translateY(15px); }
+            100% { transform: translateX(0) translateY(0); }
+        }
+        @keyframes cloudFloat {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-15px) scale(1.05); }
+        }
+
+        /* ── Sparkle particles ── */
+        .sparkles {
+            position: fixed; inset: 0; pointer-events: none; overflow: hidden;
+        }
+        .sparkle {
+            position: absolute; width: 4px; height: 4px;
+            background: #fff; border-radius: 50%;
+            animation: sparkleAnim 3s ease-in-out infinite;
+        }
+
+        @keyframes sparkleAnim {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 0.8; transform: scale(1); }
+        }
+
+        /* ── Center Content ── */
+        .boot-center {
+            position: relative; z-index: 10;
+            display: flex; flex-direction: column;
+            align-items: center; gap: 24px;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cloud icon */
+        .boot-icon {
+            width: 100px; height: 100px;
+            border-radius: 28px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.3);
+            display: flex; align-items: center; justify-content: center;
+            animation: iconBreathe 3s ease-in-out infinite;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        @keyframes iconBreathe {
+            0%, 100% { transform: scale(1); box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+            50% { transform: scale(1.05); box-shadow: 0 12px 48px rgba(0,0,0,0.15); }
+        }
+
+        .boot-icon svg {
+            width: 54px; height: 54px; fill: #fff;
+            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));
+        }
+
+        .boot-title {
+            font-size: 28px; font-weight: 600; color: #fff;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.15);
+        }
+
+        .boot-status {
+            font-size: 14px; font-weight: 400; color: rgba(255,255,255,0.8);
+            min-height: 20px;
+            transition: opacity 0.3s ease;
+        }
+
+        /* ── Progress Bar ── */
+        .progress-track {
+            width: 220px; height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px; overflow: hidden;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .progress-fill {
+            width: 0%; height: 100%;
+            background: #fff;
+            border-radius: 2px;
+            transition: width 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 0 8px rgba(255,255,255,0.5);
+        }
+
+        /* ── Fade out transition ── */
+        .boot-fadeout {
+            animation: bootFadeOut 0.6s ease-in forwards;
+        }
+
+        @keyframes bootFadeOut {
+            to { opacity: 0; transform: scale(1.05); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Clouds -->
+    <div class="cloud-layer">
+        <div class="cloud cloud-1"></div>
+        <div class="cloud cloud-2"></div>
+        <div class="cloud cloud-3"></div>
+        <div class="cloud cloud-4"></div>
+        <div class="cloud cloud-5"></div>
+    </div>
+
+    <!-- Sparkles -->
+    <div class="sparkles" id="sparkles"></div>
+
+    <!-- Boot Content -->
+    <div class="boot-center" id="bootCenter">
+        <div class="boot-icon">
+            <!-- Cloud SVG icon -->
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/>
+            </svg>
+        </div>
+        <div class="boot-title">Digital Dream</div>
+        <div class="boot-status" id="bootStatus">Starting up...</div>
+        <div class="progress-track">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+
+    <script>
+        /* ── Boot Sound (soft chime using Web Audio API) ── */
+        function playBootChime() {
+            try {
+                var ctx = new (window.AudioContext || window.webkitAudioContext)();
+                var notes = [523.25, 659.25, 783.99]; // C5, E5, G5 — major chord arpeggio
+                notes.forEach(function(freq, i) {
+                    var osc = ctx.createOscillator();
+                    var gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.15);
+                    gain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + i * 0.15 + 0.05);
+                    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + i * 0.15 + 0.8);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(ctx.currentTime + i * 0.15);
+                    osc.stop(ctx.currentTime + i * 0.15 + 0.8);
+                });
+            } catch (e) { /* Audio not supported — silent boot */ }
+        }
+
+        /* ── Sparkle Generator ── */
+        function createSparkles() {
+            var container = document.getElementById('sparkles');
+            for (var i = 0; i < 20; i++) {
+                var s = document.createElement('div');
+                s.className = 'sparkle';
+                s.style.left = Math.random() * 100 + '%';
+                s.style.top = Math.random() * 100 + '%';
+                s.style.animationDelay = (Math.random() * 3) + 's';
+                s.style.animationDuration = (2 + Math.random() * 2) + 's';
+                s.style.width = s.style.height = (2 + Math.random() * 4) + 'px';
+                container.appendChild(s);
+            }
+        }
+
+        /* ── Progress Stages ── */
+        var progress = document.getElementById('progressFill');
+        var status = document.getElementById('bootStatus');
+
+        function setProgress(pct, text) {
+            progress.style.width = pct + '%';
+            if (text) status.textContent = text;
+        }
+
+        function getParam(name) {
+            var params = new URLSearchParams(window.location.search);
+            return params.get(name);
+        }
+
+        /* ── Boot Sequence ── */
+        async function boot() {
+            var uuid = getParam('uuid') || '';
+            var name = getParam('name') || '';
+            var apiBase = '';
+
+            // Determine API base from current origin
+            apiBase = window.location.origin;
+
+            createSparkles();
+
+            // Play boot chime after a brief delay
+            setTimeout(playBootChime, 400);
+
+            // Stage 1 — Connecting
+            setProgress(15, 'Connecting...');
+            await delay(800);
+
+            // Stage 2 — Check server
+            setProgress(30, 'Reaching the cloud...');
+            var serverOk = false;
+            try {
+                var healthRes = await fetch(apiBase + '/api/health');
+                serverOk = healthRes.ok;
+            } catch (e) { /* offline */ }
+
+            if (!serverOk) {
+                setProgress(100, 'Offline mode');
+                await delay(1000);
+                redirect(uuid, name);
+                return;
+            }
+
+            await delay(600);
+
+            // Stage 3 — Load profile
+            setProgress(55, 'Loading your dream...');
+            var profile = null;
+            if (uuid) {
+                try {
+                    var profRes = await fetch(apiBase + '/api/profile?uuid=' + encodeURIComponent(uuid));
+                    var profData = await profRes.json();
+                    if (profData.found) profile = profData.profile;
+                } catch (e) { /* no profile */ }
+            }
+
+            await delay(700);
+
+            // Stage 4 — Restore or setup
+            if (profile && profile.onboarded) {
+                setProgress(80, 'Restoring settings...');
+                restoreProfile(profile, uuid, name);
+                await delay(600);
+                setProgress(100, 'Welcome back, ' + (profile.name || 'Dreamer') + '!');
+                await delay(800);
+                fadeAndGo('index.html', uuid, name);
+            } else {
+                setProgress(80, 'Preparing setup...');
+                // Store uuid/name for onboarding
+                try {
+                    localStorage.setItem('dd-uuid', uuid);
+                    if (name) localStorage.setItem('dd-name', name);
+                } catch (e) {}
+                await delay(600);
+                setProgress(100, 'Let\'s get started!');
+                await delay(800);
+                fadeAndGo('onboarding.html', uuid, name);
+            }
+        }
+
+        /* ── Restore profile to localStorage ── */
+        function restoreProfile(p, uuid, name) {
+            try {
+                if (uuid) localStorage.setItem('dd-uuid', uuid);
+                if (p.name) localStorage.setItem('dd-name', p.name);
+                if (p.theme) localStorage.setItem('dd-theme', p.theme);
+                if (p.wallpaper !== undefined) localStorage.setItem('dd-wallpaper', p.wallpaper);
+                if (p.zoom) localStorage.setItem('dd-zoom', String(p.zoom));
+                localStorage.setItem('dd-onboarded', 'true');
+
+                if (p.notifications) {
+                    localStorage.setItem('dd-setting-notifs', String(p.notifications.notifs !== false));
+                    localStorage.setItem('dd-setting-discordNotifs', String(p.notifications.discordNotifs !== false));
+                    localStorage.setItem('dd-setting-sound', String(p.notifications.sound === true));
+                }
+
+                if (p.discord && p.discord.webhook) {
+                    localStorage.setItem('dd-discord-config', JSON.stringify(p.discord));
+                }
+
+                if (p.installedApps && p.installedApps.length > 0) {
+                    localStorage.setItem('dd-installed-apps', JSON.stringify(p.installedApps));
+                }
+            } catch (e) { /* localStorage unavailable */ }
+        }
+
+        /* ── Navigate with fade ── */
+        function fadeAndGo(page, uuid, name) {
+            document.body.classList.add('boot-fadeout');
+            setTimeout(function() {
+                redirect(uuid, name, page);
+            }, 550);
+        }
+
+        function redirect(uuid, name, page) {
+            page = page || 'index.html';
+            var qs = '';
+            if (uuid || name) {
+                var parts = [];
+                if (uuid) parts.push('uuid=' + encodeURIComponent(uuid));
+                if (name) parts.push('name=' + encodeURIComponent(name));
+                qs = '?' + parts.join('&');
+            }
+            window.location.replace(page + qs);
+        }
+
+        function delay(ms) {
+            return new Promise(function(resolve) { setTimeout(resolve, ms); });
+        }
+
+        /* ── Start ── */
+        boot();
+    </script>
+</body>
+</html>

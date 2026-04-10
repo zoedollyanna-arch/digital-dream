@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Dream Trivia - Digital Dream</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .trivia-wrap { padding: 16px; max-width: 440px; margin: 0 auto; }
+        .trivia-score {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 16px; background: var(--bg-glass, rgba(255,255,255,0.45));
+            border: 1px solid var(--border-glass, rgba(255,255,255,0.35));
+            border-radius: 14px; margin-bottom: 16px; font-size: 13px; font-weight: 600;
+        }
+        .score-val { color: var(--primary, #007AFF); font-size: 18px; }
+        .trivia-q-num { font-size: 12px; color: var(--text-muted, #8E8E93); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .trivia-question {
+            font-size: 18px; font-weight: 600; color: var(--text-primary, #1C1C1E);
+            line-height: 1.4; margin-bottom: 20px; min-height: 60px;
+        }
+        .trivia-answers { display: flex; flex-direction: column; gap: 10px; }
+        .trivia-ans {
+            padding: 14px 16px; border-radius: 14px;
+            background: var(--bg-glass, rgba(255,255,255,0.45));
+            border: 2px solid var(--border-glass, rgba(255,255,255,0.35));
+            font-size: 15px; font-weight: 500; cursor: pointer;
+            transition: all 0.2s ease; text-align: left;
+            color: var(--text-primary, #1C1C1E); font-family: var(--font, 'Inter', sans-serif);
+        }
+        .trivia-ans:hover { border-color: var(--primary, #007AFF); background: rgba(0,122,255,0.05); }
+        .trivia-ans:active { transform: scale(0.98); }
+        .trivia-ans.correct { border-color: var(--success, #34C759); background: rgba(52,199,89,0.12); color: var(--success, #34C759); }
+        .trivia-ans.wrong { border-color: var(--danger, #FF3B30); background: rgba(255,59,48,0.08); color: var(--danger, #FF3B30); }
+        .trivia-ans:disabled { cursor: default; opacity: 0.85; }
+        .trivia-next {
+            margin-top: 20px; padding: 12px; width: 100%; border-radius: 100px;
+            background: var(--primary, #007AFF); color: #fff; border: none;
+            font-size: 15px; font-weight: 600; cursor: pointer;
+            display: none; transition: all 0.2s ease;
+            font-family: var(--font, 'Inter', sans-serif);
+        }
+        .trivia-next:hover { opacity: 0.85; }
+        .trivia-end {
+            text-align: center; padding: 40px 20px; display: none;
+        }
+        .trivia-end h2 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
+        .trivia-end .final-score { font-size: 48px; font-weight: 700; color: var(--primary, #007AFF); }
+        .trivia-end p { font-size: 14px; color: var(--text-muted, #8E8E93); margin-top: 8px; }
+        .trivia-end button {
+            margin-top: 20px; padding: 12px 32px; border-radius: 100px;
+            background: var(--primary, #007AFF); color: #fff; border: none;
+            font-size: 15px; font-weight: 600; cursor: pointer;
+            font-family: var(--font, 'Inter', sans-serif);
+        }
+    </style>
+</head>
+<body>
+    <div class="tablet-bg"></div>
+    <div class="status-bar">
+        <div class="status-left"><span class="status-time" id="statusTime">12:00 PM</span></div>
+        <div class="status-right">
+            <i class="fas fa-wifi"></i><i class="fas fa-signal"></i>
+            <div class="battery"><div class="battery-bar"><div class="battery-fill"></div></div></div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <div class="app-header">
+            <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+            <div class="app-title">Dream Trivia <small>Test your knowledge</small></div>
+        </div>
+        <div class="trivia-wrap">
+            <div class="trivia-score">
+                <span>Score: <span class="score-val" id="tScore">0</span></span>
+                <span id="tProgress">1 / 10</span>
+            </div>
+            <div id="tGame">
+                <div class="trivia-q-num" id="tQNum">Question 1</div>
+                <div class="trivia-question" id="tQuestion"></div>
+                <div class="trivia-answers" id="tAnswers"></div>
+                <button class="trivia-next" id="tNext" onclick="nextQuestion()">Next Question</button>
+            </div>
+            <div class="trivia-end" id="tEnd">
+                <h2>Quiz Complete!</h2>
+                <div class="final-score" id="tFinal">0</div>
+                <p id="tMsg">Great effort!</p>
+                <button onclick="startGame()">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="messages.html" class="nav-item"><i class="fas fa-comment"></i><span>Chat</span></a>
+        <a href="dreamstore.html" class="nav-item"><i class="fas fa-store"></i><span>Store</span></a>
+        <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        var questions = [
+            { q: "What is the capital of France?", a: ["Paris","London","Berlin","Madrid"], c: 0 },
+            { q: "How many continents are there?", a: ["5","6","7","8"], c: 2 },
+            { q: "What planet is known as the Red Planet?", a: ["Venus","Mars","Jupiter","Saturn"], c: 1 },
+            { q: "What is the largest ocean?", a: ["Atlantic","Indian","Arctic","Pacific"], c: 3 },
+            { q: "How many colors are in a rainbow?", a: ["5","6","7","8"], c: 2 },
+            { q: "What is H2O commonly known as?", a: ["Oxygen","Hydrogen","Water","Salt"], c: 2 },
+            { q: "Which animal is the tallest?", a: ["Elephant","Giraffe","Horse","Camel"], c: 1 },
+            { q: "What year did the Titanic sink?", a: ["1905","1912","1920","1898"], c: 1 },
+            { q: "What is the hardest natural substance?", a: ["Gold","Iron","Diamond","Quartz"], c: 2 },
+            { q: "How many legs does a spider have?", a: ["6","8","10","12"], c: 1 },
+            { q: "What is the fastest land animal?", a: ["Lion","Cheetah","Horse","Gazelle"], c: 1 },
+            { q: "What gas do plants breathe in?", a: ["Oxygen","Nitrogen","Carbon Dioxide","Helium"], c: 2 },
+            { q: "What is the largest planet in our solar system?", a: ["Saturn","Neptune","Jupiter","Uranus"], c: 2 },
+            { q: "How many bones does an adult human have?", a: ["186","206","226","256"], c: 1 },
+            { q: "What is the smallest country in the world?", a: ["Monaco","Vatican City","Malta","Luxembourg"], c: 1 },
+        ];
+
+        var gameQuestions, qIndex, score, answered;
+
+        function shuffle(arr) {
+            for (var i = arr.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+            }
+            return arr;
+        }
+
+        var triviaData = {};
+
+        async function loadTriviaData() {
+            var dbData = await DreamApp.loadAppData('trivia');
+            if (dbData && typeof dbData === 'object') {
+                triviaData = dbData;
+            } else {
+                triviaData = { best: parseInt(localStorage.getItem('dd-trivia-best') || '0', 10) };
+                if (triviaData.best) DreamApp.saveAppData('trivia', triviaData);
+            }
+        }
+
+        function startGame() {
+            gameQuestions = shuffle(questions.slice()).slice(0, 10);
+            qIndex = 0; score = 0; answered = false;
+            document.getElementById('tGame').style.display = '';
+            document.getElementById('tEnd').style.display = 'none';
+            document.getElementById('tScore').textContent = '0';
+            showQuestion();
+        }
+
+        function showQuestion() {
+            answered = false;
+            var q = gameQuestions[qIndex];
+            document.getElementById('tQNum').textContent = 'Question ' + (qIndex + 1);
+            document.getElementById('tQuestion').textContent = q.q;
+            document.getElementById('tProgress').textContent = (qIndex + 1) + ' / ' + gameQuestions.length;
+            document.getElementById('tNext').style.display = 'none';
+
+            var html = q.a.map(function(a, i) {
+                return '<button class="trivia-ans" onclick="answer(' + i + ',' + q.c + ')">' + DreamApp.escapeHtml(a) + '</button>';
+            }).join('');
+            document.getElementById('tAnswers').innerHTML = html;
+        }
+
+        function answer(picked, correct) {
+            if (answered) return;
+            answered = true;
+            var btns = document.querySelectorAll('.trivia-ans');
+            btns.forEach(function(b, i) {
+                b.disabled = true;
+                if (i === correct) b.classList.add('correct');
+                else if (i === picked) b.classList.add('wrong');
+            });
+            if (picked === correct) {
+                score++;
+                document.getElementById('tScore').textContent = score;
+                DreamApp.playSuccess();
+            } else {
+                DreamApp.playTap();
+            }
+            if (qIndex < gameQuestions.length - 1) {
+                document.getElementById('tNext').style.display = '';
+            } else {
+                setTimeout(endGame, 1200);
+            }
+        }
+
+        function nextQuestion() { qIndex++; showQuestion(); }
+
+        function endGame() {
+            document.getElementById('tGame').style.display = 'none';
+            document.getElementById('tEnd').style.display = '';
+            document.getElementById('tFinal').textContent = score + ' / ' + gameQuestions.length;
+            var pct = score / gameQuestions.length;
+            var msg = pct >= 0.9 ? 'Amazing! You\'re a genius!' : pct >= 0.7 ? 'Great job!' : pct >= 0.5 ? 'Not bad!' : 'Keep trying!';
+            document.getElementById('tMsg').textContent = msg;
+
+            var best = triviaData.best || 0;
+            if (score > best) { triviaData.best = score; DreamApp.saveAppData('trivia', triviaData); DreamApp.toast('New high score!', 'success'); }
+        }
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadTriviaData();
+            startGame();
+        });
+    </script>
+</body>
+</html>

@@ -12,6 +12,7 @@ const DreamApp = {
     setTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('dd-theme', theme);
+        this.syncSetting('theme', theme);
     },
 
     getTheme() {
@@ -35,6 +36,85 @@ const DreamApp = {
         el.textContent = h + ':' + m + ' ' + ampm;
     },
 
+    /* --- Sound System --- */
+    _audioCtx: null,
+
+    _getAudioCtx() {
+        if (!this._audioCtx) {
+            try { this._audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+            catch (e) { return null; }
+        }
+        return this._audioCtx;
+    },
+
+    soundEnabled() {
+        return localStorage.getItem('dd-setting-sound') === 'true';
+    },
+
+    playTap() {
+        if (!this.soundEnabled()) return;
+        var ctx = this._getAudioCtx();
+        if (!ctx) return;
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = 1200;
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.08);
+    },
+
+    playNotification() {
+        if (!this.soundEnabled()) return;
+        var ctx = this._getAudioCtx();
+        if (!ctx) return;
+        var notes = [880, 1046.5]; // A5, C6
+        notes.forEach(function(freq, i) {
+            var osc = ctx.createOscillator();
+            var gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.12);
+            gain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + i * 0.12 + 0.03);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.12 + 0.3);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(ctx.currentTime + i * 0.12);
+            osc.stop(ctx.currentTime + i * 0.12 + 0.3);
+        });
+    },
+
+    playSuccess() {
+        if (!this.soundEnabled()) return;
+        var ctx = this._getAudioCtx();
+        if (!ctx) return;
+        var notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+        notes.forEach(function(freq, i) {
+            var osc = ctx.createOscillator();
+            var gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.1);
+            gain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + i * 0.1 + 0.03);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.1 + 0.4);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(ctx.currentTime + i * 0.1);
+            osc.stop(ctx.currentTime + i * 0.1 + 0.4);
+        });
+    },
+
+    /* Attach tap sounds to all clickable elements */
+    initSounds() {
+        document.addEventListener('click', function(e) {
+            var el = e.target.closest('a, button, .app-icon, .nav-item, .settings-item, .theme-option, .wp-swatch, .ob-btn, .ob-theme-chip, .ob-connect-card');
+            if (el) DreamApp.playTap();
+        }, true);
+    },
+
     /* --- Toast Notifications --- */
     toast(message, type = 'info') {
         let toast = document.getElementById('ddToast');
@@ -44,10 +124,13 @@ const DreamApp = {
             toast.className = 'toast';
             document.body.appendChild(toast);
         }
+        if (this._toastTimer) clearTimeout(this._toastTimer);
         toast.textContent = message;
         toast.className = 'toast ' + type;
         requestAnimationFrame(() => toast.classList.add('show'));
-        setTimeout(() => toast.classList.remove('show'), 2500);
+        if (type === 'success') this.playSuccess();
+        else if (type !== 'info') this.playNotification();
+        this._toastTimer = setTimeout(() => toast.classList.remove('show'), 2500);
     },
 
     /* --- API Helpers --- */
@@ -85,6 +168,53 @@ const DreamApp = {
     setUser(uuid, name) {
         if (uuid) localStorage.setItem('dd-uuid', uuid);
         if (name) localStorage.setItem('dd-name', name);
+    },
+
+    /* --- Backend Profile Sync --- */
+    _syncTimer: null,
+
+    /* Debounced save: batches rapid setting changes into one API call */
+    syncSetting(key, value) {
+        // Guard: don't sync if no uuid
+        if (this.getUserId() === 'unknown') return;
+        if (this._syncTimer) clearTimeout(this._syncTimer);
+        this._syncTimer = setTimeout(() => this._doSync(), 1500);
+    },
+
+    /* Gather all current settings and push to backend */
+    async _doSync() {
+        var uuid = this.getUserId();
+        if (!uuid || uuid === 'unknown') return;
+        try {
+            var dc = null;
+            try { dc = JSON.parse(localStorage.getItem('dd-discord-config')); } catch(e) {}
+            var apps = [];
+            try { apps = JSON.parse(localStorage.getItem('dd-installed-apps') || '[]'); } catch(e) {}
+
+            await this.apiPost('/api/profile', {
+                uuid: uuid,
+                name: localStorage.getItem('dd-name') || 'Dreamer',
+                theme: localStorage.getItem('dd-theme') || 'light',
+                wallpaper: localStorage.getItem('dd-wallpaper') || '',
+                zoom: parseInt(localStorage.getItem('dd-zoom'), 10) || 150,
+                onboarded: localStorage.getItem('dd-onboarded') === 'true',
+                notifications: {
+                    notifs: localStorage.getItem('dd-setting-notifs') !== 'false',
+                    discordNotifs: localStorage.getItem('dd-setting-discordNotifs') !== 'false',
+                    sound: localStorage.getItem('dd-setting-sound') === 'true'
+                },
+                discord: dc || { webhook: '', name: '', channel: 'general' },
+                installedApps: apps
+            });
+        } catch (e) {
+            // Silent fail — offline or server issue
+        }
+    },
+
+    /* Force immediate sync (call after big changes like onboarding) */
+    async saveProfile() {
+        if (this._syncTimer) clearTimeout(this._syncTimer);
+        await this._doSync();
     },
 
     /* --- Browser Whitelist Check --- */
@@ -149,10 +279,21 @@ const DreamApp = {
         this.initTheme();
         this.initStatusBar();
         this.applyZoom();
+        this.applyWallpaper();
+        this.initSounds();
         // Store user info from URL params if present
         const uuid = this.getParam('uuid');
         const name = this.getParam('name');
         if (uuid || name) this.setUser(uuid, name);
+    },
+
+    /* --- Wallpaper --- */
+    applyWallpaper() {
+        var wp = localStorage.getItem('dd-wallpaper') || '';
+        var bg = document.querySelector('.tablet-bg');
+        if (!bg) return;
+        bg.className = bg.className.replace(/\bwp-\S+/g, '').trim();
+        if (wp) bg.classList.add('wp-' + wp);
     },
 
     /* --- Zoom Management --- */
@@ -170,12 +311,46 @@ const DreamApp = {
         level = Math.max(this.ZOOM_MIN, Math.min(this.ZOOM_MAX, level));
         localStorage.setItem('dd-zoom', level);
         this.applyZoom();
+        this.syncSetting('zoom', level);
         return level;
     },
 
     applyZoom() {
         var z = this.getZoom();
         document.documentElement.style.zoom = (z / 100);
+    },
+
+    /* --- App Data (DB-backed per-app storage) --- */
+
+    async loadAppData(appKey) {
+        var uuid = this.getUserId();
+        if (!uuid || uuid === 'unknown') return null;
+        try {
+            var data = await this.apiGet('/api/appdata?uuid=' + encodeURIComponent(uuid) + '&app=' + encodeURIComponent(appKey));
+            return (data && data.found) ? data.data : null;
+        } catch (e) {
+            return null;
+        }
+    },
+
+    _appDataTimers: {},
+
+    saveAppData(appKey, data) {
+        var uuid = this.getUserId();
+        if (!uuid || uuid === 'unknown') return;
+        // Debounced save (1s)
+        if (this._appDataTimers[appKey]) clearTimeout(this._appDataTimers[appKey]);
+        this._appDataTimers[appKey] = setTimeout(async () => {
+            try {
+                await this.apiPost('/api/appdata', { uuid: uuid, app: appKey, data: data });
+            } catch (e) { /* silent */ }
+        }, 1000);
+    },
+
+    saveAppDataNow(appKey, data) {
+        var uuid = this.getUserId();
+        if (!uuid || uuid === 'unknown') return Promise.resolve();
+        return this.apiPost('/api/appdata', { uuid: uuid, app: appKey, data: data }).catch(function() {});
     }
 };
 

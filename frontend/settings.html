@@ -46,13 +46,6 @@
         .wp-candy-sw { background: linear-gradient(135deg, #f093fb, #f5576c); }
         .wp-space-sw { background: linear-gradient(135deg, #0f0c29, #302b63); }
         .wp-cotton-sw { background: linear-gradient(135deg, #E0C3FC, #8EC5FC); }
-        /* Live preview classes */
-        .tablet-bg.wp-sunset { background: linear-gradient(135deg, #FF6B6B, #FF8E53, #FEC89A, #FFD93D, #FF6B6B) !important; background-size: 400% 400% !important; }
-        .tablet-bg.wp-ocean { background: linear-gradient(135deg, #667eea, #764ba2, #6B8DD6, #8E37D7, #667eea) !important; background-size: 400% 400% !important; }
-        .tablet-bg.wp-forest { background: linear-gradient(135deg, #11998e, #38ef7d, #43B692, #11998e, #38ef7d) !important; background-size: 400% 400% !important; }
-        .tablet-bg.wp-candy { background: linear-gradient(135deg, #f093fb, #f5576c, #fda085, #f093fb, #f5576c) !important; background-size: 400% 400% !important; }
-        .tablet-bg.wp-space { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e, #0f0c29, #302b63) !important; background-size: 400% 400% !important; }
-        .tablet-bg.wp-cotton { background: linear-gradient(135deg, #E0C3FC, #8EC5FC, #F0E6FF, #8EC5FC, #E0C3FC) !important; background-size: 400% 400% !important; }
     </style>
 </head>
 <body>
@@ -359,12 +352,8 @@
             localStorage.setItem('dd-wallpaper', wp);
             document.querySelectorAll('.wp-swatch').forEach(s => s.classList.remove('selected'));
             el.classList.add('selected');
-            // Live preview on settings page
-            var bg = document.querySelector('.tablet-bg');
-            if (bg) {
-                bg.className = bg.className.replace(/\bwp-\S+/g, '').trim();
-                if (wp) bg.classList.add('wp-' + wp);
-            }
+            DreamApp.applyWallpaper();
+            DreamApp.syncSetting('wallpaper', wp);
             DreamApp.toast('Wallpaper changed!', 'success');
         }
 
@@ -376,6 +365,7 @@
 
         function saveSetting(key, val) {
             localStorage.setItem('dd-setting-' + key, val);
+            DreamApp.syncSetting(key, val);
         }
 
         function editProfile() {
@@ -383,6 +373,7 @@
             if (name && name.trim()) {
                 DreamApp.setUser(null, name.trim());
                 document.getElementById('profileName').textContent = name.trim();
+                DreamApp.syncSetting('name', name.trim());
                 DreamApp.toast('Name updated!', 'success');
             }
         }

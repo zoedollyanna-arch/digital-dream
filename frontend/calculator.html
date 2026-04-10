@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Calculator - Digital Dream</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .calc-wrap {
+            padding: 16px; display: flex; flex-direction: column;
+            gap: 12px; max-width: 400px; margin: 0 auto;
+        }
+        .calc-display {
+            background: var(--bg-glass-heavy, rgba(255,255,255,0.7));
+            border: 1px solid var(--border-glass, rgba(255,255,255,0.35));
+            border-radius: 20px; padding: 20px 20px 16px; text-align: right;
+            min-height: 90px; display: flex; flex-direction: column; justify-content: flex-end;
+        }
+        .calc-expr {
+            font-size: 14px; color: var(--text-muted, #8E8E93);
+            min-height: 18px; word-break: break-all;
+        }
+        .calc-result {
+            font-size: 36px; font-weight: 300; color: var(--text-primary, #1C1C1E);
+            letter-spacing: -1px; word-break: break-all; line-height: 1.2;
+        }
+        .calc-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+        }
+        .calc-btn {
+            height: 56px; border-radius: 16px; border: none;
+            font-size: 20px; font-weight: 500; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s ease;
+            font-family: var(--font, 'Inter', sans-serif);
+        }
+        .calc-btn:active { transform: scale(0.93); }
+        .calc-num {
+            background: var(--bg-glass, rgba(255,255,255,0.45));
+            border: 1px solid var(--border-glass, rgba(255,255,255,0.35));
+            color: var(--text-primary, #1C1C1E);
+        }
+        .calc-num:hover { background: var(--bg-glass-heavy, rgba(255,255,255,0.7)); }
+        .calc-op {
+            background: var(--primary, #007AFF); color: #fff;
+        }
+        .calc-op:hover { opacity: 0.85; }
+        .calc-fn {
+            background: rgba(120,120,128,0.15);
+            color: var(--text-primary, #1C1C1E);
+        }
+        .calc-fn:hover { background: rgba(120,120,128,0.25); }
+        .calc-zero { grid-column: span 2; }
+        .calc-equals { background: var(--success, #34C759); color: #fff; }
+        .calc-equals:hover { opacity: 0.85; }
+        .calc-history {
+            padding: 8px 0; max-height: 100px; overflow-y: auto;
+        }
+        .calc-history-item {
+            font-size: 12px; color: var(--text-muted, #8E8E93);
+            text-align: right; padding: 2px 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="tablet-bg"></div>
+    <div class="status-bar">
+        <div class="status-left"><span class="status-time" id="statusTime">12:00 PM</span></div>
+        <div class="status-right">
+            <i class="fas fa-wifi"></i><i class="fas fa-signal"></i>
+            <div class="battery"><div class="battery-bar"><div class="battery-fill"></div></div></div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <div class="app-header">
+            <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+            <div class="app-title">Calculator <small>Quick math</small></div>
+        </div>
+
+        <div class="calc-wrap">
+            <div class="calc-display">
+                <div class="calc-expr" id="calcExpr"></div>
+                <div class="calc-result" id="calcResult">0</div>
+            </div>
+
+            <div class="calc-grid">
+                <button class="calc-btn calc-fn" onclick="calcClear()">AC</button>
+                <button class="calc-btn calc-fn" onclick="calcToggleSign()">+/−</button>
+                <button class="calc-btn calc-fn" onclick="calcPercent()">%</button>
+                <button class="calc-btn calc-op" onclick="calcOp('/')">÷</button>
+
+                <button class="calc-btn calc-num" onclick="calcDigit('7')">7</button>
+                <button class="calc-btn calc-num" onclick="calcDigit('8')">8</button>
+                <button class="calc-btn calc-num" onclick="calcDigit('9')">9</button>
+                <button class="calc-btn calc-op" onclick="calcOp('*')">×</button>
+
+                <button class="calc-btn calc-num" onclick="calcDigit('4')">4</button>
+                <button class="calc-btn calc-num" onclick="calcDigit('5')">5</button>
+                <button class="calc-btn calc-num" onclick="calcDigit('6')">6</button>
+                <button class="calc-btn calc-op" onclick="calcOp('-')">−</button>
+
+                <button class="calc-btn calc-num" onclick="calcDigit('1')">1</button>
+                <button class="calc-btn calc-num" onclick="calcDigit('2')">2</button>
+                <button class="calc-btn calc-num" onclick="calcDigit('3')">3</button>
+                <button class="calc-btn calc-op" onclick="calcOp('+')">+</button>
+
+                <button class="calc-btn calc-num calc-zero" onclick="calcDigit('0')">0</button>
+                <button class="calc-btn calc-num" onclick="calcDigit('.')">.</button>
+                <button class="calc-btn calc-equals" onclick="calcEquals()">=</button>
+            </div>
+
+            <div class="calc-history" id="calcHistory"></div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="messages.html" class="nav-item"><i class="fas fa-comment"></i><span>Chat</span></a>
+        <a href="dreamstore.html" class="nav-item"><i class="fas fa-store"></i><span>Store</span></a>
+        <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        var current = '0', previous = '', operator = '', resetNext = false, history = [];
+
+        function updateDisplay() {
+            document.getElementById('calcResult').textContent = current;
+            var expr = '';
+            if (previous && operator) {
+                var opSymbol = {'+':'+', '-':'−', '*':'×', '/':'÷'}[operator] || operator;
+                expr = previous + ' ' + opSymbol;
+            }
+            document.getElementById('calcExpr').textContent = expr;
+        }
+
+        function calcDigit(d) {
+            if (resetNext) { current = ''; resetNext = false; }
+            if (d === '.' && current.indexOf('.') !== -1) return;
+            if (current === '0' && d !== '.') current = d;
+            else current += d;
+            if (current.length > 15) current = current.substring(0, 15);
+            updateDisplay();
+        }
+
+        function calcOp(op) {
+            if (previous && operator && !resetNext) calcEquals();
+            previous = current;
+            operator = op;
+            resetNext = true;
+            updateDisplay();
+        }
+
+        function calcEquals() {
+            if (!previous || !operator) return;
+            var a = parseFloat(previous);
+            var b = parseFloat(current);
+            var result = 0;
+            if (operator === '+') result = a + b;
+            else if (operator === '-') result = a - b;
+            else if (operator === '*') result = a * b;
+            else if (operator === '/') result = b !== 0 ? a / b : 'Error';
+
+            var opSymbol = {'+':'+', '-':'−', '*':'×', '/':'÷'}[operator];
+            var historyEntry = previous + ' ' + opSymbol + ' ' + current + ' = ' + (typeof result === 'number' ? parseFloat(result.toFixed(10)) : result);
+            history.unshift(historyEntry);
+            if (history.length > 5) history.pop();
+            renderHistory();
+
+            current = typeof result === 'number' ? String(parseFloat(result.toFixed(10))) : 'Error';
+            previous = '';
+            operator = '';
+            resetNext = true;
+            updateDisplay();
+        }
+
+        function calcClear() { current = '0'; previous = ''; operator = ''; resetNext = false; updateDisplay(); }
+        function calcToggleSign() {
+            if (current !== '0' && current !== 'Error') {
+                current = current.charAt(0) === '-' ? current.substring(1) : '-' + current;
+                updateDisplay();
+            }
+        }
+        function calcPercent() {
+            current = String(parseFloat(current) / 100);
+            updateDisplay();
+        }
+
+        function renderHistory() {
+            document.getElementById('calcHistory').innerHTML = history.map(function(h) {
+                return '<div class="calc-history-item">' + DreamApp.escapeHtml(h) + '</div>';
+            }).join('');
+        }
+
+        updateDisplay();
+    </script>
+</body>
+</html>

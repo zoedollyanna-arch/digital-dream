@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Dream Doodle - Digital Dream</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .doodle-wrap { padding: 12px; max-width: 440px; margin: 0 auto; text-align: center; }
+        .doodle-canvas-wrap {
+            position: relative; display: inline-block; border-radius: 14px; overflow: hidden;
+            border: 2px solid var(--border-glass, rgba(255,255,255,0.35));
+            background: #fff; margin-bottom: 12px;
+        }
+        #doodleCanvas { display: block; cursor: crosshair; touch-action: none; }
+        .doodle-toolbar {
+            display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 10px;
+        }
+        .doodle-colors { display: flex; gap: 6px; align-items: center; }
+        .color-dot {
+            width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+            border: 3px solid transparent; transition: border-color 0.2s;
+        }
+        .color-dot.active { border-color: var(--primary, #007AFF); }
+        .doodle-sizes { display: flex; gap: 6px; align-items: center; }
+        .size-btn {
+            width: 34px; height: 34px; border-radius: 10px; border: none; cursor: pointer;
+            background: var(--bg-glass, rgba(255,255,255,0.45));
+            border: 1px solid var(--border-glass, rgba(255,255,255,0.35));
+            display: flex; align-items: center; justify-content: center;
+            font-family: var(--font, 'Inter', sans-serif);
+        }
+        .size-btn.active { background: var(--primary, #007AFF); color: #fff; }
+        .size-dot { border-radius: 50%; background: currentColor; }
+        .doodle-actions { display: flex; gap: 8px; justify-content: center; }
+        .doodle-btn {
+            padding: 8px 16px; border-radius: 100px; border: none;
+            font-size: 13px; font-weight: 600; cursor: pointer;
+            font-family: var(--font, 'Inter', sans-serif);
+            background: var(--bg-glass, rgba(255,255,255,0.45));
+            border: 1px solid var(--border-glass, rgba(255,255,255,0.35));
+            color: var(--text-primary, #1C1C1E);
+        }
+        .doodle-btn.danger { color: var(--danger, #FF3B30); }
+        .doodle-btn:hover { opacity: 0.8; }
+        .tool-toggle {
+            padding: 8px 14px; border-radius: 100px; border: none; cursor: pointer;
+            font-size: 13px; font-weight: 600;
+            font-family: var(--font, 'Inter', sans-serif);
+            background: var(--bg-glass, rgba(255,255,255,0.45));
+            border: 1px solid var(--border-glass, rgba(255,255,255,0.35));
+            color: var(--text-primary, #1C1C1E);
+        }
+        .tool-toggle.active { background: var(--primary, #007AFF); color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="tablet-bg"></div>
+    <div class="status-bar">
+        <div class="status-left"><span class="status-time" id="statusTime">12:00 PM</span></div>
+        <div class="status-right">
+            <i class="fas fa-wifi"></i><i class="fas fa-signal"></i>
+            <div class="battery"><div class="battery-bar"><div class="battery-fill"></div></div></div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <div class="app-header">
+            <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+            <div class="app-title">Dream Doodle <small>Draw & create</small></div>
+        </div>
+        <div class="doodle-wrap">
+            <div class="doodle-toolbar">
+                <div class="doodle-colors" id="dColors"></div>
+                <div class="doodle-sizes" id="dSizes"></div>
+                <button class="tool-toggle" id="dEraser" onclick="toggleEraser()"><i class="fas fa-eraser"></i></button>
+            </div>
+            <div class="doodle-canvas-wrap">
+                <canvas id="doodleCanvas" width="320" height="320"></canvas>
+            </div>
+            <div class="doodle-actions">
+                <button class="doodle-btn" onclick="undoStroke()"><i class="fas fa-undo"></i> Undo</button>
+                <button class="doodle-btn danger" onclick="clearCanvas()"><i class="fas fa-trash"></i> Clear</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="messages.html" class="nav-item"><i class="fas fa-comment"></i><span>Chat</span></a>
+        <a href="dreamstore.html" class="nav-item"><i class="fas fa-store"></i><span>Store</span></a>
+        <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        var canvas = document.getElementById('doodleCanvas');
+        var ctx = canvas.getContext('2d');
+        var drawing = false, erasing = false;
+        var currentColor = '#1C1C1E', currentSize = 4;
+        var strokes = [], currentStroke = null;
+
+        var colors = ['#1C1C1E','#FF3B30','#FF9500','#FFCC00','#34C759','#007AFF','#5856D6','#FF6B9D','#FFFFFF'];
+        var sizes = [2, 4, 8, 14];
+
+        function initToolbar() {
+            var colHtml = colors.map(function(c) {
+                var active = c === currentColor ? ' active' : '';
+                return '<div class="color-dot' + active + '" style="background:' + c + (c==='#FFFFFF'?';border:1px solid #ccc':'') + '" onclick="pickColor(\'' + c + '\',this)"></div>';
+            }).join('');
+            document.getElementById('dColors').innerHTML = colHtml;
+
+            var sizeHtml = sizes.map(function(s) {
+                var active = s === currentSize ? ' active' : '';
+                return '<button class="size-btn' + active + '" onclick="pickSize(' + s + ',this)"><div class="size-dot" style="width:' + Math.min(s+2,16) + 'px;height:' + Math.min(s+2,16) + 'px"></div></button>';
+            }).join('');
+            document.getElementById('dSizes').innerHTML = sizeHtml;
+        }
+
+        function pickColor(c, el) {
+            currentColor = c; erasing = false;
+            document.getElementById('dEraser').classList.remove('active');
+            document.querySelectorAll('.color-dot').forEach(function(d){d.classList.remove('active');});
+            el.classList.add('active');
+        }
+
+        function pickSize(s, el) {
+            currentSize = s;
+            document.querySelectorAll('.size-btn').forEach(function(b){b.classList.remove('active');});
+            el.classList.add('active');
+        }
+
+        function toggleEraser() {
+            erasing = !erasing;
+            document.getElementById('dEraser').classList.toggle('active', erasing);
+        }
+
+        function getPos(e) {
+            var rect = canvas.getBoundingClientRect();
+            var scaleX = canvas.width / rect.width;
+            var scaleY = canvas.height / rect.height;
+            var clientX, clientY;
+            if (e.touches) { clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; }
+            else { clientX = e.clientX; clientY = e.clientY; }
+            return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+        }
+
+        function startDraw(e) {
+            e.preventDefault();
+            drawing = true;
+            var pos = getPos(e);
+            currentStroke = {
+                color: erasing ? '#FFFFFF' : currentColor,
+                size: erasing ? currentSize * 3 : currentSize,
+                points: [pos]
+            };
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+        }
+
+        function moveDraw(e) {
+            if (!drawing) return;
+            e.preventDefault();
+            var pos = getPos(e);
+            currentStroke.points.push(pos);
+            ctx.strokeStyle = currentStroke.color;
+            ctx.lineWidth = currentStroke.size;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+        }
+
+        function endDraw(e) {
+            if (!drawing) return;
+            drawing = false;
+            if (currentStroke && currentStroke.points.length > 0) {
+                strokes.push(currentStroke);
+            }
+            currentStroke = null;
+        }
+
+        canvas.addEventListener('mousedown', startDraw);
+        canvas.addEventListener('mousemove', moveDraw);
+        canvas.addEventListener('mouseup', endDraw);
+        canvas.addEventListener('mouseleave', endDraw);
+        canvas.addEventListener('touchstart', startDraw, {passive:false});
+        canvas.addEventListener('touchmove', moveDraw, {passive:false});
+        canvas.addEventListener('touchend', endDraw);
+
+        function redraw() {
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            strokes.forEach(function(s) {
+                if (s.points.length < 2) return;
+                ctx.strokeStyle = s.color;
+                ctx.lineWidth = s.size;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.beginPath();
+                ctx.moveTo(s.points[0].x, s.points[0].y);
+                for (var i = 1; i < s.points.length; i++) {
+                    ctx.lineTo(s.points[i].x, s.points[i].y);
+                }
+                ctx.stroke();
+            });
+        }
+
+        function undoStroke() {
+            if (!strokes.length) return;
+            strokes.pop();
+            redraw();
+            DreamApp.playTap();
+        }
+
+        function clearCanvas() {
+            strokes = [];
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            DreamApp.toast('Canvas cleared');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initToolbar();
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        });
+    </script>
+</body>
+</html>

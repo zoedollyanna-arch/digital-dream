@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Dream Notes - Digital Dream</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .notes-list { padding: 0 16px; }
+        .note-card {
+            background: var(--bg-glass, rgba(255,255,255,0.45));
+            border: 1px solid var(--border-glass, rgba(255,255,255,0.35));
+            border-radius: 16px; padding: 14px 16px; margin-bottom: 10px;
+            cursor: pointer; transition: all 0.2s ease;
+        }
+        .note-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .note-card:active { transform: scale(0.98); }
+        .note-title { font-size: 15px; font-weight: 600; color: var(--text-primary, #1C1C1E); }
+        .note-preview { font-size: 12px; color: var(--text-muted, #8E8E93); margin-top: 4px; line-height: 1.4; }
+        .note-time { font-size: 10px; color: var(--text-light, #AEAEB2); margin-top: 6px; }
+        .note-editor {
+            display: none; position: fixed; inset: 0; z-index: 200;
+            background: var(--bg-base, #F2F2F7); flex-direction: column;
+        }
+        .note-editor.active { display: flex; }
+        .editor-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 16px; border-bottom: 1px solid var(--border-subtle, rgba(0,0,0,0.06));
+        }
+        .editor-header button {
+            background: none; border: none; font-size: 15px; font-weight: 600;
+            color: var(--primary, #007AFF); cursor: pointer; padding: 6px 10px;
+        }
+        .editor-title-input {
+            width: 100%; padding: 14px 16px; font-size: 20px; font-weight: 600;
+            background: none; border: none; outline: none;
+            color: var(--text-primary, #1C1C1E); font-family: var(--font, 'Inter', sans-serif);
+        }
+        .editor-body {
+            flex: 1; padding: 0 16px 16px; resize: none; border: none;
+            font-size: 15px; line-height: 1.6; background: none; outline: none;
+            color: var(--text-primary, #1C1C1E); font-family: var(--font, 'Inter', sans-serif);
+            width: 100%;
+        }
+        .fab {
+            position: fixed; bottom: 80px; right: 20px; width: 52px; height: 52px;
+            border-radius: 50%; background: var(--primary, #007AFF); color: #fff;
+            border: none; font-size: 22px; cursor: pointer; z-index: 100;
+            box-shadow: 0 4px 16px rgba(0,122,255,0.35);
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .fab:hover { transform: scale(1.1); }
+        .fab:active { transform: scale(0.95); }
+        .empty-notes { text-align: center; padding: 60px 30px; color: var(--text-muted, #8E8E93); }
+        .empty-notes i { font-size: 48px; opacity: 0.3; margin-bottom: 12px; }
+        .empty-notes p { font-size: 14px; }
+        .note-delete {
+            float: right; background: none; border: none; color: var(--danger, #FF3B30);
+            font-size: 12px; cursor: pointer; padding: 2px 6px; opacity: 0.7;
+        }
+        .note-delete:hover { opacity: 1; }
+        .note-color-strip {
+            width: 4px; height: 100%; border-radius: 2px; position: absolute;
+            left: 0; top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="tablet-bg"></div>
+    <div class="status-bar">
+        <div class="status-left"><span class="status-time" id="statusTime">12:00 PM</span></div>
+        <div class="status-right">
+            <i class="fas fa-wifi"></i><i class="fas fa-signal"></i>
+            <div class="battery"><div class="battery-bar"><div class="battery-fill"></div></div></div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <div class="app-header">
+            <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+            <div class="app-title">Dream Notes <small>Your thoughts</small></div>
+        </div>
+        <div class="notes-list" id="notesList"></div>
+    </div>
+
+    <button class="fab" onclick="newNote()"><i class="fas fa-plus"></i></button>
+
+    <!-- Editor overlay -->
+    <div class="note-editor" id="noteEditor">
+        <div class="editor-header">
+            <button onclick="closeEditor()"><i class="fas fa-chevron-left"></i> Back</button>
+            <button onclick="saveNote()">Save</button>
+        </div>
+        <input type="text" class="editor-title-input" id="editorTitle" placeholder="Note title..." maxlength="60">
+        <textarea class="editor-body" id="editorBody" placeholder="Start typing..."></textarea>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="messages.html" class="nav-item"><i class="fas fa-comment"></i><span>Chat</span></a>
+        <a href="dreamstore.html" class="nav-item"><i class="fas fa-store"></i><span>Store</span></a>
+        <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        var editingId = null;
+        var notes = [];
+
+        async function loadNotes() {
+            // Try DB first, fall back to localStorage
+            var dbData = await DreamApp.loadAppData('notes');
+            if (dbData && Array.isArray(dbData)) {
+                notes = dbData;
+            } else {
+                try { notes = JSON.parse(localStorage.getItem('dd-notes') || '[]'); } catch(e) { notes = []; }
+                // Migrate localStorage data to DB
+                if (notes.length) DreamApp.saveAppData('notes', notes);
+            }
+            renderNotes();
+        }
+
+        function persistNotes() {
+            DreamApp.saveAppData('notes', notes);
+        }
+
+        function renderNotes() {
+            var el = document.getElementById('notesList');
+            if (!notes.length) {
+                el.innerHTML = '<div class="empty-notes"><i class="fas fa-sticky-note"></i><p>No notes yet.<br>Tap + to create one!</p></div>';
+                return;
+            }
+            var sorted = notes.slice().sort(function(a,b) { return b.updated - a.updated; });
+            el.innerHTML = sorted.map(function(n) {
+                var preview = (n.body || '').substring(0, 80);
+                if (preview.length < (n.body||'').length) preview += '...';
+                var time = DreamApp.timeAgo(n.updated);
+                return '<div class="note-card" onclick="openNote(\'' + n.id + '\')">'
+                    + '<button class="note-delete" onclick="event.stopPropagation();deleteNote(\'' + n.id + '\')"><i class="fas fa-trash"></i></button>'
+                    + '<div class="note-title">' + DreamApp.escapeHtml(n.title || 'Untitled') + '</div>'
+                    + '<div class="note-preview">' + DreamApp.escapeHtml(preview) + '</div>'
+                    + '<div class="note-time">' + time + '</div>'
+                    + '</div>';
+            }).join('');
+        }
+
+        function newNote() {
+            editingId = null;
+            document.getElementById('editorTitle').value = '';
+            document.getElementById('editorBody').value = '';
+            document.getElementById('noteEditor').classList.add('active');
+            setTimeout(function() { document.getElementById('editorTitle').focus(); }, 200);
+        }
+
+        function openNote(id) {
+            var note = notes.find(function(n) { return n.id === id; });
+            if (!note) return;
+            editingId = id;
+            document.getElementById('editorTitle').value = note.title || '';
+            document.getElementById('editorBody').value = note.body || '';
+            document.getElementById('noteEditor').classList.add('active');
+        }
+
+        function saveNote() {
+            var title = document.getElementById('editorTitle').value.trim();
+            var body = document.getElementById('editorBody').value.trim();
+            if (!title && !body) { closeEditor(); return; }
+            if (editingId) {
+                var idx = notes.findIndex(function(n) { return n.id === editingId; });
+                if (idx !== -1) { notes[idx].title = title; notes[idx].body = body; notes[idx].updated = Date.now(); }
+            } else {
+                notes.push({ id: 'n' + Date.now(), title: title, body: body, updated: Date.now() });
+            }
+            persistNotes();
+            closeEditor();
+            renderNotes();
+            DreamApp.toast('Note saved!', 'success');
+        }
+
+        function deleteNote(id) {
+            notes = notes.filter(function(n) { return n.id !== id; });
+            persistNotes();
+            renderNotes();
+            DreamApp.toast('Note deleted', 'info');
+        }
+
+        function closeEditor() {
+            document.getElementById('noteEditor').classList.remove('active');
+            editingId = null;
+        }
+
+        document.addEventListener('DOMContentLoaded', loadNotes);
+    </script>
+</body>
+</html>

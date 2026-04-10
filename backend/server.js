@@ -15,6 +15,9 @@ const weatherRoutes = require('./routes/weather');
 const messagesRoutes = require('./routes/messages');
 const discordRoutes = require('./routes/discord');
 const marketplaceRoutes = require('./routes/marketplace');
+const profileRoutes = require('./routes/profile');
+const contactsRoutes = require('./routes/contacts');
+const appDataRoutes = require('./routes/appdata');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -101,6 +104,9 @@ app.use('/api/weather', weatherRoutes);
 app.use('/api/messages', messagesRoutes);
 app.use('/api/discord', discordRoutes);
 app.use('/api/marketplace', marketplaceRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/contacts', contactsRoutes);
+app.use('/api/appdata', appDataRoutes);
 
 // --- Fallback: serve index.html for unmatched routes ---
 app.get('*', (req, res) => {

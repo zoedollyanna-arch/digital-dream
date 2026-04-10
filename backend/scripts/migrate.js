@@ -12,6 +12,9 @@ require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') }
 const mongoose = require('mongoose');
 const Message = require('../models/Message');
 const SlAction = require('../models/SlAction');
+const Profile = require('../models/Profile');
+const Contact = require('../models/Contact');
+const AppData = require('../models/AppData');
 
 const SEED_FLAG = process.argv.includes('--seed');
 
@@ -30,7 +33,7 @@ async function migrate() {
     const db = mongoose.connection.db;
     const existing = (await db.listCollections().toArray()).map(c => c.name);
 
-    for (const name of ['messages', 'slactions']) {
+    for (const name of ['messages', 'slactions', 'profiles', 'contacts', 'appdatas']) {
         if (!existing.includes(name)) {
             await db.createCollection(name);
             console.log(`[Migrate] Created collection: ${name}`);
@@ -44,6 +47,12 @@ async function migrate() {
     await Message.syncIndexes();
     console.log('[Migrate] Syncing indexes for SlAction...');
     await SlAction.syncIndexes();
+    console.log('[Migrate] Syncing indexes for Profile...');
+    await Profile.syncIndexes();
+    console.log('[Migrate] Syncing indexes for Contact...');
+    await Contact.syncIndexes();
+    console.log('[Migrate] Syncing indexes for AppData...');
+    await AppData.syncIndexes();
     console.log('[Migrate] Indexes synced.');
 
     // --- Optional seed data ---
@@ -97,12 +106,18 @@ async function migrate() {
     // --- Summary ---
     const msgTotal = await Message.countDocuments();
     const actTotal = await SlAction.countDocuments();
+    const profTotal = await Profile.countDocuments();
+    const contTotal = await Contact.countDocuments();
+    const adTotal = await AppData.countDocuments();
     const msgIndexes = await Message.collection.indexes();
     const actIndexes = await SlAction.collection.indexes();
 
     console.log('\n=== Migration Summary ===');
     console.log(`Messages:   ${msgTotal} documents, ${msgIndexes.length} indexes`);
     console.log(`SlActions:  ${actTotal} documents, ${actIndexes.length} indexes`);
+    console.log(`Profiles:   ${profTotal} documents`);
+    console.log(`Contacts:   ${contTotal} documents`);
+    console.log(`AppData:    ${adTotal} documents`);
     console.log('Indexes (messages):', msgIndexes.map(i => i.name).join(', '));
     console.log('Indexes (slactions):', actIndexes.map(i => i.name).join(', '));
     console.log('=========================\n');

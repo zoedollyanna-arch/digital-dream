@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>My Journal - Digital Dream</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .journal-list { padding: 0 16px; }
+        .journal-entry {
+            background: var(--bg-glass, rgba(255,255,255,0.45));
+            border: 1px solid var(--border-glass, rgba(255,255,255,0.35));
+            border-radius: 16px; padding: 14px 16px; margin-bottom: 10px;
+            cursor: pointer; transition: all 0.2s ease;
+        }
+        .journal-entry:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .journal-entry:active { transform: scale(0.98); }
+        .j-date { font-size: 11px; font-weight: 600; color: var(--primary, #007AFF); text-transform: uppercase; letter-spacing: 0.5px; }
+        .j-mood { font-size: 20px; float: right; }
+        .j-preview { font-size: 13px; color: var(--text-primary, #1C1C1E); margin-top: 6px; line-height: 1.4; }
+        .j-delete {
+            float: right; background: none; border: none; color: var(--danger, #FF3B30);
+            font-size: 12px; cursor: pointer; padding: 2px 6px; opacity: 0.6; margin-left: 8px;
+        }
+        .j-delete:hover { opacity: 1; }
+        .j-editor {
+            display: none; position: fixed; inset: 0; z-index: 200;
+            background: var(--bg-base, #F2F2F7); flex-direction: column;
+        }
+        .j-editor.active { display: flex; }
+        .j-editor-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 16px; border-bottom: 1px solid var(--border-subtle, rgba(0,0,0,0.06));
+        }
+        .j-editor-header button {
+            background: none; border: none; font-size: 15px; font-weight: 600;
+            color: var(--primary, #007AFF); cursor: pointer; padding: 6px 10px;
+        }
+        .j-mood-picker { display: flex; gap: 10px; padding: 12px 16px; justify-content: center; }
+        .j-mood-btn {
+            font-size: 28px; cursor: pointer; padding: 6px; border-radius: 12px;
+            border: 2px solid transparent; transition: all 0.2s ease; background: none;
+        }
+        .j-mood-btn.selected { border-color: var(--primary, #007AFF); background: rgba(0,122,255,0.08); }
+        .j-mood-btn:hover { transform: scale(1.15); }
+        .j-body {
+            flex: 1; padding: 0 16px 16px; resize: none; border: none;
+            font-size: 15px; line-height: 1.7; background: none; outline: none;
+            color: var(--text-primary, #1C1C1E); font-family: var(--font, 'Inter', sans-serif);
+            width: 100%;
+        }
+        .j-prompt {
+            padding: 8px 16px; font-size: 12px; color: var(--text-muted, #8E8E93);
+            font-style: italic; text-align: center;
+        }
+        .fab {
+            position: fixed; bottom: 80px; right: 20px; width: 52px; height: 52px;
+            border-radius: 50%; background: #5856D6; color: #fff;
+            border: none; font-size: 22px; cursor: pointer; z-index: 100;
+            box-shadow: 0 4px 16px rgba(88,86,214,0.35);
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .fab:hover { transform: scale(1.1); }
+        .fab:active { transform: scale(0.95); }
+        .empty-journal { text-align: center; padding: 60px 30px; color: var(--text-muted, #8E8E93); }
+        .empty-journal i { font-size: 48px; opacity: 0.3; margin-bottom: 12px; }
+    </style>
+</head>
+<body>
+    <div class="tablet-bg"></div>
+    <div class="status-bar">
+        <div class="status-left"><span class="status-time" id="statusTime">12:00 PM</span></div>
+        <div class="status-right">
+            <i class="fas fa-wifi"></i><i class="fas fa-signal"></i>
+            <div class="battery"><div class="battery-bar"><div class="battery-fill"></div></div></div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <div class="app-header">
+            <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+            <div class="app-title">My Journal <small>Private diary</small></div>
+        </div>
+        <div class="journal-list" id="journalList"></div>
+    </div>
+
+    <button class="fab" onclick="newEntry()"><i class="fas fa-pen"></i></button>
+
+    <div class="j-editor" id="journalEditor">
+        <div class="j-editor-header">
+            <button onclick="closeEditor()"><i class="fas fa-chevron-left"></i> Back</button>
+            <button onclick="saveEntry()">Save</button>
+        </div>
+        <div class="j-prompt" id="jPrompt"></div>
+        <div class="j-mood-picker" id="moodPicker">
+            <button class="j-mood-btn" data-mood="happy" onclick="pickMood(this)">😊</button>
+            <button class="j-mood-btn" data-mood="love" onclick="pickMood(this)">😍</button>
+            <button class="j-mood-btn" data-mood="cool" onclick="pickMood(this)">😎</button>
+            <button class="j-mood-btn" data-mood="sad" onclick="pickMood(this)">😢</button>
+            <button class="j-mood-btn" data-mood="angry" onclick="pickMood(this)">😤</button>
+            <button class="j-mood-btn" data-mood="thinking" onclick="pickMood(this)">🤔</button>
+        </div>
+        <textarea class="j-body" id="jBody" placeholder="How was your day..."></textarea>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="messages.html" class="nav-item"><i class="fas fa-comment"></i><span>Chat</span></a>
+        <a href="dreamstore.html" class="nav-item"><i class="fas fa-store"></i><span>Store</span></a>
+        <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        var editingId = null;
+        var selectedMood = 'happy';
+        var entries = [];
+        var prompts = [
+            'What made you smile today?', 'Describe your day in 3 words.',
+            'What are you grateful for?', 'What did you learn today?',
+            'Who did you talk to today?', 'What was the best part of your day?',
+            'How are you feeling right now?', 'What do you want to do tomorrow?'
+        ];
+
+        async function loadEntries() {
+            var dbData = await DreamApp.loadAppData('journal');
+            if (dbData && Array.isArray(dbData)) {
+                entries = dbData;
+            } else {
+                try { entries = JSON.parse(localStorage.getItem('dd-journal') || '[]'); } catch(e) { entries = []; }
+                if (entries.length) DreamApp.saveAppData('journal', entries);
+            }
+            renderEntries();
+        }
+        function persistEntries() { DreamApp.saveAppData('journal', entries); }
+
+        var moodEmoji = { happy:'😊', love:'😍', cool:'😎', sad:'😢', angry:'😤', thinking:'🤔' };
+
+        function renderEntries() {
+            var el = document.getElementById('journalList');
+            if (!entries.length) {
+                el.innerHTML = '<div class="empty-journal"><i class="fas fa-book"></i><p>Your journal is empty.<br>Start writing today!</p></div>';
+                return;
+            }
+            el.innerHTML = entries.slice().sort(function(a,b) { return b.date - a.date; }).map(function(e) {
+                var d = new Date(e.date);
+                var dateStr = d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+                var preview = (e.body || '').substring(0, 100);
+                if (preview.length < (e.body||'').length) preview += '...';
+                return '<div class="journal-entry" onclick="openEntry(\'' + e.id + '\')">'
+                    + '<button class="j-delete" onclick="event.stopPropagation();deleteEntry(\'' + e.id + '\')"><i class="fas fa-trash"></i></button>'
+                    + '<span class="j-mood">' + (moodEmoji[e.mood] || '😊') + '</span>'
+                    + '<div class="j-date">' + dateStr + '</div>'
+                    + '<div class="j-preview">' + DreamApp.escapeHtml(preview) + '</div>'
+                    + '</div>';
+            }).join('');
+        }
+
+        function pickMood(btn) {
+            document.querySelectorAll('.j-mood-btn').forEach(function(b) { b.classList.remove('selected'); });
+            btn.classList.add('selected');
+            selectedMood = btn.dataset.mood;
+        }
+
+        function newEntry() {
+            editingId = null;
+            selectedMood = 'happy';
+            document.getElementById('jBody').value = '';
+            document.querySelectorAll('.j-mood-btn').forEach(function(b) {
+                b.classList.toggle('selected', b.dataset.mood === 'happy');
+            });
+            document.getElementById('jPrompt').textContent = prompts[Math.floor(Math.random() * prompts.length)];
+            document.getElementById('journalEditor').classList.add('active');
+            setTimeout(function() { document.getElementById('jBody').focus(); }, 200);
+        }
+
+        function openEntry(id) {
+            var e = entries.find(function(x) { return x.id === id; });
+            if (!e) return;
+            editingId = id;
+            selectedMood = e.mood || 'happy';
+            document.getElementById('jBody').value = e.body || '';
+            document.querySelectorAll('.j-mood-btn').forEach(function(b) {
+                b.classList.toggle('selected', b.dataset.mood === selectedMood);
+            });
+            document.getElementById('jPrompt').textContent = '';
+            document.getElementById('journalEditor').classList.add('active');
+        }
+
+        function saveEntry() {
+            var body = document.getElementById('jBody').value.trim();
+            if (!body) { closeEditor(); return; }
+            if (editingId) {
+                var idx = entries.findIndex(function(x) { return x.id === editingId; });
+                if (idx !== -1) { entries[idx].body = body; entries[idx].mood = selectedMood; entries[idx].date = Date.now(); }
+            } else {
+                entries.push({ id: 'j' + Date.now(), body: body, mood: selectedMood, date: Date.now() });
+            }
+            persistEntries();
+            closeEditor();
+            renderEntries();
+            DreamApp.toast('Entry saved!', 'success');
+        }
+
+        function deleteEntry(id) {
+            entries = entries.filter(function(x) { return x.id !== id; });
+            persistEntries();
+            renderEntries();
+            DreamApp.toast('Entry deleted', 'info');
+        }
+
+        function closeEditor() { document.getElementById('journalEditor').classList.remove('active'); editingId = null; }
+
+        document.addEventListener('DOMContentLoaded', loadEntries);
+    </script>
+</body>
+</html>

@@ -325,6 +325,10 @@
             // Check if opened with ?tab=texts
             const tab = DreamApp.getParam('tab');
             if (tab === 'texts') switchInboxTab('texts');
+            // Auto-open chat if coming from Contacts app
+            const contactId = DreamApp.getParam('contact');
+            const contactName = DreamApp.getParam('contactName');
+            if (contactId) openChat(contactId, contactName || contactId);
         });
     </script>
 </body>

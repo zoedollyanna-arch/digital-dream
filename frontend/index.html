@@ -7,40 +7,50 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        /* Wallpaper overrides */
-        .tablet-bg.wp-sunset {
-            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 25%, #FEC89A 50%, #FFD93D 75%, #FF6B6B 100%) !important;
-            background-size: 400% 400% !important;
-        }
-        .tablet-bg.wp-ocean {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #6B8DD6 50%, #8E37D7 75%, #667eea 100%) !important;
-            background-size: 400% 400% !important;
-        }
-        .tablet-bg.wp-forest {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 25%, #43B692 50%, #11998e 75%, #38ef7d 100%) !important;
-            background-size: 400% 400% !important;
-        }
-        .tablet-bg.wp-candy {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 25%, #fda085 50%, #f093fb 75%, #f5576c 100%) !important;
-            background-size: 400% 400% !important;
-        }
-        .tablet-bg.wp-space {
-            background: linear-gradient(135deg, #0f0c29 0%, #302b63 25%, #24243e 50%, #0f0c29 75%, #302b63 100%) !important;
-            background-size: 400% 400% !important;
-        }
-        .tablet-bg.wp-cotton {
-            background: linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 25%, #F0E6FF 50%, #8EC5FC 75%, #E0C3FC 100%) !important;
-            background-size: 400% 400% !important;
-        }
         .installed-apps-label {
             padding: 4px 20px 0; font-size: 11px; font-weight: 600;
             color: var(--text-muted, #8E8E93); letter-spacing: 0.5px; text-transform: uppercase;
         }
     </style>
     <script>
-        // First-time setup redirect
+        // First-time setup redirect (fallback if not coming from boot.html)
         if (localStorage.getItem('dd-onboarded') !== 'true') {
-            window.location.replace('onboarding.html' + window.location.search);
+            // Check backend first before redirecting to onboarding
+            var qs = window.location.search;
+            var sp = new URLSearchParams(qs);
+            var uid = sp.get('uuid');
+            if (uid) {
+                // Quick async check — if profile exists on server, we're good
+                fetch(window.location.origin + '/api/profile?uuid=' + encodeURIComponent(uid))
+                    .then(function(r) { return r.json(); })
+                    .then(function(d) {
+                        if (d.found && d.profile && d.profile.onboarded) {
+                            // Restore profile from server
+                            try {
+                                var p = d.profile;
+                                localStorage.setItem('dd-onboarded', 'true');
+                                if (p.name) localStorage.setItem('dd-name', p.name);
+                                if (p.theme) localStorage.setItem('dd-theme', p.theme);
+                                if (p.wallpaper !== undefined) localStorage.setItem('dd-wallpaper', p.wallpaper);
+                                if (p.zoom) localStorage.setItem('dd-zoom', String(p.zoom));
+                                if (p.notifications) {
+                                    localStorage.setItem('dd-setting-notifs', String(p.notifications.notifs !== false));
+                                    localStorage.setItem('dd-setting-discordNotifs', String(p.notifications.discordNotifs !== false));
+                                    localStorage.setItem('dd-setting-sound', String(p.notifications.sound === true));
+                                }
+                                if (p.discord && p.discord.webhook) localStorage.setItem('dd-discord-config', JSON.stringify(p.discord));
+                                if (p.installedApps && p.installedApps.length) localStorage.setItem('dd-installed-apps', JSON.stringify(p.installedApps));
+                            } catch(e) {}
+                            location.reload();
+                        } else {
+                            window.location.replace('onboarding.html' + qs);
+                        }
+                    }).catch(function() {
+                        window.location.replace('onboarding.html' + qs);
+                    });
+            } else {
+                window.location.replace('onboarding.html' + qs);
+            }
         }
     </script>
 </head>
@@ -114,7 +124,14 @@
                 <span class="icon-label">Discord</span>
             </a>
 
-            <a href="settings.html" class="app-icon animate-scaleIn animate-stagger-7">
+            <a href="contacts.html" class="app-icon animate-scaleIn animate-stagger-7">
+                <div class="icon-circle icon-contacts">
+                    <i class="fas fa-address-book"></i>
+                </div>
+                <span class="icon-label">Contacts</span>
+            </a>
+
+            <a href="settings.html" class="app-icon animate-scaleIn animate-stagger-8">
                 <div class="icon-circle icon-settings">
                     <i class="fas fa-cog"></i>
                 </div>
@@ -222,16 +239,6 @@
             }
         }
 
-        // Apply saved wallpaper
-        function applyWallpaper() {
-            var wp = localStorage.getItem('dd-wallpaper') || '';
-            var bg = document.querySelector('.tablet-bg');
-            if (!bg) return;
-            // Remove any existing wp- class
-            bg.className = bg.className.replace(/\bwp-\S+/g, '').trim();
-            if (wp) bg.classList.add('wp-' + wp);
-        }
-
         // Show installed Dream Store apps on home screen
         var storeAppCatalog = {
             notes:      { name: 'Notes',       icon: 'fas fa-sticky-note',   color: '#FF9F0A', page: 'notes.html' },
@@ -264,7 +271,6 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            applyWallpaper();
             updateGreeting();
             loadQuickWeather();
             loadUnreadCount();
