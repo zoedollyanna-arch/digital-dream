@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Welcome — Digital Dream</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* ── Onboarding Shell ── */
+        body {
+            overflow: hidden;
+            background: var(--bg-base);
+        }
+
+        .onboarding-wrap {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 100;
+        }
+
+        /* ── Progress Bar ── */
+        .progress-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 18px 0 0;
+            z-index: 10;
+        }
+
+        .progress-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border-subtle);
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .progress-dot.active {
+            width: 24px;
+            border-radius: 4px;
+            background: var(--primary);
+        }
+
+        .progress-dot.done {
+            background: var(--primary);
+            opacity: 0.5;
+        }
+
+        .step-label {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-left: 8px;
+            letter-spacing: 0.3px;
+        }
+
+        /* ── Screen Container ── */
+        .screen-viewport {
+            position: relative;
+            flex: 1;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .screen {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 32px 40px;
+            opacity: 0;
+            transform: translateX(60px);
+            pointer-events: none;
+            transition: opacity 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                        transform 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .screen.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+        }
+
+        .screen.exit-left {
+            opacity: 0;
+            transform: translateX(-60px);
+            pointer-events: none;
+        }
+
+        /* ── Welcome Orb ── */
+        .welcome-orb {
+            width: 120px;
+            height: 120px;
+            border-radius: 36px;
+            background: linear-gradient(135deg, #C2E9FB 0%, #A1C4FD 50%, #E8D5F5 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 28px;
+            box-shadow:
+                0 12px 40px rgba(161, 196, 253, 0.35),
+                inset 0 -2px 6px rgba(255, 255, 255, 0.4);
+            animation: orbBreathe 4s ease-in-out infinite;
+            position: relative;
+        }
+
+        .welcome-orb::after {
+            content: '';
+            position: absolute;
+            inset: -6px;
+            border-radius: 40px;
+            background: linear-gradient(135deg, rgba(161, 196, 253, 0.2), rgba(232, 213, 245, 0.15));
+            filter: blur(12px);
+            z-index: -1;
+            animation: orbBreathe 4s ease-in-out infinite reverse;
+        }
+
+        .welcome-orb i {
+            font-size: 48px;
+            color: #fff;
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.1));
+        }
+
+        @keyframes orbBreathe {
+            0%, 100% { transform: scale(1); box-shadow: 0 12px 40px rgba(161,196,253,0.35), inset 0 -2px 6px rgba(255,255,255,0.4); }
+            50% { transform: scale(1.04); box-shadow: 0 16px 50px rgba(161,196,253,0.45), inset 0 -2px 6px rgba(255,255,255,0.5); }
+        }
+
+        /* ── Success Orb ── */
+        .success-orb {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #34C759 0%, #30D158 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 28px;
+            box-shadow:
+                0 10px 40px rgba(52, 199, 89, 0.35),
+                inset 0 -2px 6px rgba(255,255,255,0.2);
+            animation: successPulse 2s ease-in-out infinite;
+        }
+
+        .success-orb i {
+            font-size: 44px;
+            color: #fff;
+        }
+
+        @keyframes successPulse {
+            0%, 100% { box-shadow: 0 10px 40px rgba(52,199,89,0.35); }
+            50% { box-shadow: 0 10px 60px rgba(52,199,89,0.5), 0 0 80px rgba(52,199,89,0.15); }
+        }
+
+        /* ── Titles ── */
+        .ob-title {
+            font-size: 30px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            color: var(--text-primary);
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .ob-subtitle {
+            font-size: 15px;
+            font-weight: 400;
+            color: var(--text-muted);
+            text-align: center;
+            line-height: 1.5;
+            max-width: 280px;
+        }
+
+        /* ── Glass Panel ── */
+        .ob-panel {
+            width: 100%;
+            max-width: 340px;
+            margin-top: 28px;
+            padding: 24px;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 22px;
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.06),
+                0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        [data-theme="dark"] .ob-panel {
+            background: rgba(44, 44, 46, 0.55);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        /* ── Onboarding Input ── */
+        .ob-input {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(120, 120, 128, 0.07);
+            border: 1.5px solid transparent;
+            border-radius: 14px;
+            color: var(--text-primary);
+            font-family: var(--font);
+            font-size: 16px;
+            font-weight: 400;
+            outline: none;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .ob-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .ob-input:focus {
+            border-color: var(--primary);
+            background: rgba(0, 122, 255, 0.04);
+            box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.12), inset 0 1px 3px rgba(0, 0, 0, 0.02);
+        }
+
+        .ob-input-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .ob-input-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+
+        /* ── Pill Button ── */
+        .ob-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            max-width: 300px;
+            padding: 15px 28px;
+            margin-top: 28px;
+            border: none;
+            border-radius: 100px;
+            background: var(--primary);
+            color: #fff;
+            font-family: var(--font);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 6px 20px rgba(0, 122, 255, 0.25);
+            letter-spacing: 0.1px;
+        }
+
+        .ob-btn:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 28px rgba(0, 122, 255, 0.35);
+        }
+
+        .ob-btn:active {
+            transform: scale(0.97);
+            box-shadow: 0 4px 14px rgba(0, 122, 255, 0.2);
+        }
+
+        .ob-btn-secondary {
+            background: none;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: none;
+            margin-top: 12px;
+            padding: 10px;
+            cursor: pointer;
+            border: none;
+            font-family: var(--font);
+            transition: color 0.2s ease;
+            width: 100%;
+            text-align: center;
+        }
+
+        .ob-btn-secondary:hover {
+            color: var(--primary);
+        }
+
+        /* ── Toggle Row ── */
+        .ob-toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .ob-toggle-row:last-child {
+            border-bottom: none;
+        }
+
+        [data-theme="dark"] .ob-toggle-row {
+            border-bottom-color: rgba(255, 255, 255, 0.06);
+        }
+
+        .ob-toggle-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .ob-toggle-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .ob-toggle-text .ob-label {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .ob-toggle-text .ob-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 1px;
+        }
+
+        /* ── Theme Selector (inline) ── */
+        .ob-theme-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .ob-theme-chip {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 0;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            background: rgba(120, 120, 128, 0.06);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .ob-theme-chip:hover {
+            background: rgba(120, 120, 128, 0.1);
+        }
+
+        .ob-theme-chip.selected {
+            border-color: var(--primary);
+            background: rgba(0, 122, 255, 0.08);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* ── Connection Card ── */
+        .ob-connect-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px;
+            background: rgba(120, 120, 128, 0.06);
+            border: 1.5px solid transparent;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .ob-connect-card:hover {
+            background: rgba(120, 120, 128, 0.1);
+            border-color: rgba(0, 0, 0, 0.06);
+        }
+
+        .ob-connect-card.connected {
+            border-color: var(--success);
+            background: rgba(52, 199, 89, 0.06);
+        }
+
+        .ob-connect-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .ob-connect-info {
+            flex: 1;
+        }
+
+        .ob-connect-info .ob-label {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .ob-connect-info .ob-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 1px;
+        }
+
+        .ob-connect-badge {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .ob-connect-badge.active {
+            color: var(--success);
+        }
+
+        /* ── Fade-in children stagger ── */
+        .ob-stagger > * {
+            opacity: 0;
+            transform: translateY(12px);
+            animation: obFadeUp 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+        .ob-stagger > *:nth-child(1) { animation-delay: 0.1s; }
+        .ob-stagger > *:nth-child(2) { animation-delay: 0.2s; }
+        .ob-stagger > *:nth-child(3) { animation-delay: 0.3s; }
+        .ob-stagger > *:nth-child(4) { animation-delay: 0.4s; }
+        .ob-stagger > *:nth-child(5) { animation-delay: 0.5s; }
+        .ob-stagger > *:nth-child(6) { animation-delay: 0.6s; }
+
+        @keyframes obFadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Confetti dots (success screen) ── */
+        .confetti-wrap {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .confetti-dot {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            opacity: 0;
+            animation: confettiFall 3s ease-out forwards;
+        }
+
+        @keyframes confettiFall {
+            0% { opacity: 0; transform: translateY(-20px) scale(0); }
+            15% { opacity: 0.8; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(120px) scale(0.5); }
+        }
+    </style>
+</head>
+<body>
+    <div class="tablet-bg"></div>
+
+    <div class="onboarding-wrap">
+        <!-- Progress -->
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-dot active" data-step="0"></div>
+            <div class="progress-dot" data-step="1"></div>
+            <div class="progress-dot" data-step="2"></div>
+            <div class="progress-dot" data-step="3"></div>
+            <div class="progress-dot" data-step="4"></div>
+            <span class="step-label" id="stepLabel">Step 1 of 5</span>
+        </div>
+
+        <!-- Screens -->
+        <div class="screen-viewport">
+
+            <!-- ═══ Screen 1: Welcome ═══ -->
+            <div class="screen active" data-screen="0">
+                <div class="ob-stagger" style="display:flex;flex-direction:column;align-items:center">
+                    <div class="welcome-orb">
+                        <i class="fas fa-tablet-alt"></i>
+                    </div>
+                    <div class="ob-title">Welcome</div>
+                    <div class="ob-subtitle">Let's get your tablet set up. It only takes a moment.</div>
+                    <button class="ob-btn" onclick="goNext()">Get Started</button>
+                </div>
+            </div>
+
+            <!-- ═══ Screen 2: Profile ═══ -->
+            <div class="screen" data-screen="1">
+                <div class="ob-stagger" style="display:flex;flex-direction:column;align-items:center">
+                    <div class="ob-title">Set Up Your Profile</div>
+                    <div class="ob-subtitle">Choose a display name for your tablet experience.</div>
+                    <div class="ob-panel">
+                        <label class="ob-input-label">Display Name</label>
+                        <input type="text" class="ob-input" id="obName" placeholder="Enter your name..."
+                               maxlength="30" autocomplete="off">
+                        <div class="ob-input-hint">This is how you'll appear in messages and apps.</div>
+                    </div>
+                    <button class="ob-btn" onclick="saveProfile()">Continue</button>
+                </div>
+            </div>
+
+            <!-- ═══ Screen 3: Preferences ═══ -->
+            <div class="screen" data-screen="2">
+                <div class="ob-stagger" style="display:flex;flex-direction:column;align-items:center">
+                    <div class="ob-title">Choose Your Preferences</div>
+                    <div class="ob-subtitle">Personalize your tablet to fit your style.</div>
+                    <div class="ob-panel">
+                        <!-- Notifications -->
+                        <div class="ob-toggle-row">
+                            <div class="ob-toggle-info">
+                                <div class="ob-toggle-icon" style="background:var(--danger)">
+                                    <i class="fas fa-bell"></i>
+                                </div>
+                                <div class="ob-toggle-text">
+                                    <div class="ob-label">Notifications</div>
+                                    <div class="ob-desc">Get message alerts</div>
+                                </div>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="obNotifs" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <!-- Theme picker -->
+                        <div class="ob-toggle-row" style="flex-direction:column;align-items:stretch;gap:10px">
+                            <div class="ob-toggle-info">
+                                <div class="ob-toggle-icon" style="background:linear-gradient(135deg,#5AC8FA,#007AFF)">
+                                    <i class="fas fa-palette"></i>
+                                </div>
+                                <div class="ob-toggle-text">
+                                    <div class="ob-label">Theme</div>
+                                    <div class="ob-desc">Choose your look</div>
+                                </div>
+                            </div>
+                            <div class="ob-theme-row">
+                                <div class="ob-theme-chip selected" data-theme="light" onclick="pickTheme(this)">
+                                    ☀️ Light
+                                </div>
+                                <div class="ob-theme-chip" data-theme="dark" onclick="pickTheme(this)">
+                                    🌙 Dark
+                                </div>
+                                <div class="ob-theme-chip" data-theme="neon" onclick="pickTheme(this)">
+                                    ⚡ Neon
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="ob-btn" onclick="savePrefs()">Continue</button>
+                </div>
+            </div>
+
+            <!-- ═══ Screen 4: Connections ═══ -->
+            <div class="screen" data-screen="3">
+                <div class="ob-stagger" style="display:flex;flex-direction:column;align-items:center">
+                    <div class="ob-title">Connect Your Apps</div>
+                    <div class="ob-subtitle">Link optional services to enhance your experience.</div>
+                    <div class="ob-panel" style="display:flex;flex-direction:column;gap:12px">
+                        <!-- Discord -->
+                        <div class="ob-connect-card" id="discordCard" onclick="toggleDiscord()">
+                            <div class="ob-connect-icon" style="background:#5865F2">
+                                <i class="fab fa-discord"></i>
+                            </div>
+                            <div class="ob-connect-info">
+                                <div class="ob-label">Discord</div>
+                                <div class="ob-desc">Chat with your community</div>
+                            </div>
+                            <span class="ob-connect-badge" id="discordBadge">Set up later</span>
+                        </div>
+                    </div>
+                    <button class="ob-btn" onclick="goNext()">Continue</button>
+                    <button class="ob-btn-secondary" onclick="goNext()">Skip for now</button>
+                </div>
+            </div>
+
+            <!-- ═══ Screen 5: Complete ═══ -->
+            <div class="screen" data-screen="4">
+                <div class="confetti-wrap" id="confettiWrap"></div>
+                <div class="ob-stagger" style="display:flex;flex-direction:column;align-items:center">
+                    <div class="success-orb">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div class="ob-title">All Set</div>
+                    <div class="ob-subtitle">Your tablet is ready to use. Enjoy the experience.</div>
+                    <button class="ob-btn" onclick="finishOnboarding()" style="background:var(--success);box-shadow:0 6px 20px rgba(52,199,89,0.25)">
+                        Enter
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        let currentStep = 0;
+        const totalSteps = 5;
+        let selectedTheme = 'light';
+
+        /* ── Navigation ── */
+        function goNext() {
+            if (currentStep >= totalSteps - 1) return;
+            transitionTo(currentStep + 1);
+        }
+
+        function transitionTo(step) {
+            const prev = document.querySelector('.screen.active');
+            const next = document.querySelector('[data-screen="' + step + '"]');
+            if (!prev || !next) return;
+
+            // Exit current
+            prev.classList.remove('active');
+            prev.classList.add('exit-left');
+
+            // Enter next
+            next.style.transform = 'translateX(60px)';
+            next.style.opacity = '0';
+            next.classList.remove('exit-left');
+
+            requestAnimationFrame(() => {
+                next.classList.add('active');
+                // Re-trigger stagger animations
+                const stagger = next.querySelector('.ob-stagger');
+                if (stagger) {
+                    stagger.style.animation = 'none';
+                    stagger.offsetHeight; // force reflow
+                    stagger.style.animation = '';
+                    stagger.querySelectorAll(':scope > *').forEach(child => {
+                        child.style.animation = 'none';
+                        child.offsetHeight;
+                        child.style.animation = '';
+                    });
+                }
+            });
+
+            currentStep = step;
+            updateProgress();
+
+            // Auto-focus input on profile screen
+            if (step === 1) {
+                setTimeout(() => {
+                    const input = document.getElementById('obName');
+                    if (input) input.focus();
+                }, 500);
+            }
+
+            // Spawn confetti on final screen
+            if (step === 4) {
+                setTimeout(spawnConfetti, 400);
+            }
+        }
+
+        function updateProgress() {
+            document.querySelectorAll('.progress-dot').forEach((dot, i) => {
+                dot.classList.remove('active', 'done');
+                if (i === currentStep) dot.classList.add('active');
+                else if (i < currentStep) dot.classList.add('done');
+            });
+            document.getElementById('stepLabel').textContent = 'Step ' + (currentStep + 1) + ' of ' + totalSteps;
+        }
+
+        /* ── Profile Save ── */
+        function saveProfile() {
+            const name = document.getElementById('obName').value.trim();
+            if (!name) {
+                document.getElementById('obName').style.borderColor = 'var(--danger)';
+                document.getElementById('obName').style.boxShadow = '0 0 0 4px rgba(255,59,48,0.12)';
+                document.getElementById('obName').setAttribute('placeholder', 'Please enter a name...');
+                setTimeout(() => {
+                    document.getElementById('obName').style.borderColor = '';
+                    document.getElementById('obName').style.boxShadow = '';
+                }, 2000);
+                return;
+            }
+            localStorage.setItem('dd-name', name);
+            goNext();
+        }
+
+        /* ── Theme Picker ── */
+        function pickTheme(el) {
+            document.querySelectorAll('.ob-theme-chip').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedTheme = el.dataset.theme;
+
+            // Live preview
+            document.documentElement.setAttribute('data-theme', selectedTheme);
+        }
+
+        /* ── Save Preferences ── */
+        function savePrefs() {
+            localStorage.setItem('dd-theme', selectedTheme);
+            localStorage.setItem('dd-setting-notifs', document.getElementById('obNotifs').checked);
+            goNext();
+        }
+
+        /* ── Discord Toggle ── */
+        function toggleDiscord() {
+            const dc = localStorage.getItem('dd-discord-config');
+            if (dc) {
+                document.getElementById('discordCard').classList.add('connected');
+                document.getElementById('discordBadge').textContent = 'Connected';
+                document.getElementById('discordBadge').classList.add('active');
+            } else {
+                // Open a mini-prompt for webhook
+                const webhook = prompt('Paste your Discord webhook URL:');
+                if (webhook && webhook.startsWith('https://discord.com/api/webhooks/')) {
+                    const name = localStorage.getItem('dd-name') || 'Dreamer';
+                    const config = { webhook: webhook, name: name, channel: 'general' };
+                    localStorage.setItem('dd-discord-config', JSON.stringify(config));
+                    document.getElementById('discordCard').classList.add('connected');
+                    document.getElementById('discordBadge').textContent = 'Connected';
+                    document.getElementById('discordBadge').classList.add('active');
+                }
+            }
+        }
+
+        /* ── Confetti ── */
+        function spawnConfetti() {
+            const wrap = document.getElementById('confettiWrap');
+            const colors = ['#007AFF', '#5AC8FA', '#34C759', '#FF9F0A', '#FF2D55', '#BF5AF2', '#64D2FF'];
+            for (let i = 0; i < 24; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'confetti-dot';
+                dot.style.left = (10 + Math.random() * 80) + '%';
+                dot.style.top = (10 + Math.random() * 40) + '%';
+                dot.style.background = colors[Math.floor(Math.random() * colors.length)];
+                dot.style.animationDelay = (Math.random() * 1.2) + 's';
+                dot.style.width = (4 + Math.random() * 5) + 'px';
+                dot.style.height = dot.style.width;
+                wrap.appendChild(dot);
+            }
+        }
+
+        /* ── Finish ── */
+        function finishOnboarding() {
+            localStorage.setItem('dd-onboarded', 'true');
+            document.querySelector('.onboarding-wrap').style.transition = 'opacity 0.5s ease';
+            document.querySelector('.onboarding-wrap').style.opacity = '0';
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 500);
+        }
+
+        /* ── Init ── */
+        document.addEventListener('DOMContentLoaded', () => {
+            // If already completed onboarding, go home
+            if (localStorage.getItem('dd-onboarded') === 'true') {
+                window.location.replace('index.html');
+                return;
+            }
+
+            // Pre-fill name if already stored
+            const savedName = localStorage.getItem('dd-name');
+            if (savedName) document.getElementById('obName').value = savedName;
+
+            // Check discord state
+            if (localStorage.getItem('dd-discord-config')) {
+                document.getElementById('discordCard').classList.add('connected');
+                document.getElementById('discordBadge').textContent = 'Connected';
+                document.getElementById('discordBadge').classList.add('active');
+            }
+
+            // Enter key on name input
+            document.getElementById('obName').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') saveProfile();
+            });
+        });
+    </script>
+</body>
+</html>
