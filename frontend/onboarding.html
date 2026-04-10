@@ -10,7 +10,7 @@
         /* ── Onboarding Shell ── */
         body {
             overflow: hidden;
-            background: var(--bg-base);
+            background: var(--bg-base, #F2F2F7);
         }
 
         .onboarding-wrap {
@@ -35,25 +35,25 @@
             width: 12px;
             height: 12px;
             border-radius: 50%;
-            background: var(--border-subtle);
+            background: var(--border-subtle, rgba(0, 0, 0, 0.06));
             transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .progress-dot.active {
             width: 36px;
             border-radius: 6px;
-            background: var(--primary);
+            background: var(--primary, #007AFF);
         }
 
         .progress-dot.done {
-            background: var(--primary);
+            background: var(--primary, #007AFF);
             opacity: 0.5;
         }
 
         .step-label {
             font-size: 16px;
             font-weight: 500;
-            color: var(--text-muted);
+            color: var(--text-muted, #8E8E93);
             margin-left: 10px;
             letter-spacing: 0.3px;
         }
@@ -148,7 +148,7 @@
             font-size: 36px;
             font-weight: 600;
             letter-spacing: -0.5px;
-            color: var(--text-primary);
+            color: var(--text-primary, #1C1C1E);
             text-align: center;
             margin-bottom: 8px;
         }
@@ -156,7 +156,7 @@
         .ob-subtitle {
             font-size: 20px;
             font-weight: 400;
-            color: var(--text-muted);
+            color: var(--text-muted, #8E8E93);
             text-align: center;
             line-height: 1.5;
             max-width: 500px;
@@ -200,8 +200,8 @@
             background: rgba(120, 120, 128, 0.07);
             border: 2px solid transparent;
             border-radius: 14px;
-            color: var(--text-primary);
-            font-family: var(--font);
+            color: var(--text-primary, #1C1C1E);
+            font-family: var(--font, 'Inter', -apple-system, sans-serif);
             font-size: 20px;
             font-weight: 400;
             outline: none;
@@ -209,11 +209,11 @@
         }
 
         .ob-input::placeholder {
-            color: var(--text-muted);
+            color: var(--text-muted, #8E8E93);
         }
 
         .ob-input:focus {
-            border-color: var(--primary);
+            border-color: var(--primary, #007AFF);
             background: rgba(0, 122, 255, 0.04);
             box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.12);
         }
@@ -221,14 +221,14 @@
         .ob-input-label {
             font-size: 17px;
             font-weight: 500;
-            color: var(--text-secondary);
+            color: var(--text-secondary, #3C3C43);
             margin-bottom: 10px;
             display: block;
         }
 
         .ob-input-hint {
             font-size: 15px;
-            color: var(--text-muted);
+            color: var(--text-muted, #8E8E93);
             margin-top: 10px;
             line-height: 1.4;
         }
@@ -245,9 +245,9 @@
             margin-top: 24px;
             border: none;
             border-radius: 100px;
-            background: var(--primary);
+            background: var(--primary, #007AFF);
             color: #fff;
-            font-family: var(--font);
+            font-family: var(--font, 'Inter', -apple-system, sans-serif);
             font-size: 20px;
             font-weight: 600;
             cursor: pointer;
@@ -266,7 +266,7 @@
 
         .ob-btn-secondary {
             background: none;
-            color: var(--text-muted);
+            color: var(--text-muted, #8E8E93);
             font-size: 18px;
             font-weight: 500;
             box-shadow: none;
@@ -274,14 +274,14 @@
             padding: 12px;
             cursor: pointer;
             border: none;
-            font-family: var(--font);
+            font-family: var(--font, 'Inter', -apple-system, sans-serif);
             transition: color 0.2s ease;
             width: 100%;
             text-align: center;
         }
 
         .ob-btn-secondary:hover {
-            color: var(--primary);
+            color: var(--primary, #007AFF);
         }
 
         /* ── Toggle Row ── */
@@ -322,12 +322,12 @@
         .ob-toggle-text .ob-label {
             font-size: 19px;
             font-weight: 500;
-            color: var(--text-primary);
+            color: var(--text-primary, #1C1C1E);
         }
 
         .ob-toggle-text .ob-desc {
             font-size: 15px;
-            color: var(--text-muted);
+            color: var(--text-muted, #8E8E93);
             margin-top: 2px;
         }
 
@@ -350,7 +350,7 @@
             cursor: pointer;
             font-size: 17px;
             font-weight: 500;
-            color: var(--text-secondary);
+            color: var(--text-secondary, #3C3C43);
             background: rgba(120, 120, 128, 0.06);
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
@@ -360,9 +360,9 @@
         }
 
         .ob-theme-chip.selected {
-            border-color: var(--primary);
+            border-color: var(--primary, #007AFF);
             background: rgba(0, 122, 255, 0.08);
-            color: var(--primary);
+            color: var(--primary, #007AFF);
             font-weight: 600;
         }
 
@@ -385,7 +385,7 @@
         }
 
         .ob-connect-card.connected {
-            border-color: var(--success);
+            border-color: var(--success, #34C759);
             background: rgba(52, 199, 89, 0.06);
         }
 
@@ -408,23 +408,23 @@
         .ob-connect-info .ob-label {
             font-size: 19px;
             font-weight: 500;
-            color: var(--text-primary);
+            color: var(--text-primary, #1C1C1E);
         }
 
         .ob-connect-info .ob-desc {
             font-size: 15px;
-            color: var(--text-muted);
+            color: var(--text-muted, #8E8E93);
             margin-top: 2px;
         }
 
         .ob-connect-badge {
             font-size: 15px;
             font-weight: 500;
-            color: var(--text-muted);
+            color: var(--text-muted, #8E8E93);
         }
 
         .ob-connect-badge.active {
-            color: var(--success);
+            color: var(--success, #34C759);
         }
 
         /* ── Fade-in children stagger ── */
@@ -492,7 +492,8 @@
             <div class="screen active" data-screen="0">
                 <div class="ob-stagger" style="display:flex;flex-direction:column;align-items:center">
                     <div class="welcome-orb">
-                        <i class="fas fa-tablet-alt"></i>
+                        <i class="fas fa-tablet-alt" aria-hidden="true"></i>
+                        <span class="fa-fallback" style="display:none;font-size:56px;color:#fff">&#x1F4F1;</span>
                     </div>
                     <div class="ob-title">Welcome</div>
                     <div class="ob-subtitle">Let's get your tablet set up. It only takes a moment.</div>
@@ -524,7 +525,7 @@
                         <!-- Notifications -->
                         <div class="ob-toggle-row">
                             <div class="ob-toggle-info">
-                                <div class="ob-toggle-icon" style="background:var(--danger)">
+                                <div class="ob-toggle-icon" style="background:#FF3B30">
                                     <i class="fas fa-bell"></i>
                                 </div>
                                 <div class="ob-toggle-text">
@@ -594,11 +595,12 @@
                 <div class="confetti-wrap" id="confettiWrap"></div>
                 <div class="ob-stagger" style="display:flex;flex-direction:column;align-items:center">
                     <div class="success-orb">
-                        <i class="fas fa-check"></i>
+                        <i class="fas fa-check" aria-hidden="true"></i>
+                        <span class="fa-fallback" style="display:none;font-size:52px;color:#fff">&#x2713;</span>
                     </div>
                     <div class="ob-title">All Set</div>
                     <div class="ob-subtitle">Your tablet is ready to use. Enjoy the experience.</div>
-                    <button class="ob-btn" onclick="finishOnboarding()" style="background:var(--success);box-shadow:0 6px 20px rgba(52,199,89,0.25)">
+                    <button class="ob-btn" onclick="finishOnboarding()" style="background:#34C759;box-shadow:0 6px 20px rgba(52,199,89,0.25)">
                         Enter
                     </button>
                 </div>
@@ -629,14 +631,19 @@
             prev.classList.remove('active');
             prev.classList.add('exit-left');
 
-            // Enter next
-            next.style.transform = 'translateX(60px)';
-            next.style.opacity = '0';
+            // Prepare entry: set initial off-screen state via inline styles
             next.classList.remove('exit-left');
+            next.style.opacity = '0';
+            next.style.transform = 'translateX(60px)';
 
-            requestAnimationFrame(() => {
-                next.classList.add('active');
-            });
+            // Force reflow so the browser registers the initial state
+            void next.offsetWidth;
+
+            // Now add active class AND clear inline styles so class rules take effect
+            // (inline styles override class rules, so they must be cleared)
+            next.classList.add('active');
+            next.style.opacity = '';
+            next.style.transform = '';
 
             currentStep = step;
             updateProgress();
@@ -668,7 +675,7 @@
         function saveProfile() {
             const name = document.getElementById('obName').value.trim();
             if (!name) {
-                document.getElementById('obName').style.borderColor = 'var(--danger)';
+                document.getElementById('obName').style.borderColor = '#FF3B30';
                 document.getElementById('obName').style.boxShadow = '0 0 0 4px rgba(255,59,48,0.12)';
                 document.getElementById('obName').setAttribute('placeholder', 'Please enter a name...');
                 setTimeout(() => {
@@ -749,6 +756,21 @@
 
         /* ── Init ── */
         document.addEventListener('DOMContentLoaded', () => {
+            // Check if Font Awesome loaded; show fallbacks if not
+            setTimeout(() => {
+                var testIcon = document.querySelector('.fas');
+                if (testIcon) {
+                    var computed = window.getComputedStyle(testIcon, ':before');
+                    var family = (computed.fontFamily || '').toLowerCase();
+                    if (family.indexOf('awesome') === -1 && family.indexOf('fa') === -1) {
+                        var fallbacks = document.querySelectorAll('.fa-fallback');
+                        for (var i = 0; i < fallbacks.length; i++) fallbacks[i].style.display = '';
+                        var fas = document.querySelectorAll('.fas, .fab');
+                        for (var i = 0; i < fas.length; i++) fas[i].style.display = 'none';
+                    }
+                }
+            }, 2000);
+
             // If already completed onboarding, go home
             if (localStorage.getItem('dd-onboarded') === 'true') {
                 window.location.replace('index.html' + window.location.search);
