@@ -1,0 +1,172 @@
+📱 SL TABLET HUD (MOAP SYSTEM)
+🧠 Developer Task Sheet + Build Plan
+1. 🎯 PROJECT OVERVIEW
+Goal:
+
+Build a HUD-based tablet interface inside Second Life using MOAP that functions like a simplified smart device with:
+
+Messaging (SL IM + optional external chat system)
+YouTube viewer
+Weather app
+Marketplace viewer
+Web browser (restricted/safe)
+Optional Discord bridge (external integration)
+2. 🧱 SYSTEM ARCHITECTURE
+📦 FRONTEND (Second Life HUD)
+Single or multi-prim HUD (tablet shape)
+One main MOAP screen (display surface)
+Button-based navigation (link clicks or touch regions)
+App router script (switches pages)
+LSL Responsibilities:
+Handle UI interactions
+Switch MOAP URLs
+Send HTTP requests
+Trigger SL IM notifications
+🌐 BACKEND (External Server)
+
+Used only for advanced features:
+
+Discord OAuth / API bridge (optional)
+Weather API handler
+Messaging database (chat system)
+Marketplace data proxy
+Web page rendering for MOAP apps
+3. 🧩 FEATURE TASK BREAKDOWN
+🟣 1. HUD CORE SYSTEM
+Tasks:
+ Create tablet HUD (flat square UI design)
+ Assign MOAP screen face (single prim or linked face)
+ Build button layout (grid or sidebar)
+ Create app routing script (state-based system)
+ Implement hover/click detection for buttons
+Deliverable:
+Functional HUD that switches “apps”
+📺 2. MOAP APP ENGINE
+Tasks:
+ Implement llSetPrimMediaParams system
+ Build URL routing table (app → web page)
+ Create base web UI pages:
+Home dashboard
+Messages
+YouTube
+Weather
+Marketplace
+Browser
+Deliverable:
+Tablet behaves like a multi-app OS via MOAP
+💬 3. MESSAGING SYSTEM (HYBRID)
+Tasks:
+ SL IM integration using llInstantMessage()
+ Optional external chat database (Firebase/Node)
+ Build inbox UI page (MOAP)
+ Add message fetch via HTTP request
+ Map avatar UUID ↔ message history
+Deliverable:
+Functional inbox + SL IM notification system
+💌 4. SL NOTIFICATION SYSTEM
+Tasks:
+ IM notification trigger on new message
+ Optional in-region alerts via llRegionSayTo()
+ Toggle system (enable/disable notifications)
+Deliverable:
+Real SL messaging alerts + HUD inbox sync
+▶️ 5. YOUTUBE MODULE
+Tasks:
+ Embed YouTube via MOAP (/embed/ URLs)
+ Video player UI page
+ Search input (optional API integration)
+ Basic favorites/history storage
+Deliverable:
+Functional video player inside HUD
+🌤 6. WEATHER MODULE
+Tasks:
+ Connect OpenWeather (or similar API)
+ Build weather UI page (forecast + icons)
+ Region → city mapping (optional)
+ Auto refresh system
+Deliverable:
+Live weather dashboard inside HUD
+🛒 7. MARKETPLACE MODULE
+Tasks:
+ Build server-side marketplace search proxy
+ Create results UI page
+ Display item listings (name, price, link)
+ “Open in viewer” SL links
+Deliverable:
+In-HUD marketplace browsing system
+🌐 8. WEB BROWSER (SAFE VIEWER)
+Tasks:
+ URL whitelist system (security layer)
+ Proxy web viewer page
+ Basic search engine integration
+ Block unsafe/unapproved domains
+Deliverable:
+Controlled browser experience inside HUD
+🎮 9. DISCORD INTEGRATION (OPTIONAL ADVANCED)
+Tasks:
+ Discord OAuth login flow (external server)
+ Channel/message fetch API
+ Chat UI in MOAP page
+ Optional webhook message sending
+ Avatar ↔ Discord account linking system
+Deliverable:
+Discord-style panel inside HUD (via web bridge)
+⚙️ 10. SETTINGS SYSTEM
+Tasks:
+ Settings UI page
+ Notification toggles
+ Theme controls (light/dark/neon)
+ Account linking panel
+ Reset/reload system
+Deliverable:
+Full configuration panel for HUD
+4. 🧠 DEVELOPMENT PHASE PLAN
+🟢 PHASE 1 — CORE HUD FOUNDATION
+Build tablet HUD mesh/prim
+Create MOAP screen
+Implement button navigation system
+Add app switching logic
+
+✔ Result: basic working tablet shell
+
+🟡 PHASE 2 — CORE APPS
+YouTube module
+Weather module
+Marketplace viewer
+SL IM notifications
+
+✔ Result: usable “smart HUD”
+
+🟠 PHASE 3 — MESSAGING SYSTEM
+SL IM integration fully working
+External message database (optional)
+Inbox UI complete
+
+✔ Result: functional messaging experience
+
+🔵 PHASE 4 — ADVANCED FEATURES
+Discord integration
+Web browser module
+UI polish + animations
+Performance optimization
+
+✔ Result: full tablet OS experience inside SL
+
+5. ⚠️ SECOND LIFE LIMITATIONS (IMPORTANT)
+No true full browser inside SL (MOAP only)
+Discord must be external bridge (not native app)
+IM system is not real-time chat UI by itself
+External sites must support embedding in MOAP
+Viewer settings can affect media display
+6. 🧩 OPTIONAL UPGRADES
+Voice chat via external WebRTC
+Group family messaging system
+Inventory integration (SL items)
+Emergency notification system
+Region-based services (GPS-style features)
+🚀 FINAL SUMMARY
+
+This system is:
+
+🧠 SL HUD (LSL) + 🌐 External API backend + 📺 MOAP web apps
+= A simulated tablet operating system inside Second Life

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Marketplace - Digital Dream</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <div class="tablet-bg"></div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <div class="status-left"><span class="status-time" id="statusTime">12:00 PM</span></div>
+        <div class="status-right">
+            <i class="fas fa-wifi"></i><i class="fas fa-signal"></i>
+            <div class="battery"><div class="battery-bar"><div class="battery-fill"></div></div></div>
+        </div>
+    </div>
+
+    <!-- App Content -->
+    <div class="app-container">
+        <div class="app-header">
+            <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+            <div class="app-title">
+                Marketplace
+                <small>SL Shopping</small>
+            </div>
+        </div>
+
+        <!-- Search -->
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Search marketplace..."
+                   onkeydown="if(event.key==='Enter')searchMarketplace()">
+            <button onclick="searchMarketplace()" style="background:none;border:none;color:var(--accent);cursor:pointer">
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="tabs">
+            <div class="tab active" data-cat="all" onclick="filterCategory('all')">All</div>
+            <div class="tab" data-cat="avatar" onclick="filterCategory('avatar')">Avatar</div>
+            <div class="tab" data-cat="clothing" onclick="filterCategory('clothing')">Clothing</div>
+            <div class="tab" data-cat="furniture" onclick="filterCategory('furniture')">Home</div>
+            <div class="tab" data-cat="scripts" onclick="filterCategory('scripts')">Scripts</div>
+        </div>
+
+        <!-- Loading -->
+        <div class="empty-state" id="loadingState" style="display:none">
+            <div class="spinner"></div>
+            <p class="text-sm text-muted mt-8">Searching...</p>
+        </div>
+
+        <!-- Results -->
+        <div class="product-grid" id="resultsGrid">
+            <!-- Default featured items -->
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState" style="display:none">
+            <i class="fas fa-shopping-bag"></i>
+            <h3>No Results</h3>
+            <p>Try a different search term</p>
+        </div>
+
+        <!-- Open in SL Banner -->
+        <div class="px-16 mt-16 mb-8" id="slBanner">
+            <div class="glass-card" style="text-align:center;cursor:pointer" onclick="openInViewer()">
+                <div class="flex items-center justify-center gap-8">
+                    <i class="fas fa-external-link-alt" style="color:var(--secondary)"></i>
+                    <div>
+                        <div class="font-bold text-sm">Open Full Marketplace</div>
+                        <div class="text-xs text-muted">Browse in SL Viewer</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="height:16px"></div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="messages.html" class="nav-item"><i class="fas fa-comment"></i><span>Chat</span></a>
+        <a href="browser.html" class="nav-item"><i class="fas fa-search"></i><span>Browse</span></a>
+        <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        let allResults = [];
+        let currentCategory = 'all';
+
+        async function searchMarketplace() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+
+            document.getElementById('loadingState').style.display = '';
+            document.getElementById('resultsGrid').innerHTML = '';
+            document.getElementById('emptyState').style.display = 'none';
+
+            try {
+                const data = await DreamApp.apiGet('/api/marketplace/search?q=' + encodeURIComponent(query));
+                allResults = data.items || [];
+                document.getElementById('loadingState').style.display = 'none';
+                filterCategory(currentCategory);
+            } catch {
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('emptyState').style.display = '';
+                DreamApp.toast('Search failed', 'error');
+            }
+        }
+
+        function filterCategory(cat) {
+            currentCategory = cat;
+            document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
+
+            const filtered = cat === 'all' ? allResults : allResults.filter(i => (i.category || '').toLowerCase().includes(cat));
+            renderResults(filtered);
+        }
+
+        function renderResults(items) {
+            const grid = document.getElementById('resultsGrid');
+            if (items.length === 0) {
+                grid.innerHTML = '';
+                document.getElementById('emptyState').style.display = allResults.length > 0 ? '' : 'none';
+                return;
+            }
+            document.getElementById('emptyState').style.display = 'none';
+
+            grid.innerHTML = items.map(item => {
+                const price = item.price !== undefined ? 'L$' + item.price : 'Free';
+                const name = DreamApp.escapeHtml(item.name || 'Item');
+                const creator = DreamApp.escapeHtml(item.creator || 'Unknown');
+                const link = item.url ? DreamApp.escapeHtml(item.url) : '#';
+
+                return '<div class="product-card" onclick="openProduct(\'' + link + '\')">'
+                    + '<div class="product-image">'
+                    + (item.image ? '<img src="' + DreamApp.escapeHtml(item.image) + '" alt="" onerror="this.style.display=\'none\'">' : '')
+                    + '<i class="fas fa-shopping-bag"></i></div>'
+                    + '<div class="product-details">'
+                    + '<div class="product-name">' + name + '</div>'
+                    + '<div class="product-creator">' + creator + '</div>'
+                    + '<div class="product-price">' + price + '</div>'
+                    + '</div></div>';
+            }).join('');
+        }
+
+        function openProduct(url) {
+            if (url && url !== '#') {
+                window.open(url, '_blank', 'noopener,noreferrer');
+            }
+        }
+
+        function openInViewer() {
+            const q = document.getElementById('searchInput').value.trim();
+            const url = DDConfig.SL_MP_BASE + (q ? '/products/search?search%5Bkeywords%5D=' + encodeURIComponent(q) : '');
+            window.open(url, '_blank', 'noopener,noreferrer');
+        }
+
+        // Load featured items on start
+        async function loadFeatured() {
+            try {
+                const data = await DreamApp.apiGet('/api/marketplace/featured');
+                if (data && data.items) {
+                    allResults = data.items;
+                    renderResults(allResults);
+                }
+            } catch {
+                // Show default placeholder cards
+                const defaults = [
+                    { name: 'Search the Marketplace', creator: 'Find amazing items', price: undefined },
+                    { name: 'Clothing & Fashion', creator: 'Latest styles', price: undefined },
+                    { name: 'Home & Garden', creator: 'Decorate your space', price: undefined },
+                    { name: 'Avatar Accessories', creator: 'Express yourself', price: undefined }
+                ];
+                allResults = defaults;
+                renderResults(defaults);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadFeatured);
+    </script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "name": "digital-dream",
+  "version": "1.0.0",
+  "description": "[Kyori] Digital Dream Tablet HUD - Full Stack",
+  "scripts": {
+    "build": "cd backend && npm install",
+    "start": "cd backend && node server.js",
+    "migrate": "cd backend && npm run migrate"
+  }
+}

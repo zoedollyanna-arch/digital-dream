@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Discord - Digital Dream</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .discord-layout {
+            display: flex;
+            height: 100%;
+        }
+        .discord-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        .discord-main .chat-messages { flex: 1; overflow-y: auto; }
+        .server-separator {
+            width: 32px;
+            height: 2px;
+            background: var(--border-glass);
+            border-radius: 1px;
+            margin: 4px auto;
+        }
+        .discord-user-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(0,0,0,0.3);
+            border-top: 1px solid var(--border-glass);
+            font-size: 11px;
+        }
+        .discord-user-bar .user-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--success);
+        }
+        .channel-category {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            padding: 12px 12px 4px;
+        }
+        .member-list {
+            width: 120px;
+            background: rgba(0,0,0,0.15);
+            border-left: 1px solid var(--border-glass);
+            overflow-y: auto;
+            padding: 8px;
+        }
+        .member-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 6px;
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        .member-item:hover { background: var(--bg-glass); }
+        .member-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+        }
+        .online { background: var(--success); }
+        .idle { background: var(--warning); }
+        .offline { background: var(--text-muted); }
+    </style>
+</head>
+<body>
+    <div class="tablet-bg"></div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <div class="status-left"><span class="status-time" id="statusTime">12:00 PM</span></div>
+        <div class="status-right">
+            <i class="fas fa-wifi"></i><i class="fas fa-signal"></i>
+            <div class="battery"><div class="battery-bar"><div class="battery-fill"></div></div></div>
+        </div>
+    </div>
+
+    <!-- App Content -->
+    <div class="app-container" style="overflow:hidden">
+
+        <!-- Setup View (shown when not connected) -->
+        <div id="setupView">
+            <div class="app-header">
+                <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+                <div class="app-title">
+                    Discord
+                    <small>Connect & Chat</small>
+                </div>
+            </div>
+
+            <div class="p-16">
+                <div class="glass-card text-center" style="padding:24px">
+                    <i class="fab fa-discord" style="font-size:48px;color:#5865F2;margin-bottom:12px"></i>
+                    <h3 style="font-size:16px;font-weight:700;margin-bottom:4px">Connect to Discord</h3>
+                    <p class="text-xs text-muted">Link your Discord server via webhook</p>
+
+                    <div class="input-group mt-16" style="text-align:left">
+                        <label>Webhook URL</label>
+                        <input type="text" id="webhookUrl" class="input-field"
+                               placeholder="https://discord.com/api/webhooks/...">
+                    </div>
+
+                    <div class="input-group mt-8" style="text-align:left">
+                        <label>Display Name</label>
+                        <input type="text" id="discordName" class="input-field"
+                               placeholder="Your display name">
+                    </div>
+
+                    <div class="input-group mt-8" style="text-align:left">
+                        <label>Channel Name</label>
+                        <input type="text" id="channelName" class="input-field"
+                               placeholder="general" value="general">
+                    </div>
+
+                    <button class="btn btn-primary btn-block mt-16" onclick="connectDiscord()">
+                        <i class="fab fa-discord"></i> Connect
+                    </button>
+
+                    <p class="text-xs text-muted mt-8">Your webhook URL is stored locally only</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Discord Chat View -->
+        <div id="discordView" style="display:none">
+            <div class="discord-layout">
+                <!-- Server Icons -->
+                <div class="discord-channels">
+                    <div class="channel-icon active" title="Your Server" id="serverIcon">DD</div>
+                    <div class="server-separator"></div>
+                    <div class="channel-icon" onclick="goHome()" title="Home" style="background:var(--success);color:#fff">
+                        <i class="fas fa-home" style="font-size:14px"></i>
+                    </div>
+                    <div class="channel-icon" onclick="showSetup()" title="Settings" style="font-size:12px">
+                        <i class="fas fa-cog"></i>
+                    </div>
+                </div>
+
+                <!-- Channel List -->
+                <div class="discord-sidebar">
+                    <div class="sidebar-header" id="serverName">Digital Dream</div>
+                    <div class="channel-category">Text Channels</div>
+                    <div class="channel-name active" id="channelDisplay">
+                        <i class="fas fa-hashtag"></i> <span>general</span>
+                    </div>
+                </div>
+
+                <!-- Main Chat -->
+                <div class="discord-main">
+                    <!-- Channel Header -->
+                    <div style="padding:8px 12px;border-bottom:1px solid var(--border-glass);display:flex;align-items:center;gap:8px">
+                        <i class="fas fa-hashtag" style="color:var(--text-muted)"></i>
+                        <span class="font-bold text-sm" id="chatChannelName">general</span>
+                    </div>
+
+                    <!-- Messages -->
+                    <div class="chat-messages chat-container" id="discordMessages">
+                        <div class="empty-state">
+                            <i class="fab fa-discord"></i>
+                            <h3>Welcome!</h3>
+                            <p>This is the beginning of your conversation</p>
+                        </div>
+                    </div>
+
+                    <!-- Input -->
+                    <div class="chat-input-area">
+                        <input type="text" id="discordInput" placeholder="Message #general"
+                               onkeydown="if(event.key==='Enter')sendDiscordMessage()">
+                        <button class="send-btn" onclick="sendDiscordMessage()">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+
+                    <!-- User Bar -->
+                    <div class="discord-user-bar">
+                        <div class="user-dot"></div>
+                        <span id="userDisplay">You</span>
+                        <span class="text-muted" style="margin-left:auto">Connected</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="messages.html" class="nav-item"><i class="fas fa-comment"></i><span>Chat</span></a>
+        <a href="browser.html" class="nav-item"><i class="fas fa-search"></i><span>Browse</span></a>
+        <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        let discordConfig = null;
+        let messages = [];
+        let pollTimer = null;
+
+        function loadConfig() {
+            const saved = localStorage.getItem('dd-discord-config');
+            if (saved) {
+                discordConfig = JSON.parse(saved);
+                return true;
+            }
+            return false;
+        }
+
+        function connectDiscord() {
+            const webhook = document.getElementById('webhookUrl').value.trim();
+            const name = document.getElementById('discordName').value.trim() || DreamApp.getUserName();
+            const channel = document.getElementById('channelName').value.trim() || 'general';
+
+            if (!webhook) {
+                DreamApp.toast('Enter a webhook URL', 'error');
+                return;
+            }
+
+            // Basic validation - webhook URLs follow a specific pattern
+            if (!webhook.startsWith('https://discord.com/api/webhooks/')) {
+                DreamApp.toast('Invalid webhook URL', 'error');
+                return;
+            }
+
+            discordConfig = { webhook, name, channel };
+            localStorage.setItem('dd-discord-config', JSON.stringify(discordConfig));
+
+            showDiscordView();
+            DreamApp.toast('Connected to Discord!', 'success');
+        }
+
+        function showDiscordView() {
+            document.getElementById('setupView').style.display = 'none';
+            document.getElementById('discordView').style.display = 'flex';
+
+            document.getElementById('serverIcon').textContent = (discordConfig.channel || 'DD')[0].toUpperCase() + (discordConfig.channel || 'DD')[1];
+            document.getElementById('channelDisplay').querySelector('span').textContent = discordConfig.channel;
+            document.getElementById('chatChannelName').textContent = discordConfig.channel;
+            document.getElementById('discordInput').placeholder = 'Message #' + discordConfig.channel;
+            document.getElementById('userDisplay').textContent = discordConfig.name;
+
+            loadDiscordMessages();
+            if (pollTimer) clearInterval(pollTimer);
+            pollTimer = setInterval(loadDiscordMessages, DDConfig.DISCORD_REFRESH);
+        }
+
+        function showSetup() {
+            if (pollTimer) clearInterval(pollTimer);
+            document.getElementById('discordView').style.display = 'none';
+            document.getElementById('setupView').style.display = 'block';
+            if (discordConfig) {
+                document.getElementById('webhookUrl').value = discordConfig.webhook || '';
+                document.getElementById('discordName').value = discordConfig.name || '';
+                document.getElementById('channelName').value = discordConfig.channel || 'general';
+            }
+        }
+
+        function goHome() {
+            window.location.href = 'index.html';
+        }
+
+        async function sendDiscordMessage() {
+            const input = document.getElementById('discordInput');
+            const text = input.value.trim();
+            if (!text || !discordConfig) return;
+
+            input.value = '';
+
+            // Optimistic render
+            appendMessage({
+                sender: discordConfig.name,
+                text: text,
+                time: new Date().toISOString(),
+                isSelf: true
+            });
+
+            try {
+                await DreamApp.apiPost('/api/discord/send', {
+                    webhook: discordConfig.webhook,
+                    username: discordConfig.name,
+                    content: text
+                });
+            } catch {
+                DreamApp.toast('Failed to send', 'error');
+            }
+        }
+
+        async function loadDiscordMessages() {
+            try {
+                const data = await DreamApp.apiGet('/api/discord/messages?channel=' + encodeURIComponent(discordConfig.channel || 'general'));
+                if (data && data.messages) {
+                    renderDiscordMessages(data.messages);
+                }
+            } catch {
+                // Silent - channel may not have server-side logging
+            }
+        }
+
+        function renderDiscordMessages(msgs) {
+            const container = document.getElementById('discordMessages');
+            const wasAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 50;
+
+            container.innerHTML = msgs.map(m => {
+                const isSelf = m.sender === (discordConfig ? discordConfig.name : '');
+                const hue = nameToHue(m.sender || 'Unknown');
+                const time = m.time ? DreamApp.formatTime(m.time) : '';
+                return '<div class="message-bubble ' + (isSelf ? 'sent' : 'received') + '">'
+                    + (!isSelf ? '<div class="msg-sender" style="color:hsl(' + hue + ',70%,65%)">' + DreamApp.escapeHtml(m.sender || 'Unknown') + '</div>' : '')
+                    + DreamApp.escapeHtml(m.text || m.content || '')
+                    + '<div class="msg-time">' + time + '</div>'
+                    + '</div>';
+            }).join('');
+
+            if (wasAtBottom) container.scrollTop = container.scrollHeight;
+        }
+
+        function appendMessage(msg) {
+            const container = document.getElementById('discordMessages');
+            // Remove empty state if present
+            const empty = container.querySelector('.empty-state');
+            if (empty) empty.remove();
+
+            const time = msg.time ? DreamApp.formatTime(msg.time) : 'now';
+            container.innerHTML += '<div class="message-bubble ' + (msg.isSelf ? 'sent' : 'received') + '">'
+                + DreamApp.escapeHtml(msg.text || '')
+                + '<div class="msg-time">' + time + '</div></div>';
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function nameToHue(name) {
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            return Math.abs(hash) % 360;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (loadConfig()) {
+                showDiscordView();
+            }
+        });
+    </script>
+</body>
+</html>

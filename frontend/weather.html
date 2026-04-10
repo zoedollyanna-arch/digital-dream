@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Weather - Digital Dream</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <div class="tablet-bg"></div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <div class="status-left"><span class="status-time" id="statusTime">12:00 PM</span></div>
+        <div class="status-right">
+            <i class="fas fa-wifi"></i><i class="fas fa-signal"></i>
+            <div class="battery"><div class="battery-bar"><div class="battery-fill"></div></div></div>
+        </div>
+    </div>
+
+    <!-- App Content -->
+    <div class="app-container">
+        <!-- Header -->
+        <div class="app-header">
+            <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+            <div class="app-title">
+                Weather
+                <small>Current Conditions</small>
+            </div>
+            <button class="btn btn-sm btn-secondary" onclick="refreshWeather()" title="Refresh">
+                <i class="fas fa-sync-alt" id="refreshIcon"></i>
+            </button>
+        </div>
+
+        <!-- City Search -->
+        <div class="search-bar">
+            <i class="fas fa-map-marker-alt"></i>
+            <input type="text" id="cityInput" placeholder="Enter city name..."
+                   onkeydown="if(event.key==='Enter')searchCity()">
+            <button onclick="searchCity()" style="background:none;border:none;color:var(--secondary);cursor:pointer;font-size:14px">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+
+        <!-- Loading State -->
+        <div class="empty-state" id="loadingState">
+            <div class="spinner"></div>
+            <p class="text-sm text-muted mt-8">Loading weather...</p>
+        </div>
+
+        <!-- Weather Display -->
+        <div id="weatherContent" style="display:none">
+            <!-- Current Weather -->
+            <div class="weather-current animate-fadeIn">
+                <div class="weather-icon" id="wIcon">🌤️</div>
+                <div class="temp-main" id="wTemp">--°</div>
+                <div class="weather-desc" id="wDesc">Loading...</div>
+                <div class="weather-location" id="wLocation">--</div>
+                <div class="text-xs text-muted mt-8" id="wFeelsLike">Feels like --°</div>
+            </div>
+
+            <!-- Detail Cards -->
+            <div class="weather-details animate-slideUp">
+                <div class="weather-detail-item">
+                    <i class="fas fa-tint"></i>
+                    <div class="detail-value" id="wHumidity">--%</div>
+                    <div class="detail-label">Humidity</div>
+                </div>
+                <div class="weather-detail-item">
+                    <i class="fas fa-wind"></i>
+                    <div class="detail-value" id="wWind">-- mph</div>
+                    <div class="detail-label">Wind</div>
+                </div>
+                <div class="weather-detail-item">
+                    <i class="fas fa-eye"></i>
+                    <div class="detail-value" id="wVisibility">-- mi</div>
+                    <div class="detail-label">Visibility</div>
+                </div>
+            </div>
+
+            <!-- Extra Details -->
+            <div class="weather-details mt-8">
+                <div class="weather-detail-item">
+                    <i class="fas fa-compress-alt"></i>
+                    <div class="detail-value" id="wPressure">-- hPa</div>
+                    <div class="detail-label">Pressure</div>
+                </div>
+                <div class="weather-detail-item">
+                    <i class="fas fa-sunrise"></i>
+                    <div class="detail-value" id="wSunrise">--:--</div>
+                    <div class="detail-label">Sunrise</div>
+                </div>
+                <div class="weather-detail-item">
+                    <i class="fas fa-sunset"></i>
+                    <div class="detail-value" id="wSunset">--:--</div>
+                    <div class="detail-label">Sunset</div>
+                </div>
+            </div>
+
+            <!-- 5-Day Forecast -->
+            <div class="px-16 mt-16">
+                <div class="font-bold text-sm mb-8">5-Day Forecast</div>
+            </div>
+            <div class="weather-forecast" id="forecastRow">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div class="empty-state hidden" id="errorState">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>Couldn't Load Weather</h3>
+            <p>Check your connection or try another city</p>
+            <button class="btn btn-sm btn-primary mt-8" onclick="refreshWeather()">Retry</button>
+        </div>
+
+        <div style="height:20px"></div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="messages.html" class="nav-item"><i class="fas fa-comment"></i><span>Chat</span></a>
+        <a href="browser.html" class="nav-item"><i class="fas fa-search"></i><span>Browse</span></a>
+        <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        let currentCity = '';
+
+        const weatherEmoji = {
+            '01d': '☀️', '01n': '🌙', '02d': '⛅', '02n': '☁️',
+            '03d': '☁️', '03n': '☁️', '04d': '☁️', '04n': '☁️',
+            '09d': '🌧️', '09n': '🌧️', '10d': '🌦️', '10n': '🌧️',
+            '11d': '⛈️', '11n': '⛈️', '13d': '🌨️', '13n': '🌨️',
+            '50d': '🌫️', '50n': '🌫️'
+        };
+
+        function searchCity() {
+            const city = document.getElementById('cityInput').value.trim();
+            if (city) loadWeather(city);
+        }
+
+        async function loadWeather(city) {
+            currentCity = city || currentCity || DDConfig.DEFAULT_CITY;
+            document.getElementById('cityInput').value = currentCity;
+
+            document.getElementById('loadingState').classList.remove('hidden');
+            document.getElementById('loadingState').style.display = '';
+            document.getElementById('weatherContent').style.display = 'none';
+            document.getElementById('errorState').classList.add('hidden');
+
+            try {
+                const data = await DreamApp.apiGet('/api/weather?city=' + encodeURIComponent(currentCity));
+                renderWeather(data);
+
+                // Also load forecast
+                try {
+                    const forecast = await DreamApp.apiGet('/api/weather/forecast?city=' + encodeURIComponent(currentCity));
+                    renderForecast(forecast);
+                } catch { /* forecast optional */ }
+
+            } catch (err) {
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('errorState').classList.remove('hidden');
+            }
+        }
+
+        function renderWeather(data) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('weatherContent').style.display = 'block';
+
+            document.getElementById('wIcon').textContent = weatherEmoji[data.icon] || '🌤️';
+            document.getElementById('wTemp').textContent = Math.round(data.temp) + '°F';
+            document.getElementById('wDesc').textContent = data.description || 'Clear';
+            document.getElementById('wLocation').textContent = (data.city || currentCity) + (data.country ? ', ' + data.country : '');
+            document.getElementById('wFeelsLike').textContent = 'Feels like ' + Math.round(data.feels_like || data.temp) + '°F';
+            document.getElementById('wHumidity').textContent = (data.humidity || '--') + '%';
+            document.getElementById('wWind').textContent = Math.round(data.wind || 0) + ' mph';
+            document.getElementById('wVisibility').textContent = data.visibility ? Math.round(data.visibility / 1609) + ' mi' : '-- mi';
+            document.getElementById('wPressure').textContent = (data.pressure || '--') + ' hPa';
+
+            if (data.sunrise) {
+                const sr = new Date(data.sunrise * 1000);
+                document.getElementById('wSunrise').textContent = sr.getHours() % 12 || 12;
+                document.getElementById('wSunrise').textContent = formatSunTime(data.sunrise);
+            }
+            if (data.sunset) {
+                document.getElementById('wSunset').textContent = formatSunTime(data.sunset);
+            }
+
+            localStorage.setItem('dd-weather-city', currentCity);
+        }
+
+        function formatSunTime(ts) {
+            const d = new Date(ts * 1000);
+            let h = d.getHours();
+            const m = String(d.getMinutes()).padStart(2, '0');
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            return h + ':' + m + ' ' + ampm;
+        }
+
+        function renderForecast(data) {
+            const container = document.getElementById('forecastRow');
+            if (!data || !data.forecast || data.forecast.length === 0) {
+                container.innerHTML = '<div class="text-xs text-muted p-16">Forecast unavailable</div>';
+                return;
+            }
+            container.innerHTML = data.forecast.slice(0, 5).map(day => {
+                const emoji = weatherEmoji[day.icon] || '🌤️';
+                return '<div class="forecast-item">'
+                    + '<div class="forecast-day">' + DreamApp.escapeHtml(day.day) + '</div>'
+                    + '<div class="forecast-icon">' + emoji + '</div>'
+                    + '<div class="forecast-temp">' + Math.round(day.high) + '°</div>'
+                    + '<div class="forecast-low">' + Math.round(day.low) + '°</div>'
+                    + '</div>';
+            }).join('');
+        }
+
+        function refreshWeather() {
+            const icon = document.getElementById('refreshIcon');
+            icon.style.animation = 'spin 0.8s linear';
+            setTimeout(() => icon.style.animation = '', 800);
+            loadWeather(currentCity);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('dd-weather-city');
+            loadWeather(saved || DDConfig.DEFAULT_CITY);
+        });
+
+        // Auto-refresh
+        setInterval(() => loadWeather(currentCity), DDConfig.WEATHER_REFRESH);
+    </script>
+</body>
+</html>

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Settings - Digital Dream</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .theme-preview {
+            display: flex; gap: 8px; padding: 4px 0;
+        }
+        .theme-option {
+            width: 48px; height: 48px; border-radius: var(--radius-md);
+            cursor: pointer; transition: var(--transition);
+            border: 2px solid transparent; display: flex;
+            align-items: center; justify-content: center;
+            font-size: 20px;
+        }
+        .theme-option:hover { transform: scale(1.05); }
+        .theme-option.selected { border-color: var(--primary); box-shadow: var(--shadow-glow); }
+        .theme-dark-opt { background: linear-gradient(135deg, #0A0E27, #151A3A); }
+        .theme-light-opt { background: linear-gradient(135deg, #F0F2F5, #FFFFFF); }
+        .theme-neon-opt { background: linear-gradient(135deg, #0D0015, #1A0030); }
+        .about-logo { font-size: 48px; margin-bottom: 8px; }
+        .storage-bar { height: 6px; background: var(--bg-surface); border-radius: 3px; overflow: hidden; margin-top: 6px; }
+        .storage-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+    </style>
+</head>
+<body>
+    <div class="tablet-bg"></div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <div class="status-left"><span class="status-time" id="statusTime">12:00 PM</span></div>
+        <div class="status-right">
+            <i class="fas fa-wifi"></i><i class="fas fa-signal"></i>
+            <div class="battery"><div class="battery-bar"><div class="battery-fill"></div></div></div>
+        </div>
+    </div>
+
+    <!-- App Content -->
+    <div class="app-container">
+        <div class="app-header">
+            <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+            <div class="app-title">
+                Settings
+                <small>Customize your Dream</small>
+            </div>
+        </div>
+
+        <!-- Profile Section -->
+        <div class="settings-section">
+            <div class="section-title">Profile</div>
+            <div class="settings-item" onclick="editProfile()">
+                <div class="setting-left">
+                    <div class="setting-icon" style="background:var(--primary);color:#fff;border-radius:50%">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div>
+                        <div class="setting-label" id="profileName">Dreamer</div>
+                        <div class="setting-desc" id="profileUuid">Not linked</div>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right" style="color:var(--text-muted);font-size:12px"></i>
+            </div>
+        </div>
+
+        <!-- Appearance -->
+        <div class="settings-section">
+            <div class="section-title">Appearance</div>
+
+            <div class="settings-item">
+                <div class="setting-left">
+                    <div class="setting-icon" style="background:linear-gradient(135deg,#6C63FF,#00D4FF)">
+                        <i class="fas fa-palette" style="color:#fff;font-size:12px"></i>
+                    </div>
+                    <div>
+                        <div class="setting-label">Theme</div>
+                        <div class="setting-desc">Choose your vibe</div>
+                    </div>
+                </div>
+            </div>
+            <div class="px-16" style="margin-top:-4px;margin-bottom:8px">
+                <div class="theme-preview">
+                    <div class="theme-option theme-dark-opt" data-theme="dark" onclick="selectTheme('dark')" title="Dark">🌙</div>
+                    <div class="theme-option theme-light-opt" data-theme="light" onclick="selectTheme('light')" title="Light">☀️</div>
+                    <div class="theme-option theme-neon-opt" data-theme="neon" onclick="selectTheme('neon')" title="Neon">⚡</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="settings-section">
+            <div class="section-title">Notifications</div>
+
+            <div class="settings-item">
+                <div class="setting-left">
+                    <div class="setting-icon" style="background:var(--success)">
+                        <i class="fas fa-bell" style="color:#fff;font-size:12px"></i>
+                    </div>
+                    <div>
+                        <div class="setting-label">Message Notifications</div>
+                        <div class="setting-desc">SL IM alerts</div>
+                    </div>
+                </div>
+                <label class="toggle">
+                    <input type="checkbox" id="toggleNotifs" checked onchange="saveSetting('notifs', this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="settings-item">
+                <div class="setting-left">
+                    <div class="setting-icon" style="background:#5865F2">
+                        <i class="fab fa-discord" style="color:#fff;font-size:12px"></i>
+                    </div>
+                    <div>
+                        <div class="setting-label">Discord Notifications</div>
+                        <div class="setting-desc">Channel message alerts</div>
+                    </div>
+                </div>
+                <label class="toggle">
+                    <input type="checkbox" id="toggleDiscord" checked onchange="saveSetting('discordNotifs', this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="settings-item">
+                <div class="setting-left">
+                    <div class="setting-icon" style="background:var(--secondary)">
+                        <i class="fas fa-volume-up" style="color:#fff;font-size:12px"></i>
+                    </div>
+                    <div>
+                        <div class="setting-label">Sound Effects</div>
+                        <div class="setting-desc">UI tap sounds</div>
+                    </div>
+                </div>
+                <label class="toggle">
+                    <input type="checkbox" id="toggleSound" onchange="saveSetting('sound', this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Connections -->
+        <div class="settings-section">
+            <div class="section-title">Connections</div>
+
+            <div class="settings-item" onclick="location.href='discord.html'">
+                <div class="setting-left">
+                    <div class="setting-icon" style="background:#5865F2">
+                        <i class="fab fa-discord" style="color:#fff;font-size:12px"></i>
+                    </div>
+                    <div>
+                        <div class="setting-label">Discord</div>
+                        <div class="setting-desc" id="discordStatus">Not connected</div>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right" style="color:var(--text-muted);font-size:12px"></i>
+            </div>
+
+            <div class="settings-item">
+                <div class="setting-left">
+                    <div class="setting-icon" style="background:var(--secondary)">
+                        <i class="fas fa-server" style="color:#fff;font-size:12px"></i>
+                    </div>
+                    <div>
+                        <div class="setting-label">Server Status</div>
+                        <div class="setting-desc" id="serverStatus">Checking...</div>
+                    </div>
+                </div>
+                <div id="serverDot" style="width:10px;height:10px;border-radius:50%;background:var(--warning)"></div>
+            </div>
+        </div>
+
+        <!-- Storage -->
+        <div class="settings-section">
+            <div class="section-title">Storage</div>
+            <div class="settings-item">
+                <div class="setting-left" style="flex:1">
+                    <div class="setting-icon" style="background:var(--accent)">
+                        <i class="fas fa-database" style="color:#fff;font-size:12px"></i>
+                    </div>
+                    <div style="flex:1">
+                        <div class="setting-label">Local Data</div>
+                        <div class="setting-desc" id="storageUsed">Calculating...</div>
+                        <div class="storage-bar">
+                            <div class="storage-fill" id="storageFill" style="width:0%;background:var(--primary)"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="px-16">
+                <button class="btn btn-sm btn-danger btn-block" onclick="clearData()">
+                    <i class="fas fa-trash"></i> Clear All Data
+                </button>
+            </div>
+        </div>
+
+        <!-- About -->
+        <div class="settings-section">
+            <div class="section-title">About</div>
+            <div class="glass-card text-center" style="padding:20px">
+                <div class="about-logo">📱</div>
+                <h3 style="font-size:16px">Digital Dream</h3>
+                <p class="text-xs text-muted">by [Kyori]</p>
+                <p class="text-xs text-muted mt-8">Version <span id="versionNum">1.0.0</span></p>
+                <p class="text-xs text-muted">Tablet HUD for Second Life</p>
+                <div class="mt-16">
+                    <button class="btn btn-sm btn-secondary" onclick="reloadSystem()">
+                        <i class="fas fa-sync-alt"></i> Reload System
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div style="height:20px"></div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="messages.html" class="nav-item"><i class="fas fa-comment"></i><span>Chat</span></a>
+        <a href="browser.html" class="nav-item"><i class="fas fa-search"></i><span>Browse</span></a>
+        <a href="settings.html" class="nav-item active"><i class="fas fa-cog"></i><span>Settings</span></a>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // Load settings
+        function loadSettings() {
+            // Profile
+            const name = DreamApp.getUserName();
+            const uuid = DreamApp.getUserId();
+            document.getElementById('profileName').textContent = name;
+            document.getElementById('profileUuid').textContent = uuid !== 'unknown' ? uuid.substring(0, 20) + '...' : 'Not linked to SL';
+
+            // Theme selection highlight
+            const currentTheme = DreamApp.getTheme();
+            document.querySelectorAll('.theme-option').forEach(el => {
+                el.classList.toggle('selected', el.dataset.theme === currentTheme);
+            });
+
+            // Toggles
+            document.getElementById('toggleNotifs').checked = getSetting('notifs', true);
+            document.getElementById('toggleDiscord').checked = getSetting('discordNotifs', true);
+            document.getElementById('toggleSound').checked = getSetting('sound', false);
+
+            // Discord status
+            const dc = localStorage.getItem('dd-discord-config');
+            document.getElementById('discordStatus').textContent = dc ? 'Connected' : 'Not connected';
+
+            // Version
+            document.getElementById('versionNum').textContent = DDConfig.VERSION;
+
+            // Storage estimate
+            calculateStorage();
+
+            // Server check
+            checkServer();
+        }
+
+        function selectTheme(theme) {
+            DreamApp.setTheme(theme);
+            document.querySelectorAll('.theme-option').forEach(el => {
+                el.classList.toggle('selected', el.dataset.theme === theme);
+            });
+            DreamApp.toast('Theme changed!', 'success');
+        }
+
+        function getSetting(key, defaultVal) {
+            const val = localStorage.getItem('dd-setting-' + key);
+            if (val === null) return defaultVal;
+            return val === 'true';
+        }
+
+        function saveSetting(key, val) {
+            localStorage.setItem('dd-setting-' + key, val);
+        }
+
+        function editProfile() {
+            const name = prompt('Enter your display name:');
+            if (name && name.trim()) {
+                DreamApp.setUser(null, name.trim());
+                document.getElementById('profileName').textContent = name.trim();
+                DreamApp.toast('Name updated!', 'success');
+            }
+        }
+
+        function calculateStorage() {
+            let total = 0;
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('dd-')) {
+                    total += (localStorage.getItem(key) || '').length;
+                }
+            }
+            const kb = (total / 1024).toFixed(1);
+            const maxKb = 5120; // 5MB localStorage limit
+            const pct = Math.min((total / (maxKb * 1024)) * 100, 100);
+            document.getElementById('storageUsed').textContent = kb + ' KB used';
+            document.getElementById('storageFill').style.width = pct + '%';
+            if (pct > 80) document.getElementById('storageFill').style.background = 'var(--danger)';
+            else if (pct > 50) document.getElementById('storageFill').style.background = 'var(--warning)';
+        }
+
+        async function checkServer() {
+            try {
+                const res = await fetch(DDConfig.API_BASE + '/api/health');
+                if (res.ok) {
+                    document.getElementById('serverStatus').textContent = 'Online';
+                    document.getElementById('serverDot').style.background = 'var(--success)';
+                } else {
+                    throw new Error();
+                }
+            } catch {
+                document.getElementById('serverStatus').textContent = 'Offline';
+                document.getElementById('serverDot').style.background = 'var(--danger)';
+            }
+        }
+
+        function clearData() {
+            if (!confirm('This will clear all your DreamChat messages, favorites, and settings. Continue?')) return;
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('dd-')) keysToRemove.push(key);
+            }
+            keysToRemove.forEach(k => localStorage.removeItem(k));
+            DreamApp.toast('All data cleared', 'success');
+            setTimeout(() => location.reload(), 500);
+        }
+
+        function reloadSystem() {
+            DreamApp.toast('Reloading...', 'info');
+            setTimeout(() => location.href = 'index.html', 300);
+        }
+
+        document.addEventListener('DOMContentLoaded', loadSettings);
+    </script>
+</body>
+</html>

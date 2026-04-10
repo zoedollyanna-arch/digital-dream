@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>DreamChat - Digital Dream</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .app-container { display: flex; flex-direction: column; }
+        .chat-view { display: flex; flex-direction: column; height: 100%; }
+        .chat-messages { flex: 1; overflow-y: auto; }
+        .contact-avatar-color { --hue: 220; background: hsl(var(--hue), 60%, 50%); }
+    </style>
+</head>
+<body>
+    <div class="tablet-bg"></div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <div class="status-left"><span class="status-time" id="statusTime">12:00 PM</span></div>
+        <div class="status-right">
+            <i class="fas fa-wifi"></i><i class="fas fa-signal"></i>
+            <div class="battery"><div class="battery-bar"><div class="battery-fill"></div></div></div>
+        </div>
+    </div>
+
+    <!-- App Content -->
+    <div class="app-container">
+
+        <!-- === INBOX VIEW === -->
+        <div id="inboxView">
+            <div class="app-header">
+                <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+                <div class="app-title">
+                    DreamChat
+                    <small>Messages & Texts</small>
+                </div>
+                <button class="btn btn-sm btn-primary" onclick="showNewChat()" style="border-radius:20px">
+                    <i class="fas fa-pen"></i>
+                </button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <div class="tab active" data-tab="chats" onclick="switchInboxTab('chats')">
+                    <i class="fas fa-comment"></i> Chats
+                </div>
+                <div class="tab" data-tab="texts" onclick="switchInboxTab('texts')">
+                    <i class="fas fa-mobile-alt"></i> SL Texts
+                </div>
+            </div>
+
+            <!-- Search -->
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchContacts" placeholder="Search conversations..." oninput="filterContacts()">
+            </div>
+
+            <!-- Conversation List -->
+            <div class="contact-list" id="chatsList">
+                <div class="empty-state" id="chatsEmpty">
+                    <i class="fas fa-comment-dots"></i>
+                    <h3>No Messages Yet</h3>
+                    <p>Start a conversation!</p>
+                </div>
+            </div>
+
+            <!-- SL Texts List -->
+            <div class="contact-list hidden" id="textsList">
+                <div class="empty-state" id="textsEmpty">
+                    <i class="fas fa-mobile-alt"></i>
+                    <h3>No Texts</h3>
+                    <p>SL instant messages will appear here</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- === CHAT VIEW === -->
+        <div id="chatView" class="hidden" style="display:none">
+            <div class="chat-view">
+                <!-- Chat Header -->
+                <div class="app-header" style="border-bottom:1px solid var(--border-glass)">
+                    <button class="back-btn" onclick="closeChat()"><i class="fas fa-chevron-left"></i></button>
+                    <div class="flex items-center gap-8 flex-1">
+                        <div class="avatar contact-avatar-color" id="chatAvatar" style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff">?</div>
+                        <div>
+                            <div class="font-bold text-sm" id="chatName">Contact</div>
+                            <div class="text-xs text-muted" id="chatStatus">Online</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Messages -->
+                <div class="chat-messages chat-container" id="chatMessages">
+                    <!-- Populated by JS -->
+                </div>
+
+                <!-- Input -->
+                <div class="chat-input-area">
+                    <input type="text" id="msgInput" placeholder="Type a message..."
+                           onkeydown="if(event.key==='Enter')sendMessage()">
+                    <button class="send-btn" onclick="sendMessage()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- === NEW CHAT MODAL === -->
+        <div id="newChatModal" class="hidden" style="display:none">
+            <div class="app-header">
+                <button class="back-btn" onclick="hideNewChat()"><i class="fas fa-chevron-left"></i></button>
+                <div class="app-title">New Message</div>
+            </div>
+            <div class="p-16">
+                <div class="input-group mb-8">
+                    <label>Recipient Name / UUID</label>
+                    <input type="text" id="newRecipient" class="input-field" placeholder="Enter avatar name or UUID...">
+                </div>
+                <div class="input-group mb-8">
+                    <label>Message</label>
+                    <input type="text" id="newMessage" class="input-field" placeholder="Type your message..."
+                           onkeydown="if(event.key==='Enter')startNewChat()">
+                </div>
+                <button class="btn btn-primary btn-block mt-8" onclick="startNewChat()">
+                    <i class="fas fa-paper-plane"></i> Send
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="messages.html" class="nav-item active"><i class="fas fa-comment"></i><span>Chat</span></a>
+        <a href="browser.html" class="nav-item"><i class="fas fa-search"></i><span>Browse</span></a>
+        <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        let conversations = [];
+        let currentConvo = null;
+        let pollInterval = null;
+
+        // Color hash for avatars
+        function nameToHue(name) {
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            return Math.abs(hash) % 360;
+        }
+
+        // Load conversations list
+        async function loadConversations() {
+            try {
+                const data = await DreamApp.apiGet('/api/messages/conversations?uuid=' + encodeURIComponent(DreamApp.getUserId()));
+                if (data && data.conversations) {
+                    conversations = data.conversations;
+                    renderConversations();
+                }
+            } catch {
+                // Use localStorage cache
+                conversations = JSON.parse(localStorage.getItem('dd-convos') || '[]');
+                renderConversations();
+            }
+        }
+
+        function renderConversations() {
+            const container = document.getElementById('chatsList');
+            if (conversations.length === 0) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-comment-dots"></i><h3>No Messages Yet</h3><p>Start a conversation!</p></div>';
+                return;
+            }
+            container.innerHTML = conversations.map(c => {
+                const hue = nameToHue(c.name || 'Unknown');
+                const initial = (c.name || '?')[0].toUpperCase();
+                const time = c.lastTime ? DreamApp.timeAgo(c.lastTime) : '';
+                const preview = DreamApp.escapeHtml((c.lastMessage || '').substring(0, 40));
+                const unread = c.unread || 0;
+
+                return '<div class="contact-item" onclick="openChat(\'' + DreamApp.escapeHtml(c.id || c.uuid || '') + '\',\'' + DreamApp.escapeHtml(c.name || 'Unknown') + '\')">'
+                    + '<div class="avatar" style="background:hsl(' + hue + ',60%,50%);color:#fff">' + initial + '</div>'
+                    + '<div class="contact-info"><div class="contact-name">' + DreamApp.escapeHtml(c.name || 'Unknown') + '</div>'
+                    + '<div class="contact-preview">' + preview + '</div></div>'
+                    + '<div class="contact-meta"><div class="contact-time">' + time + '</div>'
+                    + (unread > 0 ? '<div class="unread-count">' + unread + '</div>' : '')
+                    + '</div></div>';
+            }).join('');
+        }
+
+        function filterContacts() {
+            const q = document.getElementById('searchContacts').value.trim().toLowerCase();
+            document.querySelectorAll('.contact-item').forEach(el => {
+                const name = el.querySelector('.contact-name').textContent.toLowerCase();
+                el.style.display = name.includes(q) ? '' : 'none';
+            });
+        }
+
+        // Open a chat
+        async function openChat(contactId, contactName) {
+            currentConvo = { id: contactId, name: contactName };
+            document.getElementById('inboxView').style.display = 'none';
+            document.getElementById('chatView').style.display = 'flex';
+            document.getElementById('chatView').classList.remove('hidden');
+
+            const hue = nameToHue(contactName);
+            const avatar = document.getElementById('chatAvatar');
+            avatar.style.background = 'hsl(' + hue + ',60%,50%)';
+            avatar.textContent = (contactName || '?')[0].toUpperCase();
+            document.getElementById('chatName').textContent = contactName;
+
+            await loadMessages(contactId);
+
+            // Start polling
+            if (pollInterval) clearInterval(pollInterval);
+            pollInterval = setInterval(() => loadMessages(contactId), DDConfig.MESSAGES_REFRESH);
+        }
+
+        function closeChat() {
+            if (pollInterval) clearInterval(pollInterval);
+            currentConvo = null;
+            document.getElementById('chatView').style.display = 'none';
+            document.getElementById('inboxView').style.display = 'block';
+            loadConversations();
+        }
+
+        async function loadMessages(contactId) {
+            try {
+                const data = await DreamApp.apiGet('/api/messages?uuid=' + encodeURIComponent(DreamApp.getUserId()) + '&contact=' + encodeURIComponent(contactId));
+                if (data && data.messages) renderMessages(data.messages);
+            } catch {
+                // Show cached or empty
+            }
+        }
+
+        function renderMessages(messages) {
+            const container = document.getElementById('chatMessages');
+            const myId = DreamApp.getUserId();
+            const wasAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 50;
+
+            container.innerHTML = messages.map(m => {
+                const isSent = m.sender === myId;
+                const time = m.time ? DreamApp.formatTime(m.time) : '';
+                return '<div class="message-bubble ' + (isSent ? 'sent' : 'received') + '">'
+                    + (!isSent ? '<div class="msg-sender">' + DreamApp.escapeHtml(m.senderName || 'Unknown') + '</div>' : '')
+                    + DreamApp.escapeHtml(m.text || '')
+                    + '<div class="msg-time">' + time + '</div>'
+                    + '</div>';
+            }).join('');
+
+            if (wasAtBottom) container.scrollTop = container.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('msgInput');
+            const text = input.value.trim();
+            if (!text || !currentConvo) return;
+
+            input.value = '';
+
+            // Optimistic render
+            const container = document.getElementById('chatMessages');
+            container.innerHTML += '<div class="message-bubble sent">'
+                + DreamApp.escapeHtml(text)
+                + '<div class="msg-time">Just now</div></div>';
+            container.scrollTop = container.scrollHeight;
+
+            try {
+                await DreamApp.apiPost('/api/messages/send', {
+                    sender: DreamApp.getUserId(),
+                    senderName: DreamApp.getUserName(),
+                    recipient: currentConvo.id,
+                    recipientName: currentConvo.name,
+                    text: text
+                });
+            } catch {
+                DreamApp.toast('Message send failed', 'error');
+            }
+        }
+
+        function showNewChat() {
+            document.getElementById('inboxView').style.display = 'none';
+            document.getElementById('newChatModal').style.display = 'block';
+            document.getElementById('newChatModal').classList.remove('hidden');
+        }
+
+        function hideNewChat() {
+            document.getElementById('newChatModal').style.display = 'none';
+            document.getElementById('inboxView').style.display = 'block';
+        }
+
+        async function startNewChat() {
+            const recipient = document.getElementById('newRecipient').value.trim();
+            const text = document.getElementById('newMessage').value.trim();
+            if (!recipient || !text) {
+                DreamApp.toast('Fill in both fields', 'error');
+                return;
+            }
+
+            try {
+                await DreamApp.apiPost('/api/messages/send', {
+                    sender: DreamApp.getUserId(),
+                    senderName: DreamApp.getUserName(),
+                    recipient: recipient,
+                    recipientName: recipient,
+                    text: text
+                });
+                hideNewChat();
+                openChat(recipient, recipient);
+            } catch {
+                DreamApp.toast('Failed to send', 'error');
+            }
+        }
+
+        function switchInboxTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+            document.getElementById('chatsList').classList.toggle('hidden', tab !== 'chats');
+            document.getElementById('textsList').classList.toggle('hidden', tab !== 'texts');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadConversations();
+            // Check if opened with ?tab=texts
+            const tab = DreamApp.getParam('tab');
+            if (tab === 'texts') switchInboxTab('texts');
+        });
+    </script>
+</body>
+</html>

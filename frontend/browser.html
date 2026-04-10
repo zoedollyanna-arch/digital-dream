@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Browser - Digital Dream</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .app-container { display: flex; flex-direction: column; }
+        .browser-frame-wrap { flex: 1; position: relative; }
+        .blocked-overlay {
+            position: absolute; inset: 0; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; background: var(--bg-dark);
+            z-index: 10; text-align: center; padding: 20px;
+        }
+        .blocked-overlay i { font-size: 48px; color: var(--danger); margin-bottom: 12px; opacity: 0.5; }
+        .quick-links { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 8px 16px; }
+        .quick-link {
+            display: flex; flex-direction: column; align-items: center; gap: 6px;
+            padding: 12px 8px; background: var(--bg-glass); border: 1px solid var(--border-glass);
+            border-radius: var(--radius-md); cursor: pointer; transition: var(--transition);
+            text-decoration: none; color: var(--text-primary); font-size: 11px;
+        }
+        .quick-link:hover { background: rgba(255,255,255,0.08); }
+        .quick-link i { font-size: 20px; }
+    </style>
+</head>
+<body>
+    <div class="tablet-bg"></div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <div class="status-left"><span class="status-time" id="statusTime">12:00 PM</span></div>
+        <div class="status-right">
+            <i class="fas fa-wifi"></i><i class="fas fa-signal"></i>
+            <div class="battery"><div class="battery-bar"><div class="battery-fill"></div></div></div>
+        </div>
+    </div>
+
+    <!-- App Content -->
+    <div class="app-container">
+        <!-- Browser Toolbar -->
+        <div class="browser-toolbar">
+            <div class="browser-controls">
+                <button onclick="goBack()" title="Back"><i class="fas fa-arrow-left"></i></button>
+                <button onclick="goForward()" title="Forward"><i class="fas fa-arrow-right"></i></button>
+                <button onclick="goHome()" title="Home"><i class="fas fa-home"></i></button>
+            </div>
+            <div class="browser-url-bar">
+                <i class="fas fa-lock" id="secIcon"></i>
+                <input type="text" id="urlInput" placeholder="Search or enter URL..."
+                       onkeydown="if(event.key==='Enter')navigate()">
+            </div>
+            <button onclick="navigate()" style="background:none;border:none;color:var(--secondary);cursor:pointer;padding:4px">
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+
+        <!-- Start Page -->
+        <div id="startPage">
+            <div class="text-center p-16">
+                <div style="font-size:36px;margin-bottom:8px">🌐</div>
+                <h2 style="font-size:18px;font-weight:700;background:linear-gradient(135deg,var(--secondary),var(--primary));-webkit-background-clip:text;-webkit-text-fill-color:transparent">DreamBrowser</h2>
+                <p class="text-xs text-muted mt-8">Safe & Fast Browsing</p>
+            </div>
+
+            <div class="px-16 mb-8">
+                <div class="font-bold text-sm mb-8">Quick Links</div>
+            </div>
+
+            <div class="quick-links">
+                <div class="quick-link" onclick="loadUrl('https://www.google.com')">
+                    <i class="fab fa-google" style="color:#4285F4"></i>Google
+                </div>
+                <div class="quick-link" onclick="loadUrl('https://www.youtube.com')">
+                    <i class="fab fa-youtube" style="color:#FF0000"></i>YouTube
+                </div>
+                <div class="quick-link" onclick="loadUrl('https://marketplace.secondlife.com')">
+                    <i class="fas fa-shopping-bag" style="color:var(--accent)"></i>SL Market
+                </div>
+                <div class="quick-link" onclick="loadUrl('https://www.wikipedia.org')">
+                    <i class="fab fa-wikipedia-w" style="color:#fff"></i>Wikipedia
+                </div>
+                <div class="quick-link" onclick="loadUrl('https://wiki.secondlife.com')">
+                    <i class="fas fa-book" style="color:var(--secondary)"></i>SL Wiki
+                </div>
+                <div class="quick-link" onclick="loadUrl('https://www.weather.com')">
+                    <i class="fas fa-cloud-sun" style="color:#48CAE4"></i>Weather
+                </div>
+            </div>
+
+            <!-- Bookmarks -->
+            <div class="px-16 mt-16 mb-8">
+                <div class="flex items-center justify-between">
+                    <div class="font-bold text-sm">Bookmarks</div>
+                    <button class="btn btn-sm btn-secondary" onclick="addBookmark()" style="font-size:10px">
+                        <i class="fas fa-plus"></i> Add
+                    </button>
+                </div>
+            </div>
+            <div id="bookmarkList" class="px-16">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- Browser Frame -->
+        <div class="browser-frame-wrap" id="frameWrap" style="display:none">
+            <iframe id="browserFrame" class="browser-frame" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
+            <div class="blocked-overlay" id="blockedOverlay" style="display:none">
+                <i class="fas fa-shield-alt"></i>
+                <h3>Site Blocked</h3>
+                <p class="text-sm text-muted mt-8" id="blockedMsg">This site isn't on the approved list</p>
+                <button class="btn btn-sm btn-primary mt-16" onclick="goHome()">Go Home</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="messages.html" class="nav-item"><i class="fas fa-comment"></i><span>Chat</span></a>
+        <a href="browser.html" class="nav-item active"><i class="fas fa-search"></i><span>Browse</span></a>
+        <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        let currentUrl = '';
+        let history = [];
+        let historyIndex = -1;
+
+        function navigate() {
+            let input = document.getElementById('urlInput').value.trim();
+            if (!input) return;
+
+            // If no protocol, check if it looks like a URL or a search
+            if (!input.match(/^https?:\/\//i)) {
+                if (input.includes('.') && !input.includes(' ')) {
+                    input = 'https://' + input;
+                } else {
+                    // Google search
+                    input = 'https://www.google.com/search?q=' + encodeURIComponent(input);
+                }
+            }
+
+            loadUrl(input);
+        }
+
+        function loadUrl(url) {
+            // Security: check whitelist
+            if (!DreamApp.isUrlAllowed(url)) {
+                showBlocked(url);
+                return;
+            }
+
+            currentUrl = url;
+            document.getElementById('urlInput').value = url;
+            document.getElementById('startPage').style.display = 'none';
+            document.getElementById('frameWrap').style.display = 'flex';
+            document.getElementById('blockedOverlay').style.display = 'none';
+
+            const frame = document.getElementById('browserFrame');
+            frame.src = url;
+
+            // Update history
+            history = history.slice(0, historyIndex + 1);
+            history.push(url);
+            historyIndex = history.length - 1;
+
+            document.getElementById('secIcon').className = url.startsWith('https') ? 'fas fa-lock' : 'fas fa-lock-open';
+            document.getElementById('secIcon').style.color = url.startsWith('https') ? 'var(--success)' : 'var(--warning)';
+        }
+
+        function showBlocked(url) {
+            document.getElementById('startPage').style.display = 'none';
+            document.getElementById('frameWrap').style.display = 'flex';
+            document.getElementById('blockedOverlay').style.display = 'flex';
+            document.getElementById('browserFrame').src = '';
+            try {
+                const hostname = new URL(url).hostname;
+                document.getElementById('blockedMsg').textContent = hostname + ' is not on the approved list';
+            } catch {
+                document.getElementById('blockedMsg').textContent = 'This site is not on the approved list';
+            }
+        }
+
+        function goBack() {
+            if (historyIndex > 0) {
+                historyIndex--;
+                const url = history[historyIndex];
+                document.getElementById('urlInput').value = url;
+                document.getElementById('browserFrame').src = url;
+                currentUrl = url;
+            }
+        }
+
+        function goForward() {
+            if (historyIndex < history.length - 1) {
+                historyIndex++;
+                const url = history[historyIndex];
+                document.getElementById('urlInput').value = url;
+                document.getElementById('browserFrame').src = url;
+                currentUrl = url;
+            }
+        }
+
+        function goHome() {
+            document.getElementById('startPage').style.display = 'block';
+            document.getElementById('frameWrap').style.display = 'none';
+            document.getElementById('urlInput').value = '';
+            document.getElementById('browserFrame').src = '';
+            currentUrl = '';
+        }
+
+        // Bookmarks
+        function getBookmarks() {
+            return JSON.parse(localStorage.getItem('dd-bookmarks') || '[]');
+        }
+
+        function saveBookmarks(bm) {
+            localStorage.setItem('dd-bookmarks', JSON.stringify(bm));
+        }
+
+        function addBookmark() {
+            if (!currentUrl) {
+                DreamApp.toast('Navigate to a page first', 'error');
+                return;
+            }
+            const bm = getBookmarks();
+            if (bm.some(b => b.url === currentUrl)) {
+                DreamApp.toast('Already bookmarked', 'error');
+                return;
+            }
+            bm.push({ url: currentUrl, title: currentUrl, date: new Date().toISOString() });
+            saveBookmarks(bm);
+            renderBookmarks();
+            DreamApp.toast('Bookmarked!', 'success');
+        }
+
+        function removeBookmark(index) {
+            const bm = getBookmarks();
+            bm.splice(index, 1);
+            saveBookmarks(bm);
+            renderBookmarks();
+        }
+
+        function renderBookmarks() {
+            const bm = getBookmarks();
+            const container = document.getElementById('bookmarkList');
+            if (bm.length === 0) {
+                container.innerHTML = '<div class="text-xs text-muted text-center p-16">No bookmarks yet</div>';
+                return;
+            }
+            container.innerHTML = bm.map((b, i) => {
+                const title = DreamApp.escapeHtml(b.title || b.url).substring(0, 35);
+                return '<div class="contact-item" onclick="loadUrl(\'' + DreamApp.escapeHtml(b.url) + '\')">'
+                    + '<i class="fas fa-bookmark" style="color:var(--secondary);font-size:16px"></i>'
+                    + '<div class="contact-info"><div class="contact-name">' + title + '</div></div>'
+                    + '<button onclick="event.stopPropagation();removeBookmark(' + i + ')" style="background:none;border:none;color:var(--danger);cursor:pointer"><i class="fas fa-trash"></i></button>'
+                    + '</div>';
+            }).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', renderBookmarks);
+    </script>
+</body>
+</html>
