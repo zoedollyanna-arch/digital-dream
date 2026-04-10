@@ -6,10 +6,10 @@ const DDConfig = {
     API_BASE: 'http://localhost:3000',
 
     // App version
-    VERSION: '1.0.0',
+    VERSION: '2.0.0',
 
     // Default theme: 'dark', 'light', 'neon'
-    DEFAULT_THEME: 'dark',
+    DEFAULT_THEME: 'light',
 
     // Weather API city (default)
     DEFAULT_CITY: 'New York',

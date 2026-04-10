@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -30,8 +30,10 @@
             align-items: center;
             gap: 8px;
             padding: 8px 12px;
-            background: rgba(0,0,0,0.3);
-            border-top: 1px solid var(--border-glass);
+            background: var(--bg-glass);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border-top: 1px solid var(--border-subtle);
             font-size: 11px;
         }
         .discord-user-bar .user-dot {
@@ -48,8 +50,10 @@
         }
         .member-list {
             width: 120px;
-            background: rgba(0,0,0,0.15);
-            border-left: 1px solid var(--border-glass);
+            background: var(--bg-glass);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border-left: 1px solid var(--border-subtle);
             overflow-y: auto;
             padding: 8px;
         }

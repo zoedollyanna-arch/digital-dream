@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -11,19 +11,20 @@
         .browser-frame-wrap { flex: 1; position: relative; }
         .blocked-overlay {
             position: absolute; inset: 0; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; background: var(--bg-dark);
+            align-items: center; justify-content: center; background: var(--bg-base);
             z-index: 10; text-align: center; padding: 20px;
         }
         .blocked-overlay i { font-size: 48px; color: var(--danger); margin-bottom: 12px; opacity: 0.5; }
-        .quick-links { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 8px 16px; }
+        .quick-links { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 8px 20px; }
         .quick-link {
             display: flex; flex-direction: column; align-items: center; gap: 6px;
-            padding: 12px 8px; background: var(--bg-glass); border: 1px solid var(--border-glass);
-            border-radius: var(--radius-md); cursor: pointer; transition: var(--transition);
-            text-decoration: none; color: var(--text-primary); font-size: 11px;
+            padding: 14px 8px; background: var(--bg-glass); backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur); border: 1px solid var(--border-glass);
+            border-radius: var(--radius-lg); cursor: pointer; transition: var(--transition-spring);
+            text-decoration: none; color: var(--text-primary); font-size: 11px; font-weight: 500;
         }
-        .quick-link:hover { background: rgba(255,255,255,0.08); }
-        .quick-link i { font-size: 20px; }
+        .quick-link:hover { transform: scale(1.03); background: var(--bg-glass-heavy); box-shadow: var(--shadow-md); }
+        .quick-link i { font-size: 22px; }
     </style>
 </head>
 <body>
@@ -61,7 +62,7 @@
         <div id="startPage">
             <div class="text-center p-16">
                 <div style="font-size:36px;margin-bottom:8px">🌐</div>
-                <h2 style="font-size:18px;font-weight:700;background:linear-gradient(135deg,var(--secondary),var(--primary));-webkit-background-clip:text;-webkit-text-fill-color:transparent">DreamBrowser</h2>
+                <h2 style="font-size:18px;font-weight:600;color:var(--primary)">DreamBrowser</h2>
                 <p class="text-xs text-muted mt-8">Safe & Fast Browsing</p>
             </div>
 
