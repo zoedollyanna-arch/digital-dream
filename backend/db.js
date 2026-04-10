@@ -12,16 +12,18 @@ async function connectDB() {
 
     const uri = process.env.MONGODB_URI;
     if (!uri) {
-        console.error('[DB] MONGODB_URI not set in .env');
+        console.error('[DB] MONGODB_URI not set — add it in Render Environment tab');
         process.exit(1);
     }
 
+    console.log('[DB] Connecting to MongoDB Atlas...');
     try {
-        await mongoose.connect(uri, { dbName: 'digitaldream' });
+        await mongoose.connect(uri, { dbName: 'digitaldream', serverSelectionTimeoutMS: 10000 });
         isConnected = true;
         console.log('[DB] Connected to MongoDB Atlas');
     } catch (err) {
         console.error('[DB] Connection failed:', err.message);
+        console.error('[DB] Check: 1) MONGODB_URI is correct  2) Atlas Network Access allows 0.0.0.0/0');
         process.exit(1);
     }
 
