@@ -6,6 +6,37 @@
     <title>Digital Dream</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* Wallpaper overrides */
+        .tablet-bg.wp-sunset {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 25%, #FEC89A 50%, #FFD93D 75%, #FF6B6B 100%) !important;
+            background-size: 400% 400% !important;
+        }
+        .tablet-bg.wp-ocean {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #6B8DD6 50%, #8E37D7 75%, #667eea 100%) !important;
+            background-size: 400% 400% !important;
+        }
+        .tablet-bg.wp-forest {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 25%, #43B692 50%, #11998e 75%, #38ef7d 100%) !important;
+            background-size: 400% 400% !important;
+        }
+        .tablet-bg.wp-candy {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 25%, #fda085 50%, #f093fb 75%, #f5576c 100%) !important;
+            background-size: 400% 400% !important;
+        }
+        .tablet-bg.wp-space {
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 25%, #24243e 50%, #0f0c29 75%, #302b63 100%) !important;
+            background-size: 400% 400% !important;
+        }
+        .tablet-bg.wp-cotton {
+            background: linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 25%, #F0E6FF 50%, #8EC5FC 75%, #E0C3FC 100%) !important;
+            background-size: 400% 400% !important;
+        }
+        .installed-apps-label {
+            padding: 4px 20px 0; font-size: 11px; font-weight: 600;
+            color: var(--text-muted, #8E8E93); letter-spacing: 0.5px; text-transform: uppercase;
+        }
+    </style>
     <script>
         // First-time setup redirect
         if (localStorage.getItem('dd-onboarded') !== 'true') {
@@ -39,7 +70,7 @@
         </div>
 
         <!-- App Grid -->
-        <div class="app-grid">
+        <div class="app-grid" id="appGrid">
             <a href="messages.html" class="app-icon animate-scaleIn animate-stagger-1">
                 <div class="icon-circle icon-dreamchat">
                     <i class="fas fa-comment-dots"></i>
@@ -62,11 +93,11 @@
                 <span class="icon-label">Weather</span>
             </a>
 
-            <a href="marketplace.html" class="app-icon animate-scaleIn animate-stagger-4">
-                <div class="icon-circle icon-marketplace">
-                    <i class="fas fa-shopping-bag"></i>
+            <a href="dreamstore.html" class="app-icon animate-scaleIn animate-stagger-4">
+                <div class="icon-circle icon-dreamstore">
+                    <i class="fas fa-store"></i>
                 </div>
-                <span class="icon-label">Marketplace</span>
+                <span class="icon-label">Dream Store</span>
             </a>
 
             <a href="browser.html" class="app-icon animate-scaleIn animate-stagger-5">
@@ -83,19 +114,18 @@
                 <span class="icon-label">Discord</span>
             </a>
 
-            <a href="messages.html?tab=texts" class="app-icon animate-scaleIn animate-stagger-7">
-                <div class="icon-circle icon-texts">
-                    <i class="fas fa-mobile-alt"></i>
-                </div>
-                <span class="icon-label">Texts</span>
-            </a>
-
-            <a href="settings.html" class="app-icon animate-scaleIn animate-stagger-8">
+            <a href="settings.html" class="app-icon animate-scaleIn animate-stagger-7">
                 <div class="icon-circle icon-settings">
                     <i class="fas fa-cog"></i>
                 </div>
                 <span class="icon-label">Settings</span>
             </a>
+        </div>
+
+        <!-- Installed Apps from Dream Store -->
+        <div id="installedSection" style="display:none">
+            <div class="installed-apps-label">My Apps</div>
+            <div class="app-grid" id="installedGrid" style="padding-top:8px"></div>
         </div>
 
         <!-- Quick Widget Area -->
@@ -129,9 +159,9 @@
             <span>Chat</span>
             <div class="badge" id="navChatBadge" style="display:none"></div>
         </a>
-        <a href="browser.html" class="nav-item">
-            <i class="fas fa-search"></i>
-            <span>Browse</span>
+        <a href="dreamstore.html" class="nav-item">
+            <i class="fas fa-store"></i>
+            <span>Store</span>
         </a>
         <a href="settings.html" class="nav-item">
             <i class="fas fa-cog"></i>
@@ -192,10 +222,53 @@
             }
         }
 
+        // Apply saved wallpaper
+        function applyWallpaper() {
+            var wp = localStorage.getItem('dd-wallpaper') || '';
+            var bg = document.querySelector('.tablet-bg');
+            if (!bg) return;
+            // Remove any existing wp- class
+            bg.className = bg.className.replace(/\bwp-\S+/g, '').trim();
+            if (wp) bg.classList.add('wp-' + wp);
+        }
+
+        // Show installed Dream Store apps on home screen
+        var storeAppCatalog = {
+            notes:      { name: 'Notes',       icon: 'fas fa-sticky-note',   color: '#FF9F0A', page: 'notes.html' },
+            journal:    { name: 'Journal',     icon: 'fas fa-book',          color: '#5856D6', page: 'journal.html' },
+            todo:       { name: 'To-Do',       icon: 'fas fa-check-circle',  color: '#34C759', page: 'todo.html' },
+            calculator: { name: 'Calculator',  icon: 'fas fa-calculator',    color: '#8E8E93', page: 'calculator.html' },
+            trivia:     { name: 'Trivia',      icon: 'fas fa-brain',         color: '#FF2D55', page: 'trivia.html' },
+            memory:     { name: 'Memory',      icon: 'fas fa-th',            color: '#5AC8FA', page: 'memory.html' },
+            tictactoe:  { name: 'Tic-Tac-Toe', icon: 'fas fa-times',         color: '#007AFF', page: 'tictactoe.html' },
+            snake:      { name: 'Snake',       icon: 'fas fa-gamepad',       color: '#34C759', page: 'snake.html' },
+            doodle:     { name: 'Doodle',      icon: 'fas fa-paint-brush',   color: '#BF5AF2', page: 'doodle.html' },
+            photos:     { name: 'Photos',      icon: 'fas fa-camera',        color: '#FF6259', page: 'photos.html' }
+        };
+
+        function renderInstalledApps() {
+            var installed = JSON.parse(localStorage.getItem('dd-installed-apps') || '[]');
+            var section = document.getElementById('installedSection');
+            var grid = document.getElementById('installedGrid');
+            if (!installed.length) { section.style.display = 'none'; return; }
+
+            section.style.display = '';
+            grid.innerHTML = installed.map(function(id) {
+                var app = storeAppCatalog[id];
+                if (!app) return '';
+                return '<a href="' + app.page + '" class="app-icon">'
+                    + '<div class="icon-circle" style="background:' + app.color + '">'
+                    + '<i class="' + app.icon + '"></i></div>'
+                    + '<span class="icon-label">' + app.name + '</span></a>';
+            }).join('');
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
+            applyWallpaper();
             updateGreeting();
             loadQuickWeather();
             loadUnreadCount();
+            renderInstalledApps();
         });
     </script>
 </body>

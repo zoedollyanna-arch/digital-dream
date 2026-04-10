@@ -31,6 +31,28 @@
         .zoom-btn:disabled { opacity: 0.3; cursor: default; }
         .zoom-btn:disabled:hover { background: var(--bg-input, rgba(120,120,128,0.08)); color: var(--text-primary, #1C1C1E); border-color: var(--border-subtle, rgba(0,0,0,0.08)); }
         .zoom-level { font-size: 16px; font-weight: 600; color: var(--text-primary, #1C1C1E); min-width: 48px; text-align: center; }
+        .wp-grid { display: flex; gap: 8px; flex-wrap: wrap; padding: 4px 0; }
+        .wp-swatch {
+            width: 52px; height: 52px; border-radius: var(--radius-lg, 20px);
+            cursor: pointer; transition: all 0.3s ease;
+            border: 2.5px solid transparent; box-shadow: var(--shadow-sm);
+        }
+        .wp-swatch:hover { transform: scale(1.08); }
+        .wp-swatch.selected { border-color: var(--primary, #007AFF); box-shadow: 0 0 0 3px rgba(0,122,255,0.25); }
+        .wp-default { background: linear-gradient(135deg, #C2E9FB, #E8D5F5, #FBE4D5); }
+        .wp-sunset-sw { background: linear-gradient(135deg, #FF6B6B, #FF8E53, #FFD93D); }
+        .wp-ocean-sw { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .wp-forest-sw { background: linear-gradient(135deg, #11998e, #38ef7d); }
+        .wp-candy-sw { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .wp-space-sw { background: linear-gradient(135deg, #0f0c29, #302b63); }
+        .wp-cotton-sw { background: linear-gradient(135deg, #E0C3FC, #8EC5FC); }
+        /* Live preview classes */
+        .tablet-bg.wp-sunset { background: linear-gradient(135deg, #FF6B6B, #FF8E53, #FEC89A, #FFD93D, #FF6B6B) !important; background-size: 400% 400% !important; }
+        .tablet-bg.wp-ocean { background: linear-gradient(135deg, #667eea, #764ba2, #6B8DD6, #8E37D7, #667eea) !important; background-size: 400% 400% !important; }
+        .tablet-bg.wp-forest { background: linear-gradient(135deg, #11998e, #38ef7d, #43B692, #11998e, #38ef7d) !important; background-size: 400% 400% !important; }
+        .tablet-bg.wp-candy { background: linear-gradient(135deg, #f093fb, #f5576c, #fda085, #f093fb, #f5576c) !important; background-size: 400% 400% !important; }
+        .tablet-bg.wp-space { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e, #0f0c29, #302b63) !important; background-size: 400% 400% !important; }
+        .tablet-bg.wp-cotton { background: linear-gradient(135deg, #E0C3FC, #8EC5FC, #F0E6FF, #8EC5FC, #E0C3FC) !important; background-size: 400% 400% !important; }
     </style>
 </head>
 <body>
@@ -92,6 +114,34 @@
                     <div class="theme-option theme-dark-opt" data-theme="dark" onclick="selectTheme('dark')" title="Dark">🌙</div>
                     <div class="theme-option theme-light-opt" data-theme="light" onclick="selectTheme('light')" title="Light">☀️</div>
                     <div class="theme-option theme-neon-opt" data-theme="neon" onclick="selectTheme('neon')" title="Neon">⚡</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wallpaper -->
+        <div class="settings-section">
+            <div class="section-title">Wallpaper</div>
+
+            <div class="settings-item">
+                <div class="setting-left">
+                    <div class="setting-icon" style="background:linear-gradient(135deg,#f093fb,#f5576c)">
+                        <i class="fas fa-image" style="color:#fff;font-size:12px"></i>
+                    </div>
+                    <div>
+                        <div class="setting-label">Home Screen Background</div>
+                        <div class="setting-desc">Pick a wallpaper style</div>
+                    </div>
+                </div>
+            </div>
+            <div class="px-16" style="margin-top:-4px;margin-bottom:8px">
+                <div class="wp-grid">
+                    <div class="wp-swatch wp-default" data-wp="" onclick="selectWallpaper(this)" title="Default"></div>
+                    <div class="wp-swatch wp-sunset-sw" data-wp="sunset" onclick="selectWallpaper(this)" title="Sunset"></div>
+                    <div class="wp-swatch wp-ocean-sw" data-wp="ocean" onclick="selectWallpaper(this)" title="Ocean"></div>
+                    <div class="wp-swatch wp-forest-sw" data-wp="forest" onclick="selectWallpaper(this)" title="Forest"></div>
+                    <div class="wp-swatch wp-candy-sw" data-wp="candy" onclick="selectWallpaper(this)" title="Candy"></div>
+                    <div class="wp-swatch wp-space-sw" data-wp="space" onclick="selectWallpaper(this)" title="Space"></div>
+                    <div class="wp-swatch wp-cotton-sw" data-wp="cotton" onclick="selectWallpaper(this)" title="Cotton"></div>
                 </div>
             </div>
         </div>
@@ -250,7 +300,7 @@
     <div class="bottom-nav">
         <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
         <a href="messages.html" class="nav-item"><i class="fas fa-comment"></i><span>Chat</span></a>
-        <a href="browser.html" class="nav-item"><i class="fas fa-search"></i><span>Browse</span></a>
+        <a href="dreamstore.html" class="nav-item"><i class="fas fa-store"></i><span>Store</span></a>
         <a href="settings.html" class="nav-item active"><i class="fas fa-cog"></i><span>Settings</span></a>
     </div>
 
@@ -269,6 +319,12 @@
             const currentTheme = DreamApp.getTheme();
             document.querySelectorAll('.theme-option').forEach(el => {
                 el.classList.toggle('selected', el.dataset.theme === currentTheme);
+            });
+
+            // Wallpaper selection highlight
+            var currentWp = localStorage.getItem('dd-wallpaper') || '';
+            document.querySelectorAll('.wp-swatch').forEach(el => {
+                el.classList.toggle('selected', (el.dataset.wp || '') === currentWp);
             });
 
             // Toggles
@@ -296,6 +352,20 @@
                 el.classList.toggle('selected', el.dataset.theme === theme);
             });
             DreamApp.toast('Theme changed!', 'success');
+        }
+
+        function selectWallpaper(el) {
+            var wp = el.dataset.wp || '';
+            localStorage.setItem('dd-wallpaper', wp);
+            document.querySelectorAll('.wp-swatch').forEach(s => s.classList.remove('selected'));
+            el.classList.add('selected');
+            // Live preview on settings page
+            var bg = document.querySelector('.tablet-bg');
+            if (bg) {
+                bg.className = bg.className.replace(/\bwp-\S+/g, '').trim();
+                if (wp) bg.classList.add('wp-' + wp);
+            }
+            DreamApp.toast('Wallpaper changed!', 'success');
         }
 
         function getSetting(key, defaultVal) {
