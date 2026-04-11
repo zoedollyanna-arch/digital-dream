@@ -143,8 +143,8 @@
         var posts = [];
         var selectedMood = '';
         var activeTab = 'feed';
-        var APP_KEY = 'dreamfeed';
         var uuid = '';
+        var refreshTimer = null;
 
         function nameToHue(name) {
             var hash = 0;
@@ -168,47 +168,18 @@
             return d + 'd ago';
         }
 
-        function generateId() {
-            return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
-        }
-
-        /* ── Data ── */
+        /* ── Data (shared backend) ── */
         async function loadPosts() {
             uuid = DreamApp.getUserId();
             try {
-                var data = await DreamApp.apiGet('/api/appdata?uuid=' + encodeURIComponent(uuid) + '&app=' + APP_KEY);
-                if (data && data.data && data.data.posts) {
-                    posts = data.data.posts;
+                var data = await DreamApp.apiGet('/api/feed?uuid=' + encodeURIComponent(uuid) + '&limit=50');
+                if (data && data.posts) {
+                    posts = data.posts;
                 }
             } catch (e) {
-                // Fallback to localStorage
-                var saved = localStorage.getItem('dd-dreamfeed');
-                if (saved) posts = JSON.parse(saved);
+                console.error('Feed load error:', e);
             }
-            if (!posts.length) seedPosts();
             render();
-        }
-
-        function seedPosts() {
-            var name = DreamApp.getUserName();
-            posts = [
-                { id: generateId(), author: 'DreamBot', text: 'Welcome to DreamFeed! Share what you\'re up to today. 🌟', mood: '🎉', time: new Date(Date.now() - 3600000).toISOString(), likes: 3, liked: false },
-                { id: generateId(), author: 'DreamBot', text: 'Tip: Tap a mood emoji before posting to share your vibe!', mood: '💖', time: new Date(Date.now() - 7200000).toISOString(), likes: 5, liked: false },
-                { id: generateId(), author: 'StarDreamer', text: 'Just finished decorating my skybox ✨ Feeling so creative today!', mood: '🔥', time: new Date(Date.now() - 1800000).toISOString(), likes: 8, liked: false },
-                { id: generateId(), author: 'PixelPrincess', text: 'Looking for friends to hang out with at the beach sim 🏖️', mood: '😊', time: new Date(Date.now() - 900000).toISOString(), likes: 2, liked: false }
-            ];
-            persist();
-        }
-
-        async function persist() {
-            localStorage.setItem('dd-dreamfeed', JSON.stringify(posts));
-            try {
-                await DreamApp.apiPost('/api/appdata', {
-                    uuid: uuid,
-                    app: APP_KEY,
-                    data: { posts: posts }
-                });
-            } catch (e) { /* silent */ }
         }
 
         /* ── Compose ── */
@@ -228,57 +199,68 @@
             document.getElementById('postBtn').disabled = !text.trim();
         }
 
-        function submitPost() {
+        async function submitPost() {
             var text = document.getElementById('composeInput').value.trim();
             if (!text) return;
-            var name = DreamApp.getUserName();
 
-            posts.unshift({
-                id: generateId(),
-                author: name,
-                text: text,
-                mood: selectedMood,
-                time: new Date().toISOString(),
-                likes: 0,
-                liked: false
-            });
+            var btn = document.getElementById('postBtn');
+            btn.disabled = true;
 
-            // Cap at 50 posts
-            if (posts.length > 50) posts = posts.slice(0, 50);
+            try {
+                var result = await DreamApp.apiPost('/api/feed', {
+                    uuid: uuid,
+                    name: DreamApp.getUserName(),
+                    text: text,
+                    mood: selectedMood
+                });
+
+                if (result && result.post) {
+                    posts.unshift(result.post);
+                    render();
+                    DreamApp.awardXp(2, 'DreamFeed post');
+                    DreamApp.toast('Posted!', 'success');
+                }
+            } catch (e) {
+                DreamApp.toast('Failed to post', 'error');
+            }
 
             document.getElementById('composeInput').value = '';
             selectedMood = '';
             document.querySelectorAll('.compose-mood').forEach(function(b) { b.classList.remove('selected'); });
             updateCharCount();
-            persist();
-            render();
-            DreamApp.awardXp(2, 'DreamFeed post');
-            DreamApp.toast('Posted!', 'success');
         }
 
         /* ── Actions ── */
-        function toggleLike(id) {
-            var post = posts.find(function(p) { return p.id === id; });
-            if (!post) return;
-            post.liked = !post.liked;
-            post.likes = Math.max(0, post.likes + (post.liked ? 1 : -1));
-            persist();
-            render();
+        async function toggleLike(id) {
+            try {
+                var result = await DreamApp.apiPost('/api/feed/' + id + '/like', { uuid: uuid });
+                if (result) {
+                    var post = posts.find(function(p) { return p.id === id; });
+                    if (post) {
+                        post.likes = result.likes;
+                        post.liked = result.liked;
+                        render();
+                    }
+                }
+            } catch (e) { /* silent */ }
         }
 
-        function deletePost(id) {
-            posts = posts.filter(function(p) { return p.id !== id; });
-            persist();
-            render();
-            DreamApp.toast('Post deleted', 'info');
+        async function deletePost(id) {
+            try {
+                await DreamApp.apiDelete('/api/feed/' + id, { uuid: uuid });
+                posts = posts.filter(function(p) { return p.id !== id; });
+                render();
+                DreamApp.toast('Post deleted', 'info');
+            } catch (e) {
+                DreamApp.toast('Failed to delete', 'error');
+            }
         }
 
         /* ── Tabs ── */
         function switchTab(tab) {
             activeTab = tab;
             document.querySelectorAll('.feed-tab').forEach(function(t, i) {
-                t.classList.toggle('active', t.textContent.trim().toLowerCase().indexOf(tab) !== -1 ||
-                    (tab === 'feed' && i === 0) || (tab === 'trending' && i === 1) || (tab === 'mine' && i === 2));
+                t.classList.toggle('active', (tab === 'feed' && i === 0) || (tab === 'trending' && i === 1) || (tab === 'mine' && i === 2));
             });
             document.getElementById('composeArea').style.display = (tab === 'trending') ? 'none' : '';
             render();
@@ -287,8 +269,7 @@
         /* ── Render ── */
         function renderPost(post) {
             var hue = nameToHue(post.author);
-            var myName = DreamApp.getUserName();
-            var isOwn = post.author === myName;
+            var isOwn = post.authorUuid === uuid;
             var moodHtml = post.mood ? '<div class="post-mood">' + post.mood + '</div>' : '';
             var deleteBtn = isOwn ? '<button class="post-action" onclick="event.stopPropagation();deletePost(\'' + DreamApp.escapeHtml(post.id) + '\')"><i class="fas fa-trash"></i></button>' : '';
 
@@ -309,10 +290,8 @@
 
         function render() {
             var container = document.getElementById('feedContainer');
-            var myName = DreamApp.getUserName();
 
             if (activeTab === 'trending') {
-                // Show trending topics
                 var tags = {};
                 posts.forEach(function(p) { if (p.mood) tags[p.mood] = (tags[p.mood] || 0) + 1; });
                 var sorted = Object.keys(tags).sort(function(a, b) { return tags[b] - tags[a]; });
@@ -330,7 +309,7 @@
 
             var filtered = posts;
             if (activeTab === 'mine') {
-                filtered = posts.filter(function(p) { return p.author === myName; });
+                filtered = posts.filter(function(p) { return p.authorUuid === uuid; });
             }
 
             if (!filtered.length) {
@@ -349,6 +328,11 @@
             document.getElementById('composeAvatar').textContent = avatarInit(name);
             document.getElementById('composeInput').placeholder = "What's on your mind, " + name + '?';
             loadPosts();
+
+            // Auto-refresh every 10 seconds to see other players' posts
+            refreshTimer = setInterval(function() {
+                if (document.visibilityState !== 'hidden') loadPosts();
+            }, 10000);
         });
     </script>
 </body>

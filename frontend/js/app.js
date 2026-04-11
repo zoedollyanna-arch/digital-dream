@@ -192,6 +192,16 @@ const DreamApp = {
         return res.json();
     },
 
+    async apiDelete(endpoint, data) {
+        const res = await fetch(DDConfig.API_BASE + endpoint, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        if (!res.ok) throw new Error('API error: ' + res.status);
+        return res.json();
+    },
+
     /* --- URL Param Helpers --- */
     getParam(name) {
         var params = new URLSearchParams(window.location.search);

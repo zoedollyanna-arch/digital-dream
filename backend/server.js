@@ -19,6 +19,7 @@ const marketplaceRoutes = require('./routes/marketplace');
 const profileRoutes = require('./routes/profile');
 const contactsRoutes = require('./routes/contacts');
 const appDataRoutes = require('./routes/appdata');
+const feedRoutes = require('./routes/feed');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -52,6 +53,7 @@ const writeLimiter = rateLimit({
 app.use('/api/profile', writeLimiter);
 app.use('/api/appdata', writeLimiter);
 app.use('/api/messages/send', writeLimiter);
+app.use('/api/feed', writeLimiter);
 
 // Serve frontend static files
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
@@ -131,6 +133,7 @@ app.use('/api/marketplace', marketplaceRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/contacts', contactsRoutes);
 app.use('/api/appdata', appDataRoutes);
+app.use('/api/feed', feedRoutes);
 
 // --- Fallback: serve index.html for unmatched routes ---
 app.get('*', (req, res) => {
