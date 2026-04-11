@@ -6,9 +6,10 @@
 
 // --- Configuration ---
 string  SERVER_URL  = "https://digital-dream-jbqb.onrender.com";
-integer MOAP_FACE   = 4;                            // Face 4 on link 2 = MOAP screen
-integer SCREEN_LINK = 2;                            // Link 2 = MOAP screen prim
+integer MOAP_FACE   = 4;                            // Face 4 = MOAP media surface
 integer IPAD_LINK   = 1;                            // Link 1 = iPad HUD outline
+integer HOME_LINK   = 2;                            // Link 2 = HOME button prim
+integer SCREEN_LINK = 3;                            // Link 3 = MOAP screen prim
 
 // Link message channels (for inter-script communication)
 integer CH_MESSENGER = 3001;
@@ -155,8 +156,8 @@ default
         integer link = llDetectedLinkNumber(0);
         integer face = llDetectedTouchFace(0);
 
-        // HOME button — any prim named "HOME" (case-insensitive), no face restriction
-        if (llToLower(llGetLinkName(link)) == "home")
+        // HOME button (link 2) — always navigate to home screen
+        if (link == HOME_LINK)
         {
             if (gCurrentApp == "off" || gCurrentApp == "")
             {
@@ -172,9 +173,10 @@ default
             return;
         }
 
-        // Screen prim non-MOAP face — also acts as home
-        if (link == SCREEN_LINK && face != MOAP_FACE)
+        // MOAP screen (link 3) — ignore media face touches, non-media face = home
+        if (link == SCREEN_LINK)
         {
+            if (face == MOAP_FACE) return;   // let MOAP handle web clicks
             if (gCurrentApp == "off" || gCurrentApp == "")
             {
                 gCurrentApp = "boot";
