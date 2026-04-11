@@ -8,8 +8,8 @@ const DDConfig = {
     // App version
     VERSION: '2.0.0',
 
-    // Default theme: 'dark', 'light', 'neon'
-    DEFAULT_THEME: 'light',
+    // Default skin (unified theme + wallpaper)
+    DEFAULT_SKIN: 'default',
 
     // Weather API city (default)
     DEFAULT_CITY: 'New York',

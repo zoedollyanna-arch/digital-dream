@@ -182,15 +182,13 @@
             }
         }
 
-        [data-theme="dark"] .ob-panel {
-            background: #2C2C2E;
+        [data-theme="sunset"] .ob-panel,
+        [data-theme="ocean"] .ob-panel,
+        [data-theme="forest"] .ob-panel,
+        [data-theme="pink"] .ob-panel,
+        [data-theme="space"] .ob-panel {
+            background: rgba(30, 30, 35, 0.85);
             border-color: rgba(255, 255, 255, 0.08);
-        }
-
-        @supports (backdrop-filter: blur(1px)) {
-            [data-theme="dark"] .ob-panel {
-                background: rgba(44, 44, 46, 0.85);
-            }
         }
 
         /* ── Onboarding Input ── */
@@ -297,7 +295,11 @@
             border-bottom: none;
         }
 
-        [data-theme="dark"] .ob-toggle-row {
+        [data-theme="sunset"] .ob-toggle-row,
+        [data-theme="ocean"] .ob-toggle-row,
+        [data-theme="forest"] .ob-toggle-row,
+        [data-theme="pink"] .ob-toggle-row,
+        [data-theme="space"] .ob-toggle-row {
             border-bottom-color: rgba(255, 255, 255, 0.06);
         }
 
@@ -331,39 +333,31 @@
             margin-top: 2px;
         }
 
-        /* ── Theme Selector (inline) ── */
+        /* ── Skin Selector (inline) ── */
         .ob-theme-row {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             margin-top: 4px;
+            flex-wrap: wrap;
         }
 
-        .ob-theme-chip {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            padding: 14px 0;
-            border-radius: 12px;
-            border: 2px solid transparent;
+        .ob-skin-chip {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            border: 2.5px solid transparent;
             cursor: pointer;
-            font-size: 17px;
-            font-weight: 500;
-            color: var(--text-secondary, #3C3C43);
-            background: rgba(120, 120, 128, 0.06);
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
-        .ob-theme-chip:hover {
-            background: rgba(120, 120, 128, 0.1);
+        .ob-skin-chip:hover {
+            transform: scale(1.08);
         }
 
-        .ob-theme-chip.selected {
+        .ob-skin-chip.selected {
             border-color: var(--primary, #007AFF);
-            background: rgba(0, 122, 255, 0.08);
-            color: var(--primary, #007AFF);
-            font-weight: 600;
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
         }
 
         /* ── Connection Card ── */
@@ -539,27 +533,26 @@
                             </label>
                         </div>
 
-                        <!-- Theme picker -->
+                        <!-- Skin picker -->
                         <div class="ob-toggle-row" style="flex-direction:column;align-items:stretch;gap:10px">
                             <div class="ob-toggle-info">
                                 <div class="ob-toggle-icon" style="background:linear-gradient(135deg,#5AC8FA,#007AFF)">
                                     <i class="fas fa-palette"></i>
                                 </div>
                                 <div class="ob-toggle-text">
-                                    <div class="ob-label">Theme</div>
+                                    <div class="ob-label">Tablet Skin</div>
                                     <div class="ob-desc">Choose your look</div>
                                 </div>
                             </div>
                             <div class="ob-theme-row">
-                                <div class="ob-theme-chip selected" data-theme="light" onclick="pickTheme(this)">
-                                    ☀️ Light
-                                </div>
-                                <div class="ob-theme-chip" data-theme="dark" onclick="pickTheme(this)">
-                                    🌙 Dark
-                                </div>
-                                <div class="ob-theme-chip" data-theme="neon" onclick="pickTheme(this)">
-                                    ⚡ Neon
-                                </div>
+                                <div class="ob-skin-chip selected" data-skin="default" onclick="pickSkin(this)" title="Default" style="background:linear-gradient(135deg,#C2E9FB,#E8D5F5,#FBE4D5)"></div>
+                                <div class="ob-skin-chip" data-skin="sunset" onclick="pickSkin(this)" title="Sunset" style="background:linear-gradient(135deg,#FF6B6B,#FF8E53,#FFD93D)"></div>
+                                <div class="ob-skin-chip" data-skin="ocean" onclick="pickSkin(this)" title="Ocean" style="background:linear-gradient(135deg,#667eea,#764ba2)"></div>
+                                <div class="ob-skin-chip" data-skin="forest" onclick="pickSkin(this)" title="Forest" style="background:linear-gradient(135deg,#11998e,#38ef7d)"></div>
+                                <div class="ob-skin-chip" data-skin="candy" onclick="pickSkin(this)" title="Candy" style="background:linear-gradient(135deg,#f093fb,#f5576c)"></div>
+                                <div class="ob-skin-chip" data-skin="pink" onclick="pickSkin(this)" title="Pink" style="background:linear-gradient(135deg,#FFB6C1,#FF1493)"></div>
+                                <div class="ob-skin-chip" data-skin="space" onclick="pickSkin(this)" title="Space" style="background:linear-gradient(135deg,#0f0c29,#302b63)"></div>
+                                <div class="ob-skin-chip" data-skin="cotton" onclick="pickSkin(this)" title="Cotton" style="background:linear-gradient(135deg,#E0C3FC,#8EC5FC)"></div>
                             </div>
                         </div>
                     </div>
@@ -614,7 +607,7 @@
     <script>
         let currentStep = 0;
         const totalSteps = 5;
-        let selectedTheme = 'light';
+        let selectedSkin = 'default';
 
         /* ── Navigation ── */
         function goNext() {
@@ -688,19 +681,19 @@
             goNext();
         }
 
-        /* ── Theme Picker ── */
-        function pickTheme(el) {
-            document.querySelectorAll('.ob-theme-chip').forEach(c => c.classList.remove('selected'));
+        /* ── Skin Picker ── */
+        function pickSkin(el) {
+            document.querySelectorAll('.ob-skin-chip').forEach(c => c.classList.remove('selected'));
             el.classList.add('selected');
-            selectedTheme = el.dataset.theme;
+            selectedSkin = el.dataset.skin;
 
             // Live preview
-            document.documentElement.setAttribute('data-theme', selectedTheme);
+            DreamApp.applySkin(selectedSkin);
         }
 
         /* ── Save Preferences ── */
         function savePrefs() {
-            localStorage.setItem('dd-theme', selectedTheme);
+            localStorage.setItem('dd-skin', selectedSkin);
             localStorage.setItem('dd-setting-notifs', document.getElementById('obNotifs').checked);
             goNext();
         }

@@ -112,6 +112,8 @@ default
             gCurrentApp = "boot";
             setScreen("boot.html");
             registerWithServer();
+            // Timer retry in case MOAP script hasn't initialized yet
+            llSetTimerEvent(1.5);
         }
     }
 
@@ -140,6 +142,7 @@ default
                 gCurrentApp = "boot";
                 setScreen("boot.html");
                 registerWithServer();
+                llSetTimerEvent(1.5);
             }
         }
     }
@@ -150,9 +153,11 @@ default
         if (toucher != gOwner) return;
 
         integer link = llDetectedLinkNumber(0);
+        integer face = llDetectedTouchFace(0);
 
-        // HOME button prim — always returns to home screen
-        if (llGetLinkName(link) == "HOME")
+        // HOME button prim (link 2, named "HOME") — returns to home screen
+        // Skip if touch is on the MOAP media face (face 4) to avoid conflict
+        if ((link == SCREEN_LINK || llGetLinkName(link) == "HOME") && face != MOAP_FACE)
         {
             if (gCurrentApp == "off" || gCurrentApp == "")
             {
@@ -216,5 +221,15 @@ default
     http_response(key req, integer status, list meta, string body)
     {
         // Server registration response - silent
+    }
+
+    timer()
+    {
+        llSetTimerEvent(0.0);  // One-shot: stop timer
+        // Re-send boot URL to ensure MOAP received it
+        if (gCurrentApp == "boot")
+        {
+            setScreen("boot.html");
+        }
     }
 }

@@ -68,7 +68,8 @@ default
     state_entry()
     {
         gOwner = llGetOwner();
-        screenOff();  // Start powered off
+        // Pre-initialize screen so it's ready for URLs immediately
+        screenOn();
     }
 
     on_rez(integer start)

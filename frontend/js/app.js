@@ -3,20 +3,58 @@
    ============================================ */
 
 const DreamApp = {
-    /* --- Theme Management --- */
-    initTheme() {
-        const saved = localStorage.getItem('dd-theme') || DDConfig.DEFAULT_THEME;
-        this.setTheme(saved);
+    /* --- Skin Management (unified theme + wallpaper) --- */
+    _skinGradients: {
+        'default': 'linear-gradient(135deg, #C2E9FB 0%, #E8D5F5 25%, #FBE4D5 50%, #D5E8FB 75%, #E0F5E8 100%)',
+        'sunset':  'linear-gradient(135deg, #FF6B6B 0%, #FF8E53 25%, #FEC89A 50%, #FFD93D 75%, #FF6B6B 100%)',
+        'ocean':   'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #6B8DD6 50%, #8E37D7 75%, #667eea 100%)',
+        'forest':  'linear-gradient(135deg, #11998e 0%, #38ef7d 25%, #43B692 50%, #11998e 75%, #38ef7d 100%)',
+        'candy':   'linear-gradient(135deg, #f093fb 0%, #f5576c 25%, #fda085 50%, #f093fb 75%, #f5576c 100%)',
+        'pink':    'linear-gradient(135deg, #FFB6C1 0%, #FF69B4 25%, #FF1493 50%, #FF69B4 75%, #FFB6C1 100%)',
+        'space':   'linear-gradient(135deg, #0f0c29 0%, #302b63 25%, #24243e 50%, #0f0c29 75%, #302b63 100%)',
+        'cotton':  'linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 25%, #F0E6FF 50%, #8EC5FC 75%, #E0C3FC 100%)'
     },
 
-    setTheme(theme) {
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('dd-theme', theme);
-        this.syncSetting('theme', theme);
+    initSkin() {
+        // Migrate old theme/wallpaper to new skin system
+        var skin = localStorage.getItem('dd-skin');
+        if (!skin) {
+            var oldWp = localStorage.getItem('dd-wallpaper');
+            if (oldWp && this._skinGradients[oldWp]) {
+                skin = oldWp;
+            } else {
+                var oldTheme = localStorage.getItem('dd-theme');
+                if (oldTheme === 'dark') skin = 'space';
+                else if (oldTheme === 'neon') skin = 'ocean';
+                else skin = 'default';
+            }
+            localStorage.setItem('dd-skin', skin);
+        }
+        this.applySkin(skin);
     },
 
-    getTheme() {
-        return localStorage.getItem('dd-theme') || DDConfig.DEFAULT_THEME;
+    setSkin(skin) {
+        if (!this._skinGradients[skin]) skin = 'default';
+        localStorage.setItem('dd-skin', skin);
+        this.applySkin(skin);
+        this.syncSetting('skin', skin);
+    },
+
+    getSkin() {
+        return localStorage.getItem('dd-skin') || 'default';
+    },
+
+    applySkin(skin) {
+        if (!skin || !this._skinGradients[skin]) skin = 'default';
+        // Set data-theme attribute for CSS variable overrides
+        document.documentElement.setAttribute('data-theme', skin === 'default' ? 'light' : skin);
+        // Set inline gradient for MOAP/CEF compatibility
+        var bg = document.querySelector('.tablet-bg');
+        if (bg) {
+            bg.style.background = this._skinGradients[skin];
+            bg.style.backgroundSize = '400% 400%';
+            bg.style.animation = 'wallpaperShift 25s ease infinite';
+        }
     },
 
     /* --- Status Bar Clock --- */
@@ -110,7 +148,7 @@ const DreamApp = {
     /* Attach tap sounds to all clickable elements */
     initSounds() {
         document.addEventListener('click', function(e) {
-            var el = e.target.closest('a, button, .app-icon, .nav-item, .settings-item, .theme-option, .wp-swatch, .ob-btn, .ob-theme-chip, .ob-connect-card');
+            var el = e.target.closest('a, button, .app-icon, .nav-item, .settings-item, .skin-swatch, .ob-btn, .ob-skin-chip, .ob-connect-card');
             if (el) DreamApp.playTap();
         }, true);
     },
@@ -194,8 +232,8 @@ const DreamApp = {
             await this.apiPost('/api/profile', {
                 uuid: uuid,
                 name: localStorage.getItem('dd-name') || 'Dreamer',
-                theme: localStorage.getItem('dd-theme') || 'light',
-                wallpaper: localStorage.getItem('dd-wallpaper') || '',
+                theme: localStorage.getItem('dd-skin') || 'default',
+                wallpaper: localStorage.getItem('dd-skin') || 'default',
                 zoom: parseInt(localStorage.getItem('dd-zoom'), 10) || 150,
                 onboarded: localStorage.getItem('dd-onboarded') === 'true',
                 notifications: {
@@ -276,44 +314,14 @@ const DreamApp = {
 
     /* --- Init (call on every page) --- */
     init() {
-        this.initTheme();
+        this.initSkin();
         this.initStatusBar();
         this.applyZoom();
-        this.applyWallpaper();
         this.initSounds();
         // Store user info from URL params if present
         const uuid = this.getParam('uuid');
         const name = this.getParam('name');
         if (uuid || name) this.setUser(uuid, name);
-    },
-
-    /* --- Wallpaper --- */
-    _wallpaperGradients: {
-        'sunset': 'linear-gradient(135deg, #FF6B6B 0%, #FF8E53 25%, #FEC89A 50%, #FFD93D 75%, #FF6B6B 100%)',
-        'ocean':  'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #6B8DD6 50%, #8E37D7 75%, #667eea 100%)',
-        'forest': 'linear-gradient(135deg, #11998e 0%, #38ef7d 25%, #43B692 50%, #11998e 75%, #38ef7d 100%)',
-        'candy':  'linear-gradient(135deg, #f093fb 0%, #f5576c 25%, #fda085 50%, #f093fb 75%, #f5576c 100%)',
-        'pink':   'linear-gradient(135deg, #FFB6C1 0%, #FF69B4 25%, #FF1493 50%, #FF69B4 75%, #FFB6C1 100%)',
-        'space':  'linear-gradient(135deg, #0f0c29 0%, #302b63 25%, #24243e 50%, #0f0c29 75%, #302b63 100%)',
-        'cotton': 'linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 25%, #F0E6FF 50%, #8EC5FC 75%, #E0C3FC 100%)'
-    },
-
-    applyWallpaper() {
-        var wp = localStorage.getItem('dd-wallpaper') || '';
-        var bg = document.querySelector('.tablet-bg');
-        if (!bg) return;
-        // Remove any existing wp- class
-        bg.className = bg.className.replace(/\bwp-\S+/g, '').trim();
-        if (wp && this._wallpaperGradients[wp]) {
-            bg.classList.add('wp-' + wp);
-            // Also set inline styles for MOAP/CEF compatibility
-            bg.style.backgroundImage = this._wallpaperGradients[wp];
-            bg.style.backgroundSize = '400% 400%';
-        } else {
-            // Clear inline styles so theme default takes over
-            bg.style.backgroundImage = '';
-            bg.style.backgroundSize = '';
-        }
     },
 
     /* --- Zoom Management --- */

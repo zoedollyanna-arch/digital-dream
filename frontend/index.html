@@ -30,8 +30,11 @@
                                 var p = d.profile;
                                 localStorage.setItem('dd-onboarded', 'true');
                                 if (p.name) localStorage.setItem('dd-name', p.name);
-                                if (p.theme) localStorage.setItem('dd-theme', p.theme);
-                                localStorage.setItem('dd-wallpaper', p.wallpaper || '');
+                                var skin = p.wallpaper || p.theme || 'default';
+                                if (skin === 'light') skin = 'default';
+                                else if (skin === 'dark') skin = 'space';
+                                else if (skin === 'neon') skin = 'ocean';
+                                localStorage.setItem('dd-skin', skin);
                                 if (p.zoom) localStorage.setItem('dd-zoom', String(p.zoom));
                                 if (p.notifications) {
                                     localStorage.setItem('dd-setting-notifs', String(p.notifications.notifs !== false));

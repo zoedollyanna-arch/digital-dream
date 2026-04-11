@@ -74,45 +74,147 @@
     --font-mono: 'SF Mono', 'Consolas', 'Courier New', monospace;
 }
 
-/* --- Dark Theme --- */
-[data-theme="dark"] {
-    --bg-base: #000000;
-    --bg-surface: rgba(28, 28, 30, 0.8);
-    --bg-card: rgba(44, 44, 46, 0.65);
-    --bg-glass: rgba(44, 44, 46, 0.5);
-    --bg-glass-heavy: rgba(44, 44, 46, 0.75);
-    --bg-input: rgba(120, 120, 128, 0.2);
-    --bg-dock: rgba(30, 30, 30, 0.65);
-    --border-glass: rgba(255, 255, 255, 0.08);
-    --border-subtle: rgba(255, 255, 255, 0.06);
+/* --- Dark Skins (shared dark base) --- */
+[data-theme="sunset"],
+[data-theme="ocean"],
+[data-theme="forest"],
+[data-theme="pink"],
+[data-theme="space"] {
     --text-primary: #FFFFFF;
-    --text-secondary: #EBEBF5;
     --text-muted: #8E8E93;
-    --text-light: #636366;
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
     --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.25);
     --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.35);
 }
 
-/* --- Neon Theme --- */
-[data-theme="neon"] {
-    --primary: #BF5AF2;
-    --primary-glow: rgba(191, 90, 242, 0.3);
-    --secondary: #64D2FF;
-    --accent: #FF375F;
+/* --- Sunset Skin --- */
+[data-theme="sunset"] {
+    --primary: #FF8E53;
+    --primary-light: #FFB88C;
+    --primary-glow: rgba(255, 142, 83, 0.25);
+    --bg-base: #1A0A05;
+    --bg-surface: rgba(40, 20, 10, 0.8);
+    --bg-card: rgba(50, 25, 15, 0.65);
+    --bg-glass: rgba(50, 25, 15, 0.5);
+    --bg-glass-heavy: rgba(50, 25, 15, 0.75);
+    --bg-input: rgba(120, 80, 50, 0.2);
+    --bg-dock: rgba(30, 15, 8, 0.7);
+    --border-glass: rgba(255, 142, 83, 0.12);
+    --border-subtle: rgba(255, 142, 83, 0.06);
+    --text-secondary: #FFD4B8;
+    --text-light: #7A5A40;
+}
+
+/* --- Ocean Skin --- */
+[data-theme="ocean"] {
+    --primary: #667eea;
+    --primary-light: #8B9FF5;
+    --primary-glow: rgba(102, 126, 234, 0.25);
+    --bg-base: #0A0A20;
+    --bg-surface: rgba(15, 15, 45, 0.8);
+    --bg-card: rgba(25, 25, 60, 0.65);
+    --bg-glass: rgba(25, 25, 60, 0.5);
+    --bg-glass-heavy: rgba(25, 25, 60, 0.75);
+    --bg-input: rgba(80, 80, 160, 0.2);
+    --bg-dock: rgba(10, 10, 35, 0.7);
+    --border-glass: rgba(102, 126, 234, 0.12);
+    --border-subtle: rgba(102, 126, 234, 0.06);
+    --text-secondary: #C8C8FF;
+    --text-light: #4A4A80;
+}
+
+/* --- Forest Skin --- */
+[data-theme="forest"] {
+    --primary: #38ef7d;
+    --primary-light: #6FF5A0;
+    --primary-glow: rgba(56, 239, 125, 0.25);
+    --bg-base: #051A10;
+    --bg-surface: rgba(8, 35, 20, 0.8);
+    --bg-card: rgba(12, 45, 28, 0.65);
+    --bg-glass: rgba(12, 45, 28, 0.5);
+    --bg-glass-heavy: rgba(12, 45, 28, 0.75);
+    --bg-input: rgba(50, 130, 80, 0.2);
+    --bg-dock: rgba(5, 25, 14, 0.7);
+    --border-glass: rgba(56, 239, 125, 0.12);
+    --border-subtle: rgba(56, 239, 125, 0.06);
+    --text-secondary: #B8F5D0;
+    --text-light: #3A6A4A;
+}
+
+/* --- Candy Skin (light) --- */
+[data-theme="candy"] {
+    --primary: #f5576c;
+    --primary-light: #FF8A9A;
+    --primary-glow: rgba(245, 87, 108, 0.2);
+    --bg-base: #FFF0F3;
+    --bg-surface: rgba(255, 220, 225, 0.72);
+    --bg-card: rgba(255, 210, 220, 0.6);
+    --bg-glass: rgba(255, 200, 215, 0.45);
+    --bg-glass-heavy: rgba(255, 215, 225, 0.7);
+    --bg-input: rgba(200, 100, 120, 0.1);
+    --bg-dock: rgba(255, 220, 225, 0.6);
+    --border-glass: rgba(245, 87, 108, 0.15);
+    --border-subtle: rgba(245, 87, 108, 0.06);
+    --text-primary: #2C1018;
+    --text-secondary: #5C2030;
+    --text-muted: #A06070;
+    --text-light: #C8909A;
+}
+
+/* --- Pink Skin --- */
+[data-theme="pink"] {
+    --primary: #FF1493;
+    --primary-light: #FF5CB8;
+    --primary-glow: rgba(255, 20, 147, 0.25);
+    --bg-base: #1A050F;
+    --bg-surface: rgba(40, 10, 25, 0.8);
+    --bg-card: rgba(55, 15, 35, 0.65);
+    --bg-glass: rgba(55, 15, 35, 0.5);
+    --bg-glass-heavy: rgba(55, 15, 35, 0.75);
+    --bg-input: rgba(160, 40, 100, 0.2);
+    --bg-dock: rgba(30, 8, 18, 0.7);
+    --border-glass: rgba(255, 20, 147, 0.12);
+    --border-subtle: rgba(255, 20, 147, 0.06);
+    --text-secondary: #FFB8D8;
+    --text-light: #7A3058;
+}
+
+/* --- Space Skin --- */
+[data-theme="space"] {
+    --primary: #7C3AED;
+    --primary-light: #A78BFA;
+    --primary-glow: rgba(124, 58, 237, 0.25);
     --bg-base: #0A0A1A;
-    --bg-surface: rgba(20, 20, 40, 0.85);
-    --bg-card: rgba(30, 30, 60, 0.6);
-    --bg-glass: rgba(30, 30, 60, 0.45);
-    --bg-glass-heavy: rgba(30, 30, 60, 0.7);
-    --bg-input: rgba(120, 120, 200, 0.12);
-    --bg-dock: rgba(20, 20, 40, 0.7);
-    --border-glass: rgba(191, 90, 242, 0.15);
-    --border-subtle: rgba(191, 90, 242, 0.08);
-    --text-primary: #FFFFFF;
-    --text-secondary: #E0D4F5;
-    --text-muted: #8B7EAE;
-    --text-light: #5A5078;
+    --bg-surface: rgba(18, 18, 38, 0.85);
+    --bg-card: rgba(28, 28, 55, 0.65);
+    --bg-glass: rgba(28, 28, 55, 0.5);
+    --bg-glass-heavy: rgba(28, 28, 55, 0.75);
+    --bg-input: rgba(100, 80, 180, 0.15);
+    --bg-dock: rgba(12, 12, 30, 0.7);
+    --border-glass: rgba(124, 58, 237, 0.12);
+    --border-subtle: rgba(124, 58, 237, 0.06);
+    --text-secondary: #D4C8F0;
+    --text-light: #5A4880;
+}
+
+/* --- Cotton Skin (light) --- */
+[data-theme="cotton"] {
+    --primary: #8B5CF6;
+    --primary-light: #A78BFA;
+    --primary-glow: rgba(139, 92, 246, 0.2);
+    --bg-base: #F5F0FF;
+    --bg-surface: rgba(225, 215, 248, 0.72);
+    --bg-card: rgba(215, 200, 245, 0.6);
+    --bg-glass: rgba(210, 195, 240, 0.45);
+    --bg-glass-heavy: rgba(220, 210, 245, 0.7);
+    --bg-input: rgba(120, 100, 180, 0.1);
+    --bg-dock: rgba(225, 215, 248, 0.6);
+    --border-glass: rgba(139, 92, 246, 0.15);
+    --border-subtle: rgba(139, 92, 246, 0.06);
+    --text-primary: #1C1028;
+    --text-secondary: #3C2858;
+    --text-muted: #8070A0;
+    --text-light: #A898C0;
 }
 
 html, body {
@@ -131,7 +233,7 @@ html, body {
     font-weight: 400;
 }
 
-/* --- Wallpaper Background --- */
+/* --- Wallpaper Background (per-skin) --- */
 .tablet-bg {
     position: fixed;
     inset: 0;
@@ -148,30 +250,33 @@ html, body {
     animation: wallpaperShift 25s ease infinite;
 }
 
-[data-theme="dark"] .tablet-bg {
-    background:
-        linear-gradient(135deg,
-            #0C1445 0%,
-            #1A0A30 25%,
-            #0A1628 50%,
-            #16082A 75%,
-            #0A1445 100%
-        );
+[data-theme="sunset"] .tablet-bg {
+    background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 25%, #FEC89A 50%, #FFD93D 75%, #FF6B6B 100%);
     background-size: 400% 400%;
-    animation: wallpaperShift 25s ease infinite;
 }
-
-[data-theme="neon"] .tablet-bg {
-    background:
-        linear-gradient(135deg,
-            #0A0520 0%,
-            #150830 25%,
-            #0A1030 50%,
-            #200A35 75%,
-            #0A0520 100%
-        );
+[data-theme="ocean"] .tablet-bg {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #6B8DD6 50%, #8E37D7 75%, #667eea 100%);
     background-size: 400% 400%;
-    animation: wallpaperShift 25s ease infinite;
+}
+[data-theme="forest"] .tablet-bg {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 25%, #43B692 50%, #11998e 75%, #38ef7d 100%);
+    background-size: 400% 400%;
+}
+[data-theme="candy"] .tablet-bg {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 25%, #fda085 50%, #f093fb 75%, #f5576c 100%);
+    background-size: 400% 400%;
+}
+[data-theme="pink"] .tablet-bg {
+    background: linear-gradient(135deg, #FFB6C1 0%, #FF69B4 25%, #FF1493 50%, #FF69B4 75%, #FFB6C1 100%);
+    background-size: 400% 400%;
+}
+[data-theme="space"] .tablet-bg {
+    background: linear-gradient(135deg, #0f0c29 0%, #302b63 25%, #24243e 50%, #0f0c29 75%, #302b63 100%);
+    background-size: 400% 400%;
+}
+[data-theme="cotton"] .tablet-bg {
+    background: linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 25%, #F0E6FF 50%, #8EC5FC 75%, #E0C3FC 100%);
+    background-size: 400% 400%;
 }
 
 .tablet-bg::before {
@@ -194,36 +299,6 @@ html, body {
 @keyframes orbFloat {
     0%, 100% { opacity: 0.7; transform: scale(1); }
     50% { opacity: 1; transform: scale(1.05); }
-}
-
-/* --- Wallpaper Overrides --- */
-.tablet-bg.wp-sunset {
-    background-image: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 25%, #FEC89A 50%, #FFD93D 75%, #FF6B6B 100%) !important;
-    background-size: 400% 400% !important;
-}
-.tablet-bg.wp-ocean {
-    background-image: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #6B8DD6 50%, #8E37D7 75%, #667eea 100%) !important;
-    background-size: 400% 400% !important;
-}
-.tablet-bg.wp-forest {
-    background-image: linear-gradient(135deg, #11998e 0%, #38ef7d 25%, #43B692 50%, #11998e 75%, #38ef7d 100%) !important;
-    background-size: 400% 400% !important;
-}
-.tablet-bg.wp-candy {
-    background-image: linear-gradient(135deg, #f093fb 0%, #f5576c 25%, #fda085 50%, #f093fb 75%, #f5576c 100%) !important;
-    background-size: 400% 400% !important;
-}
-.tablet-bg.wp-pink {
-    background-image: linear-gradient(135deg, #FFB6C1 0%, #FF69B4 25%, #FF1493 50%, #FF69B4 75%, #FFB6C1 100%) !important;
-    background-size: 400% 400% !important;
-}
-.tablet-bg.wp-space {
-    background-image: linear-gradient(135deg, #0f0c29 0%, #302b63 25%, #24243e 50%, #0f0c29 75%, #302b63 100%) !important;
-    background-size: 400% 400% !important;
-}
-.tablet-bg.wp-cotton {
-    background-image: linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 25%, #F0E6FF 50%, #8EC5FC 75%, #E0C3FC 100%) !important;
-    background-size: 400% 400% !important;
 }
 
 /* --- Status Bar (iOS style) --- */

@@ -125,7 +125,7 @@
     <script src="js/config.js"></script>
     <script src="js/app.js"></script>
     <script>
-        var current = '0', previous = '', operator = '', resetNext = false, history = [];
+        var current = '0', previous = '', operator = '', resetNext = false, calcHistory = [];
 
         function updateDisplay() {
             document.getElementById('calcResult').textContent = current;
@@ -166,8 +166,8 @@
 
             var opSymbol = {'+':'+', '-':'−', '*':'×', '/':'÷'}[operator];
             var historyEntry = previous + ' ' + opSymbol + ' ' + current + ' = ' + (typeof result === 'number' ? parseFloat(result.toFixed(10)) : result);
-            history.unshift(historyEntry);
-            if (history.length > 5) history.pop();
+            calcHistory.unshift(historyEntry);
+            if (calcHistory.length > 5) calcHistory.pop();
             renderHistory();
 
             current = typeof result === 'number' ? String(parseFloat(result.toFixed(10))) : 'Error';
@@ -190,7 +190,7 @@
         }
 
         function renderHistory() {
-            document.getElementById('calcHistory').innerHTML = history.map(function(h) {
+            document.getElementById('calcHistory').innerHTML = calcHistory.map(function(h) {
                 return '<div class="calc-history-item">' + DreamApp.escapeHtml(h) + '</div>';
             }).join('');
         }

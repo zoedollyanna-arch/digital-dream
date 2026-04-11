@@ -318,8 +318,12 @@
             try {
                 if (uuid) localStorage.setItem('dd-uuid', uuid);
                 if (p.name) localStorage.setItem('dd-name', p.name);
-                if (p.theme) localStorage.setItem('dd-theme', p.theme);
-                localStorage.setItem('dd-wallpaper', p.wallpaper || '');
+                // Migrate: use wallpaper or theme as skin source
+                var skin = p.wallpaper || p.theme || 'default';
+                if (skin === 'light') skin = 'default';
+                else if (skin === 'dark') skin = 'space';
+                else if (skin === 'neon') skin = 'ocean';
+                localStorage.setItem('dd-skin', skin);
                 if (p.zoom) localStorage.setItem('dd-zoom', String(p.zoom));
                 localStorage.setItem('dd-onboarded', 'true');
 

@@ -7,21 +7,23 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        .theme-preview {
-            display: flex; gap: 8px; padding: 4px 0;
+        .skin-grid { display: flex; gap: 8px; flex-wrap: wrap; padding: 4px 0; }
+        .skin-swatch {
+            width: 52px; height: 52px; border-radius: var(--radius-lg, 20px);
+            cursor: pointer; transition: all 0.3s ease;
+            border: 2.5px solid transparent; box-shadow: var(--shadow-sm);
+            position: relative;
         }
-        .theme-option {
-            width: 52px; height: 52px; border-radius: var(--radius-lg);
-            cursor: pointer; transition: var(--transition-spring);
-            border: 2.5px solid transparent; display: flex;
-            align-items: center; justify-content: center;
-            font-size: 22px; box-shadow: var(--shadow-sm);
-        }
-        .theme-option:hover { transform: scale(1.08); }
-        .theme-option.selected { border-color: var(--primary); box-shadow: var(--shadow-glow); }
-        .theme-dark-opt { background: linear-gradient(135deg, #1C1C1E, #2C2C2E); }
-        .theme-light-opt { background: linear-gradient(135deg, #E8E0F0, #FFFFFF); }
-        .theme-neon-opt { background: linear-gradient(135deg, #0A0520, #200A35); }
+        .skin-swatch:hover { transform: scale(1.08); }
+        .skin-swatch.selected { border-color: var(--primary, #007AFF); box-shadow: 0 0 0 3px rgba(0,122,255,0.25); }
+        .skin-default { background: linear-gradient(135deg, #C2E9FB, #E8D5F5, #FBE4D5); }
+        .skin-sunset { background: linear-gradient(135deg, #FF6B6B, #FF8E53, #FFD93D); }
+        .skin-ocean { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .skin-forest { background: linear-gradient(135deg, #11998e, #38ef7d); }
+        .skin-candy { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .skin-pink { background: linear-gradient(135deg, #FFB6C1, #FF1493); }
+        .skin-space { background: linear-gradient(135deg, #0f0c29, #302b63); }
+        .skin-cotton { background: linear-gradient(135deg, #E0C3FC, #8EC5FC); }
         .about-logo { font-size: 48px; margin-bottom: 8px; }
         .storage-bar { height: 6px; background: var(--bg-input); border-radius: 3px; overflow: hidden; margin-top: 6px; }
         .storage-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
@@ -31,22 +33,6 @@
         .zoom-btn:disabled { opacity: 0.3; cursor: default; }
         .zoom-btn:disabled:hover { background: var(--bg-input, rgba(120,120,128,0.08)); color: var(--text-primary, #1C1C1E); border-color: var(--border-subtle, rgba(0,0,0,0.08)); }
         .zoom-level { font-size: 16px; font-weight: 600; color: var(--text-primary, #1C1C1E); min-width: 48px; text-align: center; }
-        .wp-grid { display: flex; gap: 8px; flex-wrap: wrap; padding: 4px 0; }
-        .wp-swatch {
-            width: 52px; height: 52px; border-radius: var(--radius-lg, 20px);
-            cursor: pointer; transition: all 0.3s ease;
-            border: 2.5px solid transparent; box-shadow: var(--shadow-sm);
-        }
-        .wp-swatch:hover { transform: scale(1.08); }
-        .wp-swatch.selected { border-color: var(--primary, #007AFF); box-shadow: 0 0 0 3px rgba(0,122,255,0.25); }
-        .wp-default { background: linear-gradient(135deg, #C2E9FB, #E8D5F5, #FBE4D5); }
-        .wp-sunset-sw { background: linear-gradient(135deg, #FF6B6B, #FF8E53, #FFD93D); }
-        .wp-ocean-sw { background: linear-gradient(135deg, #667eea, #764ba2); }
-        .wp-forest-sw { background: linear-gradient(135deg, #11998e, #38ef7d); }
-        .wp-candy-sw { background: linear-gradient(135deg, #f093fb, #f5576c); }
-        .wp-space-sw { background: linear-gradient(135deg, #0f0c29, #302b63); }
-        .wp-pink-sw { background: linear-gradient(135deg, #FFB6C1, #FF1493); }
-        .wp-cotton-sw { background: linear-gradient(135deg, #E0C3FC, #8EC5FC); }
     </style>
 </head>
 <body>
@@ -88,9 +74,9 @@
             </div>
         </div>
 
-        <!-- Appearance -->
+        <!-- Tablet Skins -->
         <div class="settings-section">
-            <div class="section-title">Appearance</div>
+            <div class="section-title">Tablet Skins</div>
 
             <div class="settings-item">
                 <div class="setting-left">
@@ -98,45 +84,21 @@
                         <i class="fas fa-palette" style="color:#fff;font-size:12px"></i>
                     </div>
                     <div>
-                        <div class="setting-label">Theme</div>
-                        <div class="setting-desc">Choose your vibe</div>
+                        <div class="setting-label">Choose a Skin</div>
+                        <div class="setting-desc">Changes wallpaper and theme together</div>
                     </div>
                 </div>
             </div>
             <div class="px-16" style="margin-top:-4px;margin-bottom:8px">
-                <div class="theme-preview">
-                    <div class="theme-option theme-dark-opt" data-theme="dark" onclick="selectTheme('dark')" title="Dark">🌙</div>
-                    <div class="theme-option theme-light-opt" data-theme="light" onclick="selectTheme('light')" title="Light">☀️</div>
-                    <div class="theme-option theme-neon-opt" data-theme="neon" onclick="selectTheme('neon')" title="Neon">⚡</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Wallpaper -->
-        <div class="settings-section">
-            <div class="section-title">Wallpaper</div>
-
-            <div class="settings-item">
-                <div class="setting-left">
-                    <div class="setting-icon" style="background:linear-gradient(135deg,#f093fb,#f5576c)">
-                        <i class="fas fa-image" style="color:#fff;font-size:12px"></i>
-                    </div>
-                    <div>
-                        <div class="setting-label">Home Screen Background</div>
-                        <div class="setting-desc">Pick a wallpaper style</div>
-                    </div>
-                </div>
-            </div>
-            <div class="px-16" style="margin-top:-4px;margin-bottom:8px">
-                <div class="wp-grid">
-                    <div class="wp-swatch wp-default" data-wp="" onclick="selectWallpaper(this)" title="Default"></div>
-                    <div class="wp-swatch wp-sunset-sw" data-wp="sunset" onclick="selectWallpaper(this)" title="Sunset"></div>
-                    <div class="wp-swatch wp-ocean-sw" data-wp="ocean" onclick="selectWallpaper(this)" title="Ocean"></div>
-                    <div class="wp-swatch wp-forest-sw" data-wp="forest" onclick="selectWallpaper(this)" title="Forest"></div>
-                    <div class="wp-swatch wp-candy-sw" data-wp="candy" onclick="selectWallpaper(this)" title="Candy"></div>
-                    <div class="wp-swatch wp-pink-sw" data-wp="pink" onclick="selectWallpaper(this)" title="Pink"></div>
-                    <div class="wp-swatch wp-space-sw" data-wp="space" onclick="selectWallpaper(this)" title="Space"></div>
-                    <div class="wp-swatch wp-cotton-sw" data-wp="cotton" onclick="selectWallpaper(this)" title="Cotton"></div>
+                <div class="skin-grid">
+                    <div class="skin-swatch skin-default" data-skin="default" onclick="selectSkin(this)" title="Default"></div>
+                    <div class="skin-swatch skin-sunset" data-skin="sunset" onclick="selectSkin(this)" title="Sunset"></div>
+                    <div class="skin-swatch skin-ocean" data-skin="ocean" onclick="selectSkin(this)" title="Ocean"></div>
+                    <div class="skin-swatch skin-forest" data-skin="forest" onclick="selectSkin(this)" title="Forest"></div>
+                    <div class="skin-swatch skin-candy" data-skin="candy" onclick="selectSkin(this)" title="Candy"></div>
+                    <div class="skin-swatch skin-pink" data-skin="pink" onclick="selectSkin(this)" title="Pink"></div>
+                    <div class="skin-swatch skin-space" data-skin="space" onclick="selectSkin(this)" title="Space"></div>
+                    <div class="skin-swatch skin-cotton" data-skin="cotton" onclick="selectSkin(this)" title="Cotton"></div>
                 </div>
             </div>
         </div>
@@ -310,16 +272,10 @@
             document.getElementById('profileName').textContent = name;
             document.getElementById('profileUuid').textContent = uuid !== 'unknown' ? uuid.substring(0, 20) + '...' : 'Not linked to SL';
 
-            // Theme selection highlight
-            const currentTheme = DreamApp.getTheme();
-            document.querySelectorAll('.theme-option').forEach(el => {
-                el.classList.toggle('selected', el.dataset.theme === currentTheme);
-            });
-
-            // Wallpaper selection highlight
-            var currentWp = localStorage.getItem('dd-wallpaper') || '';
-            document.querySelectorAll('.wp-swatch').forEach(el => {
-                el.classList.toggle('selected', (el.dataset.wp || '') === currentWp);
+            // Skin selection highlight
+            var currentSkin = DreamApp.getSkin();
+            document.querySelectorAll('.skin-swatch').forEach(el => {
+                el.classList.toggle('selected', (el.dataset.skin || 'default') === currentSkin);
             });
 
             // Toggles
@@ -341,22 +297,12 @@
             checkServer();
         }
 
-        function selectTheme(theme) {
-            DreamApp.setTheme(theme);
-            document.querySelectorAll('.theme-option').forEach(el => {
-                el.classList.toggle('selected', el.dataset.theme === theme);
-            });
-            DreamApp.toast('Theme changed!', 'success');
-        }
-
-        function selectWallpaper(el) {
-            var wp = el.dataset.wp || '';
-            localStorage.setItem('dd-wallpaper', wp);
-            document.querySelectorAll('.wp-swatch').forEach(s => s.classList.remove('selected'));
+        function selectSkin(el) {
+            var skin = el.dataset.skin || 'default';
+            DreamApp.setSkin(skin);
+            document.querySelectorAll('.skin-swatch').forEach(s => s.classList.remove('selected'));
             el.classList.add('selected');
-            DreamApp.applyWallpaper();
-            DreamApp.syncSetting('wallpaper', wp);
-            DreamApp.toast('Wallpaper changed!', 'success');
+            DreamApp.toast('Skin changed!', 'success');
         }
 
         function getSetting(key, defaultVal) {
