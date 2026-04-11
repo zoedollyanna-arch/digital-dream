@@ -342,7 +342,7 @@
             var badges = DreamApp.getBadges();
             var friend = parseInt(localStorage.getItem('dd-friendship-streak') || '0', 10) || 0;
             document.getElementById('assistantQuote').textContent = quote.title + ' — ' + quote.text;
-            document.getElementById('assistantStats').textContent = 'Level ' + level.level + ' • ' + level.xp + ' XP • ' + friend + ' friendship streak';
+            document.getElementById('assistantStats').textContent = 'Level ' + level.level + ' • ' + level.xp + ' XP' + (friend > 0 ? ' • ' + friend + ' 💖 friends' : '');
             document.getElementById('assistantBadges').innerHTML = (badges.length ? badges : ['Daily Reward ' + (reward.claimedToday ? 'Claimed' : 'Ready')]).map(function(item) {
                 return '<span class="assistant-badge">' + DreamApp.escapeHtml(item) + '</span>';
             }).join('');

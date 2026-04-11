@@ -7,6 +7,7 @@ const express = require('express');
 const router = express.Router();
 const Message = require('../models/Message');
 const SlAction = require('../models/SlAction');
+const Profile = require('../models/Profile');
 
 // GET /api/messages?uuid=X&contact=Y
 router.get('/', async (req, res) => {
@@ -130,11 +131,32 @@ router.post('/send', async (req, res) => {
             created: time
         });
 
+        // Auto-increment friendship streak for both sender and recipient
+        bumpFriendship(sender).catch(() => {});
+        bumpFriendship(recipient).catch(() => {});
+
         res.json({ ok: true, time });
     } catch (err) {
         console.error('[Messages] POST /send error:', err.message);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+
+// Daily-capped friendship streak bump (max 10 per day)
+const DAILY_CAP = 10;
+async function bumpFriendship(uuid) {
+    if (!uuid) return;
+    const today = new Date().toISOString().slice(0, 10);
+    const profile = await Profile.findOne({ uuid }).select('friendshipStreak friendshipDay friendshipToday').lean();
+    const day = profile && profile.friendshipDay || '';
+    let todayCount = (profile && profile.friendshipToday) || 0;
+    if (day !== today) todayCount = 0;
+    if (todayCount >= DAILY_CAP) return;
+    await Profile.findOneAndUpdate(
+        { uuid },
+        { $inc: { friendshipStreak: 1 }, $set: { friendshipDay: today, friendshipToday: todayCount + 1 } },
+        { upsert: true }
+    );
+}
 
 module.exports = router;

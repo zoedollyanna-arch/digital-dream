@@ -10,6 +10,7 @@
 const express = require('express');
 const router = express.Router();
 const FeedPost = require('../models/FeedPost');
+const Profile = require('../models/Profile');
 
 // UUID format check
 const validUuid = (u) => typeof u === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(u);
@@ -93,12 +94,19 @@ router.post('/:id/like', async (req, res) => {
         if (!post) return res.status(404).json({ error: 'Post not found' });
 
         const idx = post.likes.indexOf(uuid);
-        if (idx === -1) {
+        const isNewLike = idx === -1;
+        if (isNewLike) {
             post.likes.push(uuid);
         } else {
             post.likes.splice(idx, 1);
         }
         await post.save();
+
+        // Auto-increment friendship streak for both players on new like
+        if (isNewLike && post.authorUuid !== uuid) {
+            bumpFriendship(uuid).catch(() => {});
+            bumpFriendship(post.authorUuid).catch(() => {});
+        }
 
         res.json({ ok: true, likes: post.likes.length, liked: post.likes.includes(uuid) });
     } catch (err) {
@@ -124,5 +132,22 @@ router.delete('/:id', async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+
+// Daily-capped friendship streak bump (max 10 per day)
+const DAILY_CAP = 10;
+async function bumpFriendship(uuid) {
+    if (!uuid) return;
+    const today = new Date().toISOString().slice(0, 10);
+    const profile = await Profile.findOne({ uuid }).select('friendshipStreak friendshipDay friendshipToday').lean();
+    const day = profile && profile.friendshipDay || '';
+    let todayCount = (profile && profile.friendshipToday) || 0;
+    if (day !== today) todayCount = 0;
+    if (todayCount >= DAILY_CAP) return;
+    await Profile.findOneAndUpdate(
+        { uuid },
+        { $inc: { friendshipStreak: 1 }, $set: { friendshipDay: today, friendshipToday: todayCount + 1 } },
+        { upsert: true }
+    );
+}
 
 module.exports = router;

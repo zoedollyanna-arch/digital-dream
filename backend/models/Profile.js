@@ -34,6 +34,8 @@ const profileSchema = new mongoose.Schema({
     focusSessions:      { type: Number, default: 0, min: 0 },
     selfcareStreak:     { type: Number, default: 0, min: 0 },
     friendshipStreak:   { type: Number, default: 0, min: 0 },
+    friendshipDay:      { type: String, default: '' },      // YYYY-MM-DD for daily cap
+    friendshipToday:    { type: Number, default: 0, min: 0 }, // interactions today
     moodStreak:         { type: Number, default: 0, min: 0 },
 
     // Home screen preferences
