@@ -342,7 +342,7 @@
             var badges = DreamApp.getBadges();
             var friend = parseInt(localStorage.getItem('dd-friendship-streak') || '0', 10) || 0;
             document.getElementById('assistantQuote').textContent = quote.title + ' — ' + quote.text;
-            document.getElementById('assistantStats').textContent = 'Level ' + level.level + ' • ' + level.xp + ' XP' + (friend > 0 ? ' • ' + friend + ' 💖 friends' : '');
+            document.getElementById('assistantStats').textContent = 'Lv ' + level.level + ' • ' + level.current + '/' + level.next + ' XP' + (friend > 0 ? ' • ' + friend + ' 💖 friends' : '');
             document.getElementById('assistantBadges').innerHTML = (badges.length ? badges : ['Daily Reward ' + (reward.claimedToday ? 'Claimed' : 'Ready')]).map(function(item) {
                 return '<span class="assistant-badge">' + DreamApp.escapeHtml(item) + '</span>';
             }).join('');
@@ -427,7 +427,9 @@
                 DreamApp.toast('You already claimed today\'s reward.', 'info');
                 return;
             }
-            DreamApp.toast('Daily reward claimed! +' + reward.coins + ' coins total', 'success');
+            var msg = '+' + (reward.bonusCoins || 25) + ' coins';
+            if (reward.streak > 1) msg += ' (streak x' + reward.streak + '!)';
+            DreamApp.toast('Daily reward claimed! ' + msg, 'success');
             renderAssistantCard();
             renderNotifications();
         }

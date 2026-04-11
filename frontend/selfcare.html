@@ -113,7 +113,7 @@
                 var yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
                 data.streak = data.lastDay === yesterday ? (data.streak || 0) + 1 : 1;
                 data.lastDay = today;
-                DreamApp.awardXp(12, 'Self-care streak boosted');
+                DreamApp.awardXp(15, 'Self-care streak boosted');
             }
             persist();
             render();

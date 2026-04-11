@@ -124,26 +124,37 @@ router.post('/xp', async (req, res) => {
             { upsert: true, new: true }
         );
         const xp = profile.xp || 0;
-        res.json({ ok: true, xp, level: Math.floor(xp / 100) + 1 });
+        // Progressive leveling: level n requires 25*n*(n-1) cumulative XP
+        let level = 1;
+        while (25 * level * (level + 1) <= xp) level++;
+        res.json({ ok: true, xp, level });
     } catch (err) {
         console.error('[Profile] XP error:', err.message);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
 
-// POST /api/profile/coins — Add coins (server-side atomic)
+// POST /api/profile/coins — Add or spend coins (server-side atomic)
 router.post('/coins', async (req, res) => {
     try {
         const { uuid, amount } = req.body;
         if (!validUuid(uuid)) return res.status(400).json({ error: 'Invalid uuid' });
-        const amt = Math.max(0, Math.min(1000, parseInt(amount, 10) || 0));
+        const amt = Math.max(-1000, Math.min(1000, parseInt(amount, 10) || 0));
+
+        if (amt < 0) {
+            // Spending: ensure they have enough
+            const profile = await Profile.findOne({ uuid });
+            if (!profile || (profile.coins || 0) < Math.abs(amt)) {
+                return res.status(400).json({ error: 'Not enough coins' });
+            }
+        }
 
         const profile = await Profile.findOneAndUpdate(
             { uuid },
             { $inc: { coins: amt } },
             { upsert: true, new: true }
         );
-        res.json({ ok: true, coins: profile.coins || 0 });
+        res.json({ ok: true, coins: Math.max(0, profile.coins || 0) });
     } catch (err) {
         console.error('[Profile] Coins error:', err.message);
         res.status(500).json({ error: 'Internal server error' });
@@ -151,6 +162,7 @@ router.post('/coins', async (req, res) => {
 });
 
 // POST /api/profile/daily-reward — Claim daily reward (server-side, prevents double-claim)
+// Streak-scaled: longer streaks give better rewards
 router.post('/daily-reward', async (req, res) => {
     try {
         const { uuid } = req.body;
@@ -158,9 +170,17 @@ router.post('/daily-reward', async (req, res) => {
 
         const today = new Date().toISOString().slice(0, 10);
         const profile = await Profile.findOne({ uuid });
+
+        // Streak-scaled reward amounts
+        function rewardAmounts(streak) {
+            const bonus = Math.min(streak, 10);
+            return { coins: 25 + bonus * 5, xp: 15 + bonus * 2 };
+        }
+
         if (!profile) {
-            await Profile.create({ uuid, rewardLast: today, rewardStreak: 1, coins: 25, xp: 15 });
-            return res.json({ ok: true, claimed: true, streak: 1, coins: 25, xp: 15 });
+            const amounts = rewardAmounts(1);
+            await Profile.create({ uuid, rewardLast: today, rewardStreak: 1, coins: amounts.coins, xp: amounts.xp });
+            return res.json({ ok: true, claimed: true, streak: 1, coins: amounts.coins, xp: amounts.xp, bonusCoins: amounts.coins, bonusXp: amounts.xp });
         }
 
         if (profile.rewardLast === today) {
@@ -169,13 +189,14 @@ router.post('/daily-reward', async (req, res) => {
 
         const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
         const streak = (profile.rewardLast === yesterday) ? (profile.rewardStreak || 0) + 1 : 1;
+        const amounts = rewardAmounts(streak);
 
         await Profile.updateOne({ uuid }, {
             $set: { rewardLast: today, rewardStreak: streak },
-            $inc: { coins: 25, xp: 15 }
+            $inc: { coins: amounts.coins, xp: amounts.xp }
         });
         const updated = await Profile.findOne({ uuid }).lean();
-        res.json({ ok: true, claimed: true, streak, coins: updated.coins, xp: updated.xp });
+        res.json({ ok: true, claimed: true, streak, coins: updated.coins, xp: updated.xp, bonusCoins: amounts.coins, bonusXp: amounts.xp });
     } catch (err) {
         console.error('[Profile] DailyReward error:', err.message);
         res.status(500).json({ error: 'Internal server error' });

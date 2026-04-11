@@ -99,7 +99,7 @@
             if (data.xp >= data.level * 40) {
                 data.level += 1;
                 data.xp = 0;
-                DreamApp.awardXp(20, 'Pet Buddy leveled up');
+                DreamApp.awardXp(15, 'Pet Buddy leveled up');
                 DreamApp.toast(data.name + ' leveled up!', 'success');
             }
             persist();

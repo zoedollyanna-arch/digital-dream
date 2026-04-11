@@ -84,7 +84,7 @@
         <div class="store-stats">
             <div class="store-pill" id="installedCount">0 installed</div>
             <div class="store-pill" id="favoriteCount">0 pinned favorites</div>
-            <div class="store-pill">Daily rewards + badges live now</div>
+            <div class="store-pill" id="coinBalance">🪙 0 coins</div>
         </div>
 
         <div id="storeSections"></div>
@@ -144,6 +144,20 @@
             var app = findApp(id);
             if (!app) return;
 
+            // Check coin cost
+            if (app.price && app.price > 0) {
+                var coins = DreamApp.getCoins();
+                if (coins < app.price) {
+                    DreamApp.toast('Not enough coins! Need ' + app.price + ', have ' + coins, 'info');
+                    return;
+                }
+                var spent = await DreamApp.spendCoins(app.price);
+                if (!spent) {
+                    DreamApp.toast('Not enough coins!', 'info');
+                    return;
+                }
+            }
+
             installingApps[id] = true;
             renderStore();
 
@@ -198,7 +212,8 @@
             } else if (installingApps[app.id]) {
                 btn = '<button class="store-btn store-btn-get" disabled style="opacity:.75">...</button>';
             } else {
-                btn = '<button class="store-btn store-btn-get" onclick="event.stopPropagation();installApp(\'' + DreamApp.escapeHtml(app.id) + '\')">GET</button>';
+                var label = (app.price && app.price > 0) ? '🪙 ' + app.price : 'GET';
+                btn = '<button class="store-btn store-btn-get" onclick="event.stopPropagation();installApp(\'' + DreamApp.escapeHtml(app.id) + '\')">' + label + '</button>';
             }
 
             return '<div class="store-card' + (installed ? ' installed' : '') + '">' 
@@ -217,6 +232,7 @@
             var favorites = DreamApp.getFavoriteApps();
             document.getElementById('installedCount').textContent = installed.length + ' installed';
             document.getElementById('favoriteCount').textContent = favorites.length + ' pinned favorites';
+            document.getElementById('coinBalance').textContent = '🪙 ' + DreamApp.getCoins() + ' coins';
 
             var sectionsHtml = '';
             Object.keys(storeApps).forEach(function(key) {

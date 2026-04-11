@@ -66,30 +66,30 @@
             { id: 'journal',      name: 'My Journal',       desc: 'Private diary with optional lock', icon: 'fas fa-book',           color: '#5856D6', tag: 'new',     page: 'journal.html' },
             { id: 'todo',         name: 'To-Do List',       desc: 'Track your tasks',                 icon: 'fas fa-check-circle',   color: '#34C759', tag: '',        page: 'todo.html' },
             { id: 'calculator',   name: 'Calculator',       desc: 'Quick math helper',                icon: 'fas fa-calculator',     color: '#8E8E93', tag: '',        page: 'calculator.html' },
-            { id: 'dreamplanner', name: 'Dream Planner',    desc: 'Goals, homework, wishes & dates',  icon: 'fas fa-star',           color: '#FFB703', tag: 'new',     page: 'dreamplanner.html' },
+            { id: 'dreamplanner', name: 'Dream Planner',    desc: 'Goals, homework, wishes & dates',  icon: 'fas fa-star',           color: '#FFB703', tag: 'new',     page: 'dreamplanner.html', price: 30 },
             { id: 'focus',        name: 'Focus Mode',       desc: 'Pomodoro timer with rewards',      icon: 'fas fa-hourglass-half', color: '#007AFF', tag: 'popular', page: 'focus.html' }
         ])),
 
         wellness: uniqueApps(withMeta('Wellness & Vibes', 'vibes', [
             { id: 'moodvibes',    name: 'Mood & Vibes',     desc: 'Mood streaks, quotes & fortunes',  icon: 'fas fa-face-smile-beam', color: '#FF5E9C', tag: 'new',     page: 'moodvibes.html' },
             { id: 'selfcare',     name: 'Self-Care',        desc: 'Habits, hydration & positivity',   icon: 'fas fa-heart',          color: '#34C759', tag: 'popular', page: 'selfcare.html' },
-            { id: 'moodboard',    name: 'Mood Board',       desc: 'Save colors, vibes & dream notes', icon: 'fas fa-images',         color: '#BF5AF2', tag: '',        page: 'moodboard.html' }
+            { id: 'moodboard',    name: 'Mood Board',       desc: 'Save colors, vibes & dream notes', icon: 'fas fa-images',         color: '#BF5AF2', tag: '',        page: 'moodboard.html', price: 25 }
         ])),
 
         games: uniqueApps(withMeta('Games & Fun', 'fun', [
             { id: 'trivia',         name: 'Dream Trivia',     desc: 'Fun quiz challenges',            icon: 'fas fa-brain',       color: '#FF2D55', tag: 'popular', page: 'trivia.html' },
             { id: 'memory',         name: 'Memory Match',     desc: 'Card matching game',             icon: 'fas fa-th',          color: '#5AC8FA', tag: 'new',     page: 'memory.html' },
             { id: 'tictactoe',      name: 'Tic-Tac-Toe',     desc: 'Classic X & O game',             icon: 'fas fa-times',       color: '#007AFF', tag: '',        page: 'tictactoe.html' },
-            { id: 'snake',          name: 'Dream Snake',      desc: 'Retro snake game',               icon: 'fas fa-gamepad',     color: '#34C759', tag: 'new',     page: 'snake.html' },
+            { id: 'snake',          name: 'Dream Snake',      desc: 'Retro snake game',               icon: 'fas fa-gamepad',     color: '#34C759', tag: 'new',     page: 'snake.html', price: 20 },
             { id: 'wouldyourather', name: 'Would You Rather', desc: 'Fun clean choices for everyone', icon: 'fas fa-random',      color: '#FF9F0A', tag: 'new',     page: 'wouldyourather.html' },
             { id: 'quizdaily',      name: 'Quiz of the Day',  desc: 'Music, movies & school trivia',  icon: 'fas fa-bolt',        color: '#5856D6', tag: 'popular', page: 'quizdaily.html' },
-            { id: 'petbuddy',       name: 'Pet Buddy',        desc: 'Feed, play & level up your pet', icon: 'fas fa-paw',         color: '#00C7BE', tag: 'new',     page: 'petbuddy.html' }
+            { id: 'petbuddy',       name: 'Pet Buddy',        desc: 'Feed, play & level up your pet', icon: 'fas fa-paw',         color: '#00C7BE', tag: 'new',     page: 'petbuddy.html', price: 40 }
         ])),
 
         social: uniqueApps(withMeta('Creative & Social', 'creative', [
             { id: 'doodle',   name: 'Doodle Pad',    desc: 'Draw and sketch for fun',    icon: 'fas fa-paint-brush', color: '#BF5AF2', tag: 'popular', page: 'doodle.html' },
             { id: 'photos',   name: 'Photo Album',   desc: 'Save your snapshots',        icon: 'fas fa-camera',      color: '#FF6259', tag: '',        page: 'photos.html' },
-            { id: 'stickers', name: 'Sticker Maker', desc: 'Build cute sticker packs',   icon: 'fas fa-icons',       color: '#FF8C42', tag: 'new',     page: 'stickers.html' }
+            { id: 'stickers', name: 'Sticker Maker', desc: 'Build cute sticker packs',   icon: 'fas fa-icons',       color: '#FF8C42', tag: 'new',     page: 'stickers.html', price: 15 }
         ]))
     };
 

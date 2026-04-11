@@ -465,25 +465,58 @@ const DreamApp = {
 
     /* --- Gamification (backend-first, localStorage cache) --- */
 
+    // Progressive leveling: each level requires more XP than the last
+    // Level 1=0, 2=50, 3=150, 4=300, 5=500, 10=2250, 15=5250, 20=9500
+    _xpForLevel(level) {
+        if (level <= 1) return 0;
+        return Math.floor(25 * (level - 1) * level);
+    },
+
     getLevelInfo() {
         var xp = parseInt(localStorage.getItem('dd-xp') || '0', 10) || 0;
-        var level = Math.floor(xp / 100) + 1;
-        return { xp: xp, level: level, current: xp % 100, next: 100 };
+        var level = 1;
+        while (this._xpForLevel(level + 1) <= xp) level++;
+        var current = xp - this._xpForLevel(level);
+        var next = this._xpForLevel(level + 1) - this._xpForLevel(level);
+        return { xp: xp, level: level, current: current, next: next };
     },
 
     async awardXp(amount, reason) {
         amount = parseInt(amount, 10) || 0;
         if (amount <= 0) return this.getLevelInfo();
+        var before = this.getLevelInfo();
         // Update localStorage cache immediately for responsive UI
         var xp = (parseInt(localStorage.getItem('dd-xp') || '0', 10) || 0) + amount;
         localStorage.setItem('dd-xp', String(xp));
-        if (reason && !this.isDndEnabled()) this.toast('+' + amount + ' XP - ' + reason, 'success');
+        var after = this.getLevelInfo();
+        if (after.level > before.level && !this.isDndEnabled()) {
+            this.toast('🎉 Level ' + after.level + '! Keep it up!', 'success');
+        } else if (reason && !this.isDndEnabled()) {
+            this.toast('+' + amount + ' XP - ' + reason, 'success');
+        }
         // Push to backend (fire and forget)
         var uuid = this.getUserId();
         if (uuid && uuid !== 'unknown') {
             this.apiPost('/api/profile/xp', { uuid: uuid, amount: amount }).catch(function() {});
         }
-        return this.getLevelInfo();
+        return after;
+    },
+
+    getCoins() {
+        return parseInt(localStorage.getItem('dd-coins') || '0', 10) || 0;
+    },
+
+    async spendCoins(amount) {
+        amount = parseInt(amount, 10) || 0;
+        if (amount <= 0) return false;
+        var current = this.getCoins();
+        if (current < amount) return false;
+        localStorage.setItem('dd-coins', String(current - amount));
+        var uuid = this.getUserId();
+        if (uuid && uuid !== 'unknown') {
+            this.apiPost('/api/profile/coins', { uuid: uuid, amount: -amount }).catch(function() {});
+        }
+        return true;
     },
 
     getDailyReward() {
@@ -494,6 +527,12 @@ const DreamApp = {
             streak: parseInt(localStorage.getItem('dd-reward-streak') || '0', 10) || 0,
             coins: parseInt(localStorage.getItem('dd-coins') || '0', 10) || 0
         };
+    },
+
+    // Streak-scaled rewards: longer streaks = better rewards
+    _dailyRewardAmounts(streak) {
+        var bonus = Math.min(streak, 10);
+        return { coins: 25 + bonus * 5, xp: 15 + bonus * 2 };
     },
 
     async claimDailyReward() {
@@ -508,7 +547,7 @@ const DreamApp = {
                     localStorage.setItem('dd-reward-streak', String(result.streak));
                     localStorage.setItem('dd-coins', String(result.coins));
                     localStorage.setItem('dd-xp', String(result.xp));
-                    return { streak: result.streak, coins: result.coins };
+                    return { streak: result.streak, coins: result.coins, bonusCoins: result.bonusCoins || 0, bonusXp: result.bonusXp || 0 };
                 }
                 return null;
             } catch (e) {
@@ -519,12 +558,13 @@ const DreamApp = {
         var yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
         var last = localStorage.getItem('dd-reward-last') || '';
         var streak = (last === yesterday) ? info.streak + 1 : 1;
-        var coins = info.coins + 25;
+        var amounts = this._dailyRewardAmounts(streak);
+        var coins = info.coins + amounts.coins;
         localStorage.setItem('dd-reward-last', info.today);
         localStorage.setItem('dd-reward-streak', String(streak));
         localStorage.setItem('dd-coins', String(coins));
-        this.awardXp(15, 'Daily reward claimed');
-        return { streak: streak, coins: coins };
+        this.awardXp(amounts.xp, 'Daily reward claimed');
+        return { streak: streak, coins: coins, bonusCoins: amounts.coins, bonusXp: amounts.xp };
     },
 
     getDailyQuote() {
@@ -542,11 +582,14 @@ const DreamApp = {
 
     getBadges() {
         var badges = [];
-        if (this.getInstalledApps().length >= 5) badges.push('Collector');
-        if ((parseInt(localStorage.getItem('dd-focus-sessions') || '0', 10) || 0) >= 3) badges.push('Focused');
-        if ((parseInt(localStorage.getItem('dd-selfcare-streak') || '0', 10) || 0) >= 2) badges.push('Glow Up');
-        if ((parseInt(localStorage.getItem('dd-friendship-streak') || '0', 10) || 0) >= 3) badges.push('Bestie');
-        if ((parseInt(localStorage.getItem('dd-mood-streak') || '0', 10) || 0) >= 2) badges.push('Vibes');
+        if (this.getInstalledApps().length >= 8) badges.push('📦 Collector');
+        if ((parseInt(localStorage.getItem('dd-focus-sessions') || '0', 10) || 0) >= 10) badges.push('🎯 Focused');
+        if ((parseInt(localStorage.getItem('dd-selfcare-streak') || '0', 10) || 0) >= 7) badges.push('✨ Glow Up');
+        if ((parseInt(localStorage.getItem('dd-friendship-streak') || '0', 10) || 0) >= 15) badges.push('💖 Bestie');
+        if ((parseInt(localStorage.getItem('dd-mood-streak') || '0', 10) || 0) >= 7) badges.push('🌈 Vibes');
+        var level = this.getLevelInfo().level;
+        if (level >= 5) badges.push('⭐ Rising Star');
+        if (level >= 15) badges.push('🔥 Dream Master');
         return badges;
     },
 
