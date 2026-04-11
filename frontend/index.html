@@ -88,10 +88,9 @@
                                 if (p.zoom) localStorage.setItem('dd-zoom', String(p.zoom));
                                 if (p.notifications) {
                                     localStorage.setItem('dd-setting-notifs', String(p.notifications.notifs !== false));
-                                    localStorage.setItem('dd-setting-discordNotifs', String(p.notifications.discordNotifs !== false));
+                                    localStorage.setItem('dd-setting-feedNotifs', String(p.notifications.discordNotifs !== false));
                                     localStorage.setItem('dd-setting-sound', String(p.notifications.sound === true));
                                 }
-                                if (p.discord && p.discord.webhook) localStorage.setItem('dd-discord-config', JSON.stringify(p.discord));
                                 if (p.installedApps && p.installedApps.length) localStorage.setItem('dd-installed-apps', JSON.stringify(p.installedApps));
                             } catch(e) {}
                             location.reload();
@@ -174,9 +173,9 @@
                 <div class="icon-circle icon-browser"><i class="fas fa-globe"></i></div>
                 <span class="icon-label">Browser</span>
             </a>
-            <a href="discord.html" class="app-icon animate-scaleIn animate-stagger-6 home-app" data-name="Discord" data-folder="social">
-                <div class="icon-circle icon-discord"><i class="fab fa-discord"></i></div>
-                <span class="icon-label">Discord</span>
+            <a href="dreamfeed.html" class="app-icon animate-scaleIn animate-stagger-6 home-app" data-name="DreamFeed" data-folder="social">
+                <div class="icon-circle icon-dreamfeed"><i class="fas fa-rss"></i></div>
+                <span class="icon-label">DreamFeed</span>
             </a>
             <a href="contacts.html" class="app-icon animate-scaleIn animate-stagger-7 home-app" data-name="Contacts" data-folder="social">
                 <div class="icon-circle icon-contacts"><i class="fas fa-address-book"></i></div>
@@ -302,7 +301,7 @@
         function renderAppIcon(app, extraClass) {
             if (!app) return '';
             var art = (window.DDAppArt && window.DDAppArt[app.id]) || {};
-            var iconStyle = art.gradient || ('background:' + app.color);
+            var iconStyle = art.gradient ? 'background:' + art.gradient : 'background:' + app.color;
             var emojiOverlay = art.emoji ? '<span class="art-emoji">' + art.emoji + '</span>' : '';
             return '<a href="' + app.page + '" class="app-icon home-app ' + (extraClass || '') + '" data-name="' + DreamApp.escapeHtml(app.name) + '" data-folder="' + DreamApp.escapeHtml(app.folder || 'study') + '">'
                 + '<div class="icon-circle" style="' + iconStyle + '"><i class="' + app.icon + '"></i>' + emojiOverlay + '</div>'

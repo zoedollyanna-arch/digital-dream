@@ -566,16 +566,16 @@
                     <div class="ob-title">Connect Your Apps</div>
                     <div class="ob-subtitle">Link optional services to enhance your experience.</div>
                     <div class="ob-panel" style="display:flex;flex-direction:column;gap:12px">
-                        <!-- Discord -->
-                        <div class="ob-connect-card" id="discordCard" onclick="toggleDiscord()">
-                            <div class="ob-connect-icon" style="background:#5865F2">
-                                <i class="fab fa-discord"></i>
+                        <!-- DreamFeed -->
+                        <div class="ob-connect-card connected" id="dreamfeedCard">
+                            <div class="ob-connect-icon" style="background:linear-gradient(135deg,#FF6B9D,#C44569)">
+                                <i class="fas fa-rss"></i>
                             </div>
                             <div class="ob-connect-info">
-                                <div class="ob-label">Discord</div>
-                                <div class="ob-desc">Chat with your community</div>
+                                <div class="ob-label">DreamFeed</div>
+                                <div class="ob-desc">Social feed &amp; posts</div>
                             </div>
-                            <span class="ob-connect-badge" id="discordBadge">Set up later</span>
+                            <span class="ob-connect-badge active">Ready</span>
                         </div>
                     </div>
                     <button class="ob-btn" onclick="goNext()">Continue</button>
@@ -698,27 +698,6 @@
             goNext();
         }
 
-        /* ── Discord Toggle ── */
-        function toggleDiscord() {
-            const dc = localStorage.getItem('dd-discord-config');
-            if (dc) {
-                document.getElementById('discordCard').classList.add('connected');
-                document.getElementById('discordBadge').textContent = 'Connected';
-                document.getElementById('discordBadge').classList.add('active');
-            } else {
-                // Open a mini-prompt for webhook
-                const webhook = prompt('Paste your Discord webhook URL:');
-                if (webhook && webhook.startsWith('https://discord.com/api/webhooks/')) {
-                    const name = localStorage.getItem('dd-name') || 'Dreamer';
-                    const config = { webhook: webhook, name: name, channel: 'general' };
-                    localStorage.setItem('dd-discord-config', JSON.stringify(config));
-                    document.getElementById('discordCard').classList.add('connected');
-                    document.getElementById('discordBadge').textContent = 'Connected';
-                    document.getElementById('discordBadge').classList.add('active');
-                }
-            }
-        }
-
         /* ── Confetti ── */
         function spawnConfetti() {
             const wrap = document.getElementById('confettiWrap');
@@ -790,13 +769,6 @@
             // Store uuid if passed
             const uuid = params.get('uuid');
             if (uuid) localStorage.setItem('dd-uuid', uuid);
-
-            // Check discord state
-            if (localStorage.getItem('dd-discord-config')) {
-                document.getElementById('discordCard').classList.add('connected');
-                document.getElementById('discordBadge').textContent = 'Connected';
-                document.getElementById('discordBadge').classList.add('active');
-            }
 
             // Enter key on name input
             nameInput.addEventListener('keydown', (e) => {

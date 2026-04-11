@@ -124,10 +124,10 @@
             </div>
             <div class="settings-item">
                 <div class="setting-left">
-                    <div class="setting-icon" style="background:#5865F2"><i class="fab fa-discord" style="color:#fff;font-size:12px"></i></div>
-                    <div><div class="setting-label">Discord Notifications</div><div class="setting-desc">Channel message alerts</div></div>
+                    <div class="setting-icon" style="background:#FF6B9D"><i class="fas fa-rss" style="color:#fff;font-size:12px"></i></div>
+                    <div><div class="setting-label">Feed Notifications</div><div class="setting-desc">DreamFeed alerts</div></div>
                 </div>
-                <label class="toggle"><input type="checkbox" id="toggleDiscord" checked onchange="saveSetting('discordNotifs', this.checked)"><span class="slider"></span></label>
+                <label class="toggle"><input type="checkbox" id="toggleFeed" checked onchange="saveSetting('feedNotifs', this.checked)"><span class="slider"></span></label>
             </div>
             <div class="settings-item">
                 <div class="setting-left">
@@ -165,10 +165,10 @@
 
         <div class="settings-section">
             <div class="section-title">Connections</div>
-            <div class="settings-item" onclick="location.href='discord.html'">
+            <div class="settings-item" onclick="location.href='dreamfeed.html'">
                 <div class="setting-left">
-                    <div class="setting-icon" style="background:#5865F2"><i class="fab fa-discord" style="color:#fff;font-size:12px"></i></div>
-                    <div><div class="setting-label">Discord</div><div class="setting-desc" id="discordStatus">Not connected</div></div>
+                    <div class="setting-icon" style="background:#FF6B9D"><i class="fas fa-rss" style="color:#fff;font-size:12px"></i></div>
+                    <div><div class="setting-label">DreamFeed</div><div class="setting-desc" id="feedStatus">Social feed</div></div>
                 </div>
                 <i class="fas fa-chevron-right" style="color:var(--text-muted);font-size:12px"></i>
             </div>
@@ -244,13 +244,12 @@
             });
 
             document.getElementById('toggleNotifs').checked = getSetting('notifs', true);
-            document.getElementById('toggleDiscord').checked = getSetting('discordNotifs', true);
+            document.getElementById('toggleFeed').checked = getSetting('feedNotifs', true);
             document.getElementById('toggleSound').checked = getSetting('sound', false);
             document.getElementById('toggleDnd').checked = DreamApp.isDndEnabled();
             document.getElementById('toggleUnlock').checked = getSetting('unlock', true);
 
-            const dc = localStorage.getItem('dd-discord-config');
-            document.getElementById('discordStatus').textContent = dc ? 'Connected' : 'Not connected';
+            document.getElementById('feedStatus').textContent = 'Social feed';
             document.getElementById('versionNum').textContent = DDConfig.VERSION;
 
             calculateStorage();

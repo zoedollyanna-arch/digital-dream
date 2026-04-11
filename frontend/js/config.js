@@ -25,7 +25,6 @@ const DDConfig = {
         'secondlife.com',
         'marketplace.secondlife.com',
         'weather.com',
-        'discord.com',
         'wiki.secondlife.com'
     ],
 
@@ -35,5 +34,5 @@ const DDConfig = {
     // Auto-refresh intervals (ms)
     WEATHER_REFRESH: 600000,   // 10 minutes
     MESSAGES_REFRESH: 5000,     // 5 seconds
-    DISCORD_REFRESH: 3000       // 3 seconds
+    FEED_REFRESH: 3000          // 3 seconds
 };

@@ -7,7 +7,7 @@ const express = require('express');
 const router = express.Router();
 const AppData = require('../models/AppData');
 
-const ALLOWED_APPS = ['notes', 'journal', 'todo', 'photos', 'doodle', 'calculator', 'trivia', 'memory', 'snake', 'tictactoe', 'focus', 'moodvibes', 'selfcare', 'dreamplanner', 'stickers', 'moodboard', 'wouldyourather', 'quizdaily', 'petbuddy'];
+const ALLOWED_APPS = ['notes', 'journal', 'todo', 'photos', 'doodle', 'calculator', 'trivia', 'memory', 'snake', 'tictactoe', 'focus', 'moodvibes', 'selfcare', 'dreamplanner', 'stickers', 'moodboard', 'wouldyourather', 'quizdaily', 'petbuddy', 'dreamfeed'];
 const MAX_DATA_SIZE = 500000; // ~500KB limit per app
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

@@ -53,7 +53,7 @@ showMainMenu(key user)
     llDialog(user,
         "\n📱 Digital Dream Tablet\n\nChoose an app:",
         ["DreamChat", "DreamTube", "Weather",
-         "Market", "Browser", "Discord",
+         "Market", "Browser", "DreamFeed",
          "Texts", "Settings", "Power Off"],
         gOwnerChan
     );
@@ -67,7 +67,7 @@ routeApp(string app)
     else if (app == "Weather")    { gCurrentApp = "weather";  setScreen("weather.html"); }
     else if (app == "Market")     { gCurrentApp = "marketplace"; setScreen("marketplace.html"); }
     else if (app == "Browser")    { gCurrentApp = "browser";  setScreen("browser.html"); }
-    else if (app == "Discord")    { gCurrentApp = "discord";  setScreen("discord.html"); }
+    else if (app == "DreamFeed") { gCurrentApp = "dreamfeed";  setScreen("dreamfeed.html"); }
     else if (app == "Texts")      { gCurrentApp = "messages"; setScreen("messages.html?tab=texts"); }
     else if (app == "Settings")   { gCurrentApp = "settings"; setScreen("settings.html"); }
     else if (app == "Power Off")
@@ -155,9 +155,8 @@ default
         integer link = llDetectedLinkNumber(0);
         integer face = llDetectedTouchFace(0);
 
-        // HOME button prim (link 2, named "HOME") — returns to home screen
-        // Skip if touch is on the MOAP media face (face 4) to avoid conflict
-        if ((link == SCREEN_LINK || llGetLinkName(link) == "HOME") && face != MOAP_FACE)
+        // HOME button — any prim named "HOME" (case-insensitive), no face restriction
+        if (llToLower(llGetLinkName(link)) == "home")
         {
             if (gCurrentApp == "off" || gCurrentApp == "")
             {
@@ -173,12 +172,28 @@ default
             return;
         }
 
-        // Only respond to other touches on the iPad HUD outline (link 1)
+        // Screen prim non-MOAP face — also acts as home
+        if (link == SCREEN_LINK && face != MOAP_FACE)
+        {
+            if (gCurrentApp == "off" || gCurrentApp == "")
+            {
+                gCurrentApp = "boot";
+                setScreen("boot.html");
+                registerWithServer();
+            }
+            else
+            {
+                gCurrentApp = "home";
+                setScreen("index.html");
+            }
+            return;
+        }
+
+        // iPad outline (link 1) — open main menu or boot
         if (link != IPAD_LINK) return;
 
         if (gCurrentApp == "off" || gCurrentApp == "")
         {
-            // Power on from off state — boot sequence
             gCurrentApp = "boot";
             setScreen("boot.html");
             registerWithServer();

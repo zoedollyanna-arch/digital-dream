@@ -15,7 +15,6 @@ const SlAction = require('./models/SlAction');
 
 const weatherRoutes = require('./routes/weather');
 const messagesRoutes = require('./routes/messages');
-const discordRoutes = require('./routes/discord');
 const marketplaceRoutes = require('./routes/marketplace');
 const profileRoutes = require('./routes/profile');
 const contactsRoutes = require('./routes/contacts');
@@ -53,7 +52,6 @@ const writeLimiter = rateLimit({
 app.use('/api/profile', writeLimiter);
 app.use('/api/appdata', writeLimiter);
 app.use('/api/messages/send', writeLimiter);
-app.use('/api/discord/send', writeLimiter);
 
 // Serve frontend static files
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
@@ -129,7 +127,6 @@ app.post('/api/sl/bridge', async (req, res) => {
 // --- API Routes ---
 app.use('/api/weather', weatherRoutes);
 app.use('/api/messages', messagesRoutes);
-app.use('/api/discord', discordRoutes);
 app.use('/api/marketplace', marketplaceRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/contacts', contactsRoutes);

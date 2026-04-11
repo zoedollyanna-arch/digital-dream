@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>DreamFeed - Digital Dream</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .feed-tabs { display:flex; gap:0; border-bottom:1px solid var(--border-subtle); margin-bottom:12px; }
+        .feed-tab {
+            flex:1; text-align:center; padding:10px 0; font-size:13px; font-weight:600; color:var(--text-muted);
+            cursor:pointer; border-bottom:2px solid transparent; transition:all 0.2s;
+        }
+        .feed-tab.active { color:var(--primary); border-color:var(--primary); }
+
+        .compose-area {
+            background:var(--bg-glass); backdrop-filter:var(--blur); border-radius:var(--radius-lg);
+            padding:12px; margin:0 16px 12px; border:1px solid var(--border-glass);
+        }
+        .compose-row { display:flex; gap:10px; align-items:flex-start; }
+        .compose-avatar {
+            width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+            font-size:16px; color:#fff; font-weight:700; flex-shrink:0;
+        }
+        .compose-input {
+            flex:1; border:none; background:none; font-size:14px; color:var(--text-primary);
+            resize:none; outline:none; font-family:inherit; min-height:36px; max-height:100px;
+        }
+        .compose-input::placeholder { color:var(--text-muted); }
+        .compose-actions { display:flex; justify-content:space-between; align-items:center; margin-top:8px; }
+        .compose-moods { display:flex; gap:4px; }
+        .compose-mood {
+            width:28px; height:28px; border-radius:50%; border:none; cursor:pointer; font-size:14px;
+            background:var(--bg-input); transition:all 0.2s; display:flex; align-items:center; justify-content:center;
+        }
+        .compose-mood.selected { background:var(--primary); transform:scale(1.15); box-shadow:0 2px 8px rgba(0,122,255,0.3); }
+        .post-btn {
+            padding:6px 18px; border-radius:999px; border:none; background:var(--primary); color:#fff;
+            font-size:12px; font-weight:700; cursor:pointer; transition:all 0.2s;
+        }
+        .post-btn:disabled { opacity:0.4; cursor:default; }
+        .post-btn:hover:not(:disabled) { filter:brightness(1.1); }
+
+        .feed-post {
+            background:var(--bg-glass); backdrop-filter:var(--blur); border-radius:var(--radius-lg);
+            margin:0 16px 10px; padding:14px; border:1px solid var(--border-glass);
+        }
+        .post-header { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+        .post-avatar {
+            width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+            font-size:14px; color:#fff; font-weight:700; flex-shrink:0;
+        }
+        .post-name { font-size:13px; font-weight:700; color:var(--text-primary); }
+        .post-time { font-size:10px; color:var(--text-muted); }
+        .post-body { font-size:13px; color:var(--text-primary); line-height:1.5; margin-bottom:8px; word-break:break-word; }
+        .post-mood { font-size:20px; margin-bottom:6px; }
+        .post-actions { display:flex; gap:16px; }
+        .post-action {
+            display:flex; align-items:center; gap:4px; font-size:11px; color:var(--text-muted);
+            cursor:pointer; border:none; background:none; padding:4px 0; transition:color 0.2s;
+        }
+        .post-action:hover { color:var(--primary); }
+        .post-action.liked { color:var(--danger,#FF3B30); }
+        .post-action.liked i { font-weight:900; }
+
+        .trending-card {
+            background:var(--bg-glass); backdrop-filter:var(--blur); border-radius:var(--radius-lg);
+            margin:0 16px 10px; padding:12px 14px; border:1px solid var(--border-glass);
+            display:flex; align-items:center; gap:10px;
+        }
+        .trending-num { font-size:16px; font-weight:800; color:var(--primary); min-width:24px; }
+        .trending-tag { font-size:13px; font-weight:600; color:var(--text-primary); }
+        .trending-count { font-size:10px; color:var(--text-muted); }
+
+        .empty-feed { text-align:center; padding:40px 20px; color:var(--text-muted); }
+        .empty-feed i { font-size:40px; opacity:0.3; margin-bottom:12px; display:block; }
+    </style>
+</head>
+<body>
+    <div class="tablet-bg"></div>
+
+    <div class="status-bar">
+        <div class="status-left"><span class="status-time" id="statusTime">12:00 PM</span></div>
+        <div class="status-right">
+            <i class="fas fa-wifi"></i><i class="fas fa-signal"></i>
+            <div class="battery"><div class="battery-bar"><div class="battery-fill"></div></div></div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <div class="app-header">
+            <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+            <div class="app-title">DreamFeed <small>Share your vibes</small></div>
+        </div>
+
+        <div class="feed-tabs">
+            <div class="feed-tab active" onclick="switchTab('feed')"><i class="fas fa-stream"></i> Feed</div>
+            <div class="feed-tab" onclick="switchTab('trending')"><i class="fas fa-fire"></i> Trending</div>
+            <div class="feed-tab" onclick="switchTab('mine')"><i class="fas fa-user"></i> My Posts</div>
+        </div>
+
+        <!-- Compose -->
+        <div class="compose-area" id="composeArea">
+            <div class="compose-row">
+                <div class="compose-avatar" id="composeAvatar" style="background:#007AFF">D</div>
+                <textarea class="compose-input" id="composeInput" placeholder="What's on your mind, Dreamer?"
+                    maxlength="280" oninput="updateCharCount()"></textarea>
+            </div>
+            <div class="compose-actions">
+                <div class="compose-moods">
+                    <button class="compose-mood" onclick="pickMood(this, '😊')" title="Happy">😊</button>
+                    <button class="compose-mood" onclick="pickMood(this, '🔥')" title="Hype">🔥</button>
+                    <button class="compose-mood" onclick="pickMood(this, '💖')" title="Love">💖</button>
+                    <button class="compose-mood" onclick="pickMood(this, '😴')" title="Sleepy">😴</button>
+                    <button class="compose-mood" onclick="pickMood(this, '🤔')" title="Thinking">🤔</button>
+                    <button class="compose-mood" onclick="pickMood(this, '🎉')" title="Party">🎉</button>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px">
+                    <span class="text-xs text-muted" id="charCount">0/280</span>
+                    <button class="post-btn" id="postBtn" onclick="submitPost()" disabled>Post</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feed -->
+        <div id="feedContainer"></div>
+
+        <div style="height:80px"></div>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="messages.html" class="nav-item"><i class="fas fa-comment"></i><span>Chat</span></a>
+        <a href="dreamstore.html" class="nav-item"><i class="fas fa-store"></i><span>Store</span></a>
+        <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/catalog.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        var posts = [];
+        var selectedMood = '';
+        var activeTab = 'feed';
+        var APP_KEY = 'dreamfeed';
+        var uuid = '';
+
+        function nameToHue(name) {
+            var hash = 0;
+            for (var i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            return Math.abs(hash) % 360;
+        }
+
+        function avatarInit(name) {
+            return (name || '?')[0].toUpperCase();
+        }
+
+        function timeAgo(iso) {
+            var ms = Date.now() - new Date(iso).getTime();
+            var s = Math.floor(ms / 1000);
+            if (s < 60) return 'just now';
+            var m = Math.floor(s / 60);
+            if (m < 60) return m + 'm ago';
+            var h = Math.floor(m / 60);
+            if (h < 24) return h + 'h ago';
+            var d = Math.floor(h / 24);
+            return d + 'd ago';
+        }
+
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+        }
+
+        /* ── Data ── */
+        async function loadPosts() {
+            uuid = DreamApp.getUserId();
+            try {
+                var data = await DreamApp.apiGet('/api/appdata?uuid=' + encodeURIComponent(uuid) + '&app=' + APP_KEY);
+                if (data && data.data && data.data.posts) {
+                    posts = data.data.posts;
+                }
+            } catch (e) {
+                // Fallback to localStorage
+                var saved = localStorage.getItem('dd-dreamfeed');
+                if (saved) posts = JSON.parse(saved);
+            }
+            if (!posts.length) seedPosts();
+            render();
+        }
+
+        function seedPosts() {
+            var name = DreamApp.getUserName();
+            posts = [
+                { id: generateId(), author: 'DreamBot', text: 'Welcome to DreamFeed! Share what you\'re up to today. 🌟', mood: '🎉', time: new Date(Date.now() - 3600000).toISOString(), likes: 3, liked: false },
+                { id: generateId(), author: 'DreamBot', text: 'Tip: Tap a mood emoji before posting to share your vibe!', mood: '💖', time: new Date(Date.now() - 7200000).toISOString(), likes: 5, liked: false },
+                { id: generateId(), author: 'StarDreamer', text: 'Just finished decorating my skybox ✨ Feeling so creative today!', mood: '🔥', time: new Date(Date.now() - 1800000).toISOString(), likes: 8, liked: false },
+                { id: generateId(), author: 'PixelPrincess', text: 'Looking for friends to hang out with at the beach sim 🏖️', mood: '😊', time: new Date(Date.now() - 900000).toISOString(), likes: 2, liked: false }
+            ];
+            persist();
+        }
+
+        async function persist() {
+            localStorage.setItem('dd-dreamfeed', JSON.stringify(posts));
+            try {
+                await DreamApp.apiPost('/api/appdata', {
+                    uuid: uuid,
+                    app: APP_KEY,
+                    data: { posts: posts }
+                });
+            } catch (e) { /* silent */ }
+        }
+
+        /* ── Compose ── */
+        function pickMood(btn, emoji) {
+            document.querySelectorAll('.compose-mood').forEach(function(b) { b.classList.remove('selected'); });
+            if (selectedMood === emoji) {
+                selectedMood = '';
+            } else {
+                selectedMood = emoji;
+                btn.classList.add('selected');
+            }
+        }
+
+        function updateCharCount() {
+            var text = document.getElementById('composeInput').value;
+            document.getElementById('charCount').textContent = text.length + '/280';
+            document.getElementById('postBtn').disabled = !text.trim();
+        }
+
+        function submitPost() {
+            var text = document.getElementById('composeInput').value.trim();
+            if (!text) return;
+            var name = DreamApp.getUserName();
+
+            posts.unshift({
+                id: generateId(),
+                author: name,
+                text: text,
+                mood: selectedMood,
+                time: new Date().toISOString(),
+                likes: 0,
+                liked: false
+            });
+
+            // Cap at 50 posts
+            if (posts.length > 50) posts = posts.slice(0, 50);
+
+            document.getElementById('composeInput').value = '';
+            selectedMood = '';
+            document.querySelectorAll('.compose-mood').forEach(function(b) { b.classList.remove('selected'); });
+            updateCharCount();
+            persist();
+            render();
+            DreamApp.awardXp(2, 'DreamFeed post');
+            DreamApp.toast('Posted!', 'success');
+        }
+
+        /* ── Actions ── */
+        function toggleLike(id) {
+            var post = posts.find(function(p) { return p.id === id; });
+            if (!post) return;
+            post.liked = !post.liked;
+            post.likes = Math.max(0, post.likes + (post.liked ? 1 : -1));
+            persist();
+            render();
+        }
+
+        function deletePost(id) {
+            posts = posts.filter(function(p) { return p.id !== id; });
+            persist();
+            render();
+            DreamApp.toast('Post deleted', 'info');
+        }
+
+        /* ── Tabs ── */
+        function switchTab(tab) {
+            activeTab = tab;
+            document.querySelectorAll('.feed-tab').forEach(function(t, i) {
+                t.classList.toggle('active', t.textContent.trim().toLowerCase().indexOf(tab) !== -1 ||
+                    (tab === 'feed' && i === 0) || (tab === 'trending' && i === 1) || (tab === 'mine' && i === 2));
+            });
+            document.getElementById('composeArea').style.display = (tab === 'trending') ? 'none' : '';
+            render();
+        }
+
+        /* ── Render ── */
+        function renderPost(post) {
+            var hue = nameToHue(post.author);
+            var myName = DreamApp.getUserName();
+            var isOwn = post.author === myName;
+            var moodHtml = post.mood ? '<div class="post-mood">' + post.mood + '</div>' : '';
+            var deleteBtn = isOwn ? '<button class="post-action" onclick="event.stopPropagation();deletePost(\'' + DreamApp.escapeHtml(post.id) + '\')"><i class="fas fa-trash"></i></button>' : '';
+
+            return '<div class="feed-post">'
+                + '<div class="post-header">'
+                + '<div class="post-avatar" style="background:hsl(' + hue + ',55%,50%)">' + avatarInit(post.author) + '</div>'
+                + '<div><div class="post-name">' + DreamApp.escapeHtml(post.author) + '</div>'
+                + '<div class="post-time">' + timeAgo(post.time) + '</div></div>'
+                + '</div>'
+                + moodHtml
+                + '<div class="post-body">' + DreamApp.escapeHtml(post.text) + '</div>'
+                + '<div class="post-actions">'
+                + '<button class="post-action' + (post.liked ? ' liked' : '') + '" onclick="toggleLike(\'' + DreamApp.escapeHtml(post.id) + '\')">'
+                + '<i class="' + (post.liked ? 'fas' : 'far') + ' fa-heart"></i> ' + (post.likes || 0) + '</button>'
+                + deleteBtn
+                + '</div></div>';
+        }
+
+        function render() {
+            var container = document.getElementById('feedContainer');
+            var myName = DreamApp.getUserName();
+
+            if (activeTab === 'trending') {
+                // Show trending topics
+                var tags = {};
+                posts.forEach(function(p) { if (p.mood) tags[p.mood] = (tags[p.mood] || 0) + 1; });
+                var sorted = Object.keys(tags).sort(function(a, b) { return tags[b] - tags[a]; });
+                if (!sorted.length) {
+                    container.innerHTML = '<div class="empty-feed"><i class="fas fa-fire"></i><p>No trending vibes yet.<br>Start posting!</p></div>';
+                    return;
+                }
+                container.innerHTML = sorted.map(function(mood, i) {
+                    return '<div class="trending-card"><div class="trending-num">' + (i + 1) + '</div>'
+                        + '<div><div class="trending-tag">' + mood + ' Vibe</div>'
+                        + '<div class="trending-count">' + tags[mood] + ' posts</div></div></div>';
+                }).join('');
+                return;
+            }
+
+            var filtered = posts;
+            if (activeTab === 'mine') {
+                filtered = posts.filter(function(p) { return p.author === myName; });
+            }
+
+            if (!filtered.length) {
+                container.innerHTML = '<div class="empty-feed"><i class="fas fa-stream"></i><p>' +
+                    (activeTab === 'mine' ? 'You haven\'t posted yet.<br>Share your first vibe!' : 'No posts yet.<br>Be the first to post!') + '</p></div>';
+                return;
+            }
+
+            container.innerHTML = filtered.map(renderPost).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var name = DreamApp.getUserName();
+            var hue = nameToHue(name);
+            document.getElementById('composeAvatar').style.background = 'hsl(' + hue + ',55%,50%)';
+            document.getElementById('composeAvatar').textContent = avatarInit(name);
+            document.getElementById('composeInput').placeholder = "What's on your mind, " + name + '?';
+            loadPosts();
+        });
+    </script>
+</body>
+</html>

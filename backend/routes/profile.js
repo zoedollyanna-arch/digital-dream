@@ -30,7 +30,6 @@ router.get('/', async (req, res) => {
                 zoom: profile.zoom,
                 onboarded: profile.onboarded,
                 notifications: profile.notifications,
-                discord: profile.discord,
                 installedApps: profile.installedApps || [],
                 xp: profile.xp || 0,
                 coins: profile.coins || 0,
@@ -57,7 +56,7 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
     try {
         const { uuid, name, theme, wallpaper, zoom, onboarded,
-                notifications, discord, installedApps,
+                notifications, installedApps,
                 favoriteApps, recentApps, dnd, unlock, journalPin } = req.body;
 
         if (!validUuid(uuid)) return res.status(400).json({ error: 'Invalid uuid' });
@@ -71,19 +70,12 @@ router.post('/', async (req, res) => {
         if (dnd !== undefined)           update.dnd = Boolean(dnd);
         if (unlock !== undefined)        update.unlock = Boolean(unlock);
         if (journalPin !== undefined)    update.journalPin = String(journalPin).substring(0, 128);
-        if (notifications !== undefined) update.notifications = {
-            notifs:         notifications.notifs !== false,
-            discordNotifs:  notifications.discordNotifs !== false,
-            sound:          notifications.sound === true
-        };
-        if (discord !== undefined) {
-            var wh = String(discord.webhook || '').substring(0, 200);
-            // Only allow real Discord webhook URLs or empty
-            if (wh && !wh.startsWith('https://discord.com/api/webhooks/')) wh = '';
-            update.discord = {
-                webhook:  wh,
-                name:     String(discord.name || '').substring(0, 60),
-                channel:  String(discord.channel || 'general').substring(0, 40)
+        if (notifications !== undefined) {
+            var feedVal = notifications.feedNotifs !== undefined ? notifications.feedNotifs : notifications.discordNotifs;
+            update.notifications = {
+                notifs:         notifications.notifs !== false,
+                discordNotifs:  feedVal !== false,
+                sound:          notifications.sound === true
             };
         }
         if (installedApps !== undefined && Array.isArray(installedApps)) {

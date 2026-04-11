@@ -24,7 +24,7 @@
         weather:         { gradient: 'linear-gradient(135deg,#5AC8FA,#56CCF2)', emoji: '' },
         dreamstore:      { gradient: 'linear-gradient(135deg,#AF52DE,#D291F5)', emoji: '' },
         browser:         { gradient: 'linear-gradient(135deg,#8E8E93,#B0BEC5)', emoji: '' },
-        discord:         { gradient: 'linear-gradient(135deg,#5865F2,#7289DA)', emoji: '' },
+        dreamfeed:       { gradient: 'linear-gradient(135deg,#FF6B9D,#C44569)', emoji: '' },
         contacts:        { gradient: 'linear-gradient(135deg,#FF9F0A,#FFD93D)', emoji: '' },
         settings:        { gradient: 'linear-gradient(135deg,#636366,#8E8E93)', emoji: '' },
         notes:           { gradient: 'linear-gradient(135deg,#FF9F0A,#FFBE76)', emoji: '📝' },
@@ -55,7 +55,7 @@
         weather:   { id: 'weather',    name: 'Weather',     icon: 'fas fa-cloud-sun',     color: '#5AC8FA', page: 'weather.html',    folder: 'core' },
         dreamstore:{ id: 'dreamstore', name: 'Dream Store', icon: 'fas fa-store',         color: '#AF52DE', page: 'dreamstore.html', folder: 'core' },
         browser:   { id: 'browser',    name: 'Browser',     icon: 'fas fa-globe',         color: '#8E8E93', page: 'browser.html',    folder: 'core' },
-        discord:   { id: 'discord',    name: 'Discord',     icon: 'fab fa-discord',       color: '#5865F2', page: 'discord.html',    folder: 'social' },
+        dreamfeed:{ id: 'dreamfeed', name: 'DreamFeed',   icon: 'fas fa-rss',           color: '#FF6B9D', page: 'dreamfeed.html', folder: 'social' },
         contacts:  { id: 'contacts',   name: 'Contacts',    icon: 'fas fa-address-book',  color: '#FF9F0A', page: 'contacts.html',   folder: 'social' },
         settings:  { id: 'settings',   name: 'Settings',    icon: 'fas fa-cog',           color: '#636366', page: 'settings.html',   folder: 'core' }
     };

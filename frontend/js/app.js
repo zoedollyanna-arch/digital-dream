@@ -251,10 +251,9 @@ const DreamApp = {
         if (p.zoom) localStorage.setItem('dd-zoom', String(p.zoom));
         if (p.notifications) {
             localStorage.setItem('dd-setting-notifs', String(p.notifications.notifs !== false));
-            localStorage.setItem('dd-setting-discordNotifs', String(p.notifications.discordNotifs !== false));
+            localStorage.setItem('dd-setting-feedNotifs', String(p.notifications.discordNotifs !== false));
             localStorage.setItem('dd-setting-sound', String(p.notifications.sound === true));
         }
-        if (p.discord && p.discord.webhook) localStorage.setItem('dd-discord-config', JSON.stringify(p.discord));
         if (p.installedApps) localStorage.setItem('dd-installed-apps', JSON.stringify(p.installedApps));
         if (p.favoriteApps) localStorage.setItem('dd-favorite-apps', JSON.stringify(p.favoriteApps));
         if (p.recentApps) localStorage.setItem('dd-recent-apps', JSON.stringify(p.recentApps));
@@ -282,8 +281,6 @@ const DreamApp = {
         var uuid = this.getUserId();
         if (!uuid || uuid === 'unknown') return;
         try {
-            var dc = null;
-            try { dc = JSON.parse(localStorage.getItem('dd-discord-config')); } catch(e) {}
             var apps = [];
             try { apps = JSON.parse(localStorage.getItem('dd-installed-apps') || '[]'); } catch(e) {}
             var favs = [];
@@ -302,10 +299,9 @@ const DreamApp = {
                 unlock: localStorage.getItem('dd-setting-unlock') !== 'false',
                 notifications: {
                     notifs: localStorage.getItem('dd-setting-notifs') !== 'false',
-                    discordNotifs: localStorage.getItem('dd-setting-discordNotifs') !== 'false',
+                    feedNotifs: localStorage.getItem('dd-setting-feedNotifs') !== 'false',
                     sound: localStorage.getItem('dd-setting-sound') === 'true'
                 },
-                discord: dc || { webhook: '', name: '', channel: 'general' },
                 installedApps: apps,
                 favoriteApps: favs,
                 recentApps: recents

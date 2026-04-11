@@ -188,7 +188,7 @@
             else if (app.tag === 'popular') tag = '<span class="store-tag tag-popular">HOT</span>';
 
             var art = (window.DDAppArt && window.DDAppArt[app.id]) || {};
-            var iconBg = art.gradient || ('background:' + app.color);
+            var iconBg = art.gradient ? 'background:' + art.gradient : 'background:' + app.color;
             var emojiOverlay = art.emoji ? '<span class="art-emoji">' + art.emoji + '</span>' : '';
 
             var btn;

@@ -329,12 +329,8 @@
 
                 if (p.notifications) {
                     localStorage.setItem('dd-setting-notifs', String(p.notifications.notifs !== false));
-                    localStorage.setItem('dd-setting-discordNotifs', String(p.notifications.discordNotifs !== false));
+                    localStorage.setItem('dd-setting-feedNotifs', String(p.notifications.discordNotifs !== false));
                     localStorage.setItem('dd-setting-sound', String(p.notifications.sound === true));
-                }
-
-                if (p.discord && p.discord.webhook) {
-                    localStorage.setItem('dd-discord-config', JSON.stringify(p.discord));
                 }
 
                 if (p.installedApps && p.installedApps.length > 0) {
