@@ -9,10 +9,8 @@
     <style>
         .skin-grid { display: flex; gap: 8px; flex-wrap: wrap; padding: 4px 0; }
         .skin-swatch {
-            width: 52px; height: 52px; border-radius: var(--radius-lg, 20px);
-            cursor: pointer; transition: all 0.3s ease;
-            border: 2.5px solid transparent; box-shadow: var(--shadow-sm);
-            position: relative;
+            width: 52px; height: 52px; border-radius: var(--radius-lg, 20px); cursor: pointer; transition: all 0.3s ease;
+            border: 2.5px solid transparent; box-shadow: var(--shadow-sm); position: relative;
         }
         .skin-swatch:hover { transform: scale(1.08); }
         .skin-swatch.selected { border-color: var(--primary, #007AFF); box-shadow: 0 0 0 3px rgba(0,122,255,0.25); }
@@ -31,58 +29,52 @@
         .zoom-btn { width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid var(--border-subtle, rgba(0,0,0,0.08)); background: var(--bg-input, rgba(120,120,128,0.08)); color: var(--text-primary, #1C1C1E); font-size: 18px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
         .zoom-btn:hover { background: var(--primary, #007AFF); color: #fff; border-color: var(--primary, #007AFF); }
         .zoom-btn:disabled { opacity: 0.3; cursor: default; }
-        .zoom-btn:disabled:hover { background: var(--bg-input, rgba(120,120,128,0.08)); color: var(--text-primary, #1C1C1E); border-color: var(--border-subtle, rgba(0,0,0,0.08)); }
         .zoom-level { font-size: 16px; font-weight: 600; color: var(--text-primary, #1C1C1E); min-width: 48px; text-align: center; }
+        .profile-badges { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+        .profile-badge { padding:4px 8px; border-radius:999px; background:rgba(0,122,255,0.08); color:var(--primary,#007AFF); font-size:10px; font-weight:700; }
     </style>
 </head>
 <body>
     <div class="tablet-bg"></div>
 
-    <!-- Status Bar -->
     <div class="status-bar">
         <div class="status-left"><span class="status-time" id="statusTime">12:00 PM</span></div>
         <div class="status-right">
+            <i class="fas fa-moon" id="dndIcon" style="display:none"></i>
             <i class="fas fa-wifi"></i><i class="fas fa-signal"></i>
             <div class="battery"><div class="battery-bar"><div class="battery-fill"></div></div></div>
         </div>
     </div>
 
-    <!-- App Content -->
     <div class="app-container">
         <div class="app-header">
             <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
-            <div class="app-title">
-                Settings
-                <small>Customize your Dream</small>
-            </div>
+            <div class="app-title">Settings <small>Customize your Dream</small></div>
         </div>
 
-        <!-- Profile Section -->
         <div class="settings-section">
             <div class="section-title">Profile</div>
             <div class="settings-item" onclick="editProfile()">
                 <div class="setting-left">
-                    <div class="setting-icon" style="background:var(--primary);color:#fff;border-radius:50%">
-                        <i class="fas fa-user"></i>
-                    </div>
+                    <div class="setting-icon" style="background:var(--primary);color:#fff;border-radius:50%"><i class="fas fa-user"></i></div>
                     <div>
                         <div class="setting-label" id="profileName">Dreamer</div>
                         <div class="setting-desc" id="profileUuid">Not linked</div>
+                        <div class="setting-desc" id="profileLevel">Level 1 • 0 XP</div>
                     </div>
                 </div>
                 <i class="fas fa-chevron-right" style="color:var(--text-muted);font-size:12px"></i>
             </div>
+            <div class="px-16" style="margin-top:8px">
+                <div class="profile-badges" id="profileBadges"></div>
+            </div>
         </div>
 
-        <!-- Tablet Skins -->
         <div class="settings-section">
             <div class="section-title">Tablet Skins</div>
-
             <div class="settings-item">
                 <div class="setting-left">
-                    <div class="setting-icon" style="background:linear-gradient(135deg,#6C63FF,#00D4FF)">
-                        <i class="fas fa-palette" style="color:#fff;font-size:12px"></i>
-                    </div>
+                    <div class="setting-icon" style="background:linear-gradient(135deg,#6C63FF,#00D4FF)"><i class="fas fa-palette" style="color:#fff;font-size:12px"></i></div>
                     <div>
                         <div class="setting-label">Choose a Skin</div>
                         <div class="setting-desc">Changes wallpaper and theme together</div>
@@ -103,15 +95,11 @@
             </div>
         </div>
 
-        <!-- Display -->
         <div class="settings-section">
             <div class="section-title">Display</div>
-
             <div class="settings-item">
                 <div class="setting-left">
-                    <div class="setting-icon" style="background:linear-gradient(135deg,#FF9F0A,#FF6723)">
-                        <i class="fas fa-search-plus" style="color:#fff;font-size:12px"></i>
-                    </div>
+                    <div class="setting-icon" style="background:linear-gradient(135deg,#FF9F0A,#FF6723)"><i class="fas fa-search-plus" style="color:#fff;font-size:12px"></i></div>
                     <div>
                         <div class="setting-label">Zoom Level</div>
                         <div class="setting-desc">Adjust text and UI size</div>
@@ -125,115 +113,89 @@
             </div>
         </div>
 
-        <!-- Notifications -->
         <div class="settings-section">
             <div class="section-title">Notifications</div>
-
             <div class="settings-item">
                 <div class="setting-left">
-                    <div class="setting-icon" style="background:var(--success)">
-                        <i class="fas fa-bell" style="color:#fff;font-size:12px"></i>
-                    </div>
-                    <div>
-                        <div class="setting-label">Message Notifications</div>
-                        <div class="setting-desc">SL IM alerts</div>
-                    </div>
+                    <div class="setting-icon" style="background:var(--success)"><i class="fas fa-bell" style="color:#fff;font-size:12px"></i></div>
+                    <div><div class="setting-label">Message Notifications</div><div class="setting-desc">SL IM alerts</div></div>
                 </div>
-                <label class="toggle">
-                    <input type="checkbox" id="toggleNotifs" checked onchange="saveSetting('notifs', this.checked)">
-                    <span class="slider"></span>
-                </label>
+                <label class="toggle"><input type="checkbox" id="toggleNotifs" checked onchange="saveSetting('notifs', this.checked)"><span class="slider"></span></label>
             </div>
-
             <div class="settings-item">
                 <div class="setting-left">
-                    <div class="setting-icon" style="background:#5865F2">
-                        <i class="fab fa-discord" style="color:#fff;font-size:12px"></i>
-                    </div>
-                    <div>
-                        <div class="setting-label">Discord Notifications</div>
-                        <div class="setting-desc">Channel message alerts</div>
-                    </div>
+                    <div class="setting-icon" style="background:#5865F2"><i class="fab fa-discord" style="color:#fff;font-size:12px"></i></div>
+                    <div><div class="setting-label">Discord Notifications</div><div class="setting-desc">Channel message alerts</div></div>
                 </div>
-                <label class="toggle">
-                    <input type="checkbox" id="toggleDiscord" checked onchange="saveSetting('discordNotifs', this.checked)">
-                    <span class="slider"></span>
-                </label>
+                <label class="toggle"><input type="checkbox" id="toggleDiscord" checked onchange="saveSetting('discordNotifs', this.checked)"><span class="slider"></span></label>
             </div>
-
             <div class="settings-item">
                 <div class="setting-left">
-                    <div class="setting-icon" style="background:var(--secondary)">
-                        <i class="fas fa-volume-up" style="color:#fff;font-size:12px"></i>
-                    </div>
-                    <div>
-                        <div class="setting-label">Sound Effects</div>
-                        <div class="setting-desc">UI tap sounds</div>
-                    </div>
+                    <div class="setting-icon" style="background:var(--secondary)"><i class="fas fa-volume-up" style="color:#fff;font-size:12px"></i></div>
+                    <div><div class="setting-label">Sound Effects</div><div class="setting-desc">UI tap sounds</div></div>
                 </div>
-                <label class="toggle">
-                    <input type="checkbox" id="toggleSound" onchange="saveSetting('sound', this.checked)">
-                    <span class="slider"></span>
-                </label>
+                <label class="toggle"><input type="checkbox" id="toggleSound" onchange="saveSetting('sound', this.checked)"><span class="slider"></span></label>
             </div>
         </div>
 
-        <!-- Connections -->
         <div class="settings-section">
-            <div class="section-title">Connections</div>
-
-            <div class="settings-item" onclick="location.href='discord.html'">
+            <div class="section-title">Focus & Fun</div>
+            <div class="settings-item">
                 <div class="setting-left">
-                    <div class="setting-icon" style="background:#5865F2">
-                        <i class="fab fa-discord" style="color:#fff;font-size:12px"></i>
-                    </div>
-                    <div>
-                        <div class="setting-label">Discord</div>
-                        <div class="setting-desc" id="discordStatus">Not connected</div>
-                    </div>
+                    <div class="setting-icon" style="background:#111827"><i class="fas fa-moon" style="color:#fff;font-size:12px"></i></div>
+                    <div><div class="setting-label">Do Not Disturb</div><div class="setting-desc">Quiet toasts while studying</div></div>
+                </div>
+                <label class="toggle"><input type="checkbox" id="toggleDnd" onchange="saveSetting('dnd', this.checked)"><span class="slider"></span></label>
+            </div>
+            <div class="settings-item">
+                <div class="setting-left">
+                    <div class="setting-icon" style="background:#FF8C42"><i class="fas fa-wand-magic-sparkles" style="color:#fff;font-size:12px"></i></div>
+                    <div><div class="setting-label">Cute Unlock Animation</div><div class="setting-desc">Soft pop-in effect on the home screen</div></div>
+                </div>
+                <label class="toggle"><input type="checkbox" id="toggleUnlock" onchange="saveSetting('unlock', this.checked)"><span class="slider"></span></label>
+            </div>
+            <div class="settings-item" onclick="location.href='focus.html'">
+                <div class="setting-left">
+                    <div class="setting-icon" style="background:var(--primary)"><i class="fas fa-hourglass-half" style="color:#fff;font-size:12px"></i></div>
+                    <div><div class="setting-label">Focus Mode</div><div class="setting-desc" id="rewardStatus">Open timer, rewards and DND</div></div>
                 </div>
                 <i class="fas fa-chevron-right" style="color:var(--text-muted);font-size:12px"></i>
             </div>
+        </div>
 
+        <div class="settings-section">
+            <div class="section-title">Connections</div>
+            <div class="settings-item" onclick="location.href='discord.html'">
+                <div class="setting-left">
+                    <div class="setting-icon" style="background:#5865F2"><i class="fab fa-discord" style="color:#fff;font-size:12px"></i></div>
+                    <div><div class="setting-label">Discord</div><div class="setting-desc" id="discordStatus">Not connected</div></div>
+                </div>
+                <i class="fas fa-chevron-right" style="color:var(--text-muted);font-size:12px"></i>
+            </div>
             <div class="settings-item">
                 <div class="setting-left">
-                    <div class="setting-icon" style="background:var(--secondary)">
-                        <i class="fas fa-server" style="color:#fff;font-size:12px"></i>
-                    </div>
-                    <div>
-                        <div class="setting-label">Server Status</div>
-                        <div class="setting-desc" id="serverStatus">Checking...</div>
-                    </div>
+                    <div class="setting-icon" style="background:var(--secondary)"><i class="fas fa-server" style="color:#fff;font-size:12px"></i></div>
+                    <div><div class="setting-label">Server Status</div><div class="setting-desc" id="serverStatus">Checking...</div></div>
                 </div>
                 <div id="serverDot" style="width:10px;height:10px;border-radius:50%;background:var(--warning)"></div>
             </div>
         </div>
 
-        <!-- Storage -->
         <div class="settings-section">
             <div class="section-title">Storage</div>
             <div class="settings-item">
                 <div class="setting-left" style="flex:1">
-                    <div class="setting-icon" style="background:var(--accent)">
-                        <i class="fas fa-database" style="color:#fff;font-size:12px"></i>
-                    </div>
+                    <div class="setting-icon" style="background:var(--accent)"><i class="fas fa-database" style="color:#fff;font-size:12px"></i></div>
                     <div style="flex:1">
                         <div class="setting-label">Local Data</div>
                         <div class="setting-desc" id="storageUsed">Calculating...</div>
-                        <div class="storage-bar">
-                            <div class="storage-fill" id="storageFill" style="width:0%;background:var(--primary)"></div>
-                        </div>
+                        <div class="storage-bar"><div class="storage-fill" id="storageFill" style="width:0%;background:var(--primary)"></div></div>
                     </div>
                 </div>
             </div>
-            <div class="px-16">
-                <button class="btn btn-sm btn-danger btn-block" onclick="clearData()">
-                    <i class="fas fa-trash"></i> Clear All Data
-                </button>
-            </div>
+            <div class="px-16"><button class="btn btn-sm btn-danger btn-block" onclick="clearData()"><i class="fas fa-trash"></i> Clear All Data</button></div>
         </div>
 
-        <!-- About -->
         <div class="settings-section">
             <div class="section-title">About</div>
             <div class="glass-card text-center" style="padding:20px">
@@ -241,19 +203,14 @@
                 <h3 style="font-size:16px">Digital Dream</h3>
                 <p class="text-xs text-muted">by [Kyori]</p>
                 <p class="text-xs text-muted mt-8">Version <span id="versionNum">1.0.0</span></p>
-                <p class="text-xs text-muted">Tablet HUD for Second Life</p>
-                <div class="mt-16">
-                    <button class="btn btn-sm btn-secondary" onclick="reloadSystem()">
-                        <i class="fas fa-sync-alt"></i> Reload System
-                    </button>
-                </div>
+                <p class="text-xs text-muted">Fun, safe apps for kids, teens &amp; everyone in between</p>
+                <div class="mt-16"><button class="btn btn-sm btn-secondary" onclick="reloadSystem()"><i class="fas fa-sync-alt"></i> Reload System</button></div>
             </div>
         </div>
 
         <div style="height:20px"></div>
     </div>
 
-    <!-- Bottom Nav -->
     <div class="bottom-nav">
         <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
         <a href="messages.html" class="nav-item"><i class="fas fa-comment"></i><span>Chat</span></a>
@@ -262,45 +219,48 @@
     </div>
 
     <script src="js/config.js"></script>
+    <script src="js/catalog.js"></script>
     <script src="js/app.js"></script>
     <script>
-        // Load settings
         function loadSettings() {
-            // Profile
             const name = DreamApp.getUserName();
             const uuid = DreamApp.getUserId();
+            const level = DreamApp.getLevelInfo();
+            const badges = DreamApp.getBadges();
+            const reward = DreamApp.getDailyReward();
+
             document.getElementById('profileName').textContent = name;
             document.getElementById('profileUuid').textContent = uuid !== 'unknown' ? uuid.substring(0, 20) + '...' : 'Not linked to SL';
+            document.getElementById('profileLevel').textContent = 'Level ' + level.level + ' • ' + level.xp + ' XP';
+            document.getElementById('profileBadges').innerHTML = (badges.length ? badges : ['New Dreamer']).map(function(item) {
+                return '<span class="profile-badge">' + DreamApp.escapeHtml(item) + '</span>';
+            }).join('');
+            document.getElementById('rewardStatus').textContent = reward.claimedToday ? 'Daily reward claimed • streak ' + reward.streak : 'Reward ready • streak ' + reward.streak;
+            document.getElementById('dndIcon').style.display = DreamApp.isDndEnabled() ? '' : 'none';
 
-            // Skin selection highlight
             var currentSkin = DreamApp.getSkin();
-            document.querySelectorAll('.skin-swatch').forEach(el => {
+            document.querySelectorAll('.skin-swatch').forEach(function(el) {
                 el.classList.toggle('selected', (el.dataset.skin || 'default') === currentSkin);
             });
 
-            // Toggles
             document.getElementById('toggleNotifs').checked = getSetting('notifs', true);
             document.getElementById('toggleDiscord').checked = getSetting('discordNotifs', true);
             document.getElementById('toggleSound').checked = getSetting('sound', false);
+            document.getElementById('toggleDnd').checked = DreamApp.isDndEnabled();
+            document.getElementById('toggleUnlock').checked = getSetting('unlock', true);
 
-            // Discord status
             const dc = localStorage.getItem('dd-discord-config');
             document.getElementById('discordStatus').textContent = dc ? 'Connected' : 'Not connected';
-
-            // Version
             document.getElementById('versionNum').textContent = DDConfig.VERSION;
 
-            // Storage estimate
             calculateStorage();
-
-            // Server check
             checkServer();
         }
 
         function selectSkin(el) {
             var skin = el.dataset.skin || 'default';
             DreamApp.setSkin(skin);
-            document.querySelectorAll('.skin-swatch').forEach(s => s.classList.remove('selected'));
+            document.querySelectorAll('.skin-swatch').forEach(function(s) { s.classList.remove('selected'); });
             el.classList.add('selected');
             DreamApp.toast('Skin changed!', 'success');
         }
@@ -313,7 +273,9 @@
 
         function saveSetting(key, val) {
             localStorage.setItem('dd-setting-' + key, val);
-            DreamApp.syncSetting(key, val);
+            if (key === 'dnd') DreamApp.setDnd(val);
+            else DreamApp.syncSetting(key, val);
+            if (key === 'dnd') document.getElementById('dndIcon').style.display = val ? '' : 'none';
         }
 
         function editProfile() {
@@ -330,12 +292,10 @@
             let total = 0;
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
-                if (key && key.startsWith('dd-')) {
-                    total += (localStorage.getItem(key) || '').length;
-                }
+                if (key && key.startsWith('dd-')) total += (localStorage.getItem(key) || '').length;
             }
             const kb = (total / 1024).toFixed(1);
-            const maxKb = 5120; // 5MB localStorage limit
+            const maxKb = 5120;
             const pct = Math.min((total / (maxKb * 1024)) * 100, 100);
             document.getElementById('storageUsed').textContent = kb + ' KB used';
             document.getElementById('storageFill').style.width = pct + '%';
@@ -349,9 +309,7 @@
                 if (res.ok) {
                     document.getElementById('serverStatus').textContent = 'Online';
                     document.getElementById('serverDot').style.background = 'var(--success)';
-                } else {
-                    throw new Error();
-                }
+                } else throw new Error();
             } catch {
                 document.getElementById('serverStatus').textContent = 'Offline';
                 document.getElementById('serverDot').style.background = 'var(--danger)';
@@ -359,20 +317,20 @@
         }
 
         function clearData() {
-            if (!confirm('This will clear all your DreamChat messages, favorites, and settings. Continue?')) return;
+            if (!confirm('This will clear all your Dream data, installed apps, and rewards. Continue?')) return;
             const keysToRemove = [];
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
                 if (key && key.startsWith('dd-')) keysToRemove.push(key);
             }
-            keysToRemove.forEach(k => localStorage.removeItem(k));
+            keysToRemove.forEach(function(k) { localStorage.removeItem(k); });
             DreamApp.toast('All data cleared', 'success');
-            setTimeout(() => location.reload(), 500);
+            setTimeout(function() { location.reload(); }, 500);
         }
 
         function reloadSystem() {
             DreamApp.toast('Reloading...', 'info');
-            setTimeout(() => location.href = 'index.html', 300);
+            setTimeout(function() { location.href = 'index.html'; }, 300);
         }
 
         function changeZoom(dir) {
@@ -388,7 +346,7 @@
             document.getElementById('zoomIn').disabled = (level >= DreamApp.ZOOM_MAX);
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', function() {
             loadSettings();
             updateZoomUI(DreamApp.getZoom());
         });

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Mood Board - Digital Dream</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .wrap { padding: 0 16px 18px; }
+        .color-row { display:flex; gap:8px; flex-wrap:wrap; margin:10px 0; }
+        .swatch { width:28px; height:28px; border-radius:50%; border:2px solid rgba(255,255,255,0.8); cursor:pointer; }
+        textarea, input { width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--border-subtle, rgba(0,0,0,0.08)); background:var(--bg-input, rgba(120,120,128,0.08)); margin-top:10px; font-family:inherit; }
+        .board-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; }
+        .board-card { padding:12px; border-radius:16px; min-height:100px; box-shadow:var(--shadow-sm); }
+    </style>
+</head>
+<body>
+    <div class="tablet-bg"></div>
+    <div class="status-bar"><div class="status-left"><span class="status-time" id="statusTime">12:00 PM</span></div><div class="status-right"><i class="fas fa-wifi"></i><i class="fas fa-signal"></i><div class="battery"><div class="battery-bar"><div class="battery-fill"></div></div></div></div></div>
+
+    <div class="app-container">
+        <div class="app-header">
+            <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+            <div class="app-title">Mood Board <small>Save colors, quotes and vibes</small></div>
+        </div>
+
+        <div class="wrap">
+            <div class="glass-card" style="padding:14px;margin-bottom:12px">
+                <div class="font-bold">Create a vibe card</div>
+                <div class="color-row" id="swatches"></div>
+                <input type="text" id="boardTitle" placeholder="Board title..." maxlength="32">
+                <textarea id="boardText" rows="3" placeholder="Quote, vibe, dream, or photo memory..."></textarea>
+                <button class="btn btn-sm btn-primary" style="margin-top:10px" onclick="addCard()"><i class="fas fa-plus"></i> Add to board</button>
+            </div>
+
+            <div class="glass-card" style="padding:14px">
+                <div class="font-bold">My vibe board</div>
+                <div class="board-grid" id="boardGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="messages.html" class="nav-item"><i class="fas fa-comment"></i><span>Chat</span></a>
+        <a href="dreamstore.html" class="nav-item"><i class="fas fa-store"></i><span>Store</span></a>
+        <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/catalog.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        var colors = ['#FFD6E7', '#D6ECFF', '#FFF1B8', '#D7F5E5', '#E8D5FF', '#FFE0CC'];
+        var selectedColor = colors[0];
+        var data = { cards: [] };
+
+        async function loadData() {
+            var saved = await DreamApp.loadAppData('moodboard');
+            if (saved && typeof saved === 'object') data = saved;
+            renderSwatches();
+            render();
+        }
+
+        function persist() { DreamApp.saveAppData('moodboard', data); }
+
+        function renderSwatches() {
+            document.getElementById('swatches').innerHTML = colors.map(function (color, idx) {
+                return '<button class="swatch" style="background:' + color + ';outline:' + (idx === 0 ? '2px solid var(--primary)' : 'none') + '" onclick="pickColor(\'' + color + '\', this)"></button>';
+            }).join('');
+        }
+
+        function pickColor(color, el) {
+            selectedColor = color;
+            document.querySelectorAll('.swatch').forEach(function (s) { s.style.outline = 'none'; });
+            el.style.outline = '2px solid var(--primary)';
+        }
+
+        function addCard() {
+            var title = document.getElementById('boardTitle').value.trim() || 'Mood';
+            var text = document.getElementById('boardText').value.trim();
+            if (!text) return;
+            data.cards.unshift({ title: title, text: text, color: selectedColor });
+            document.getElementById('boardTitle').value = '';
+            document.getElementById('boardText').value = '';
+            persist();
+            render();
+            DreamApp.toast('Mood board updated!', 'success');
+        }
+
+        function render() {
+            document.getElementById('boardGrid').innerHTML = data.cards.length ? data.cards.map(function (card, idx) {
+                return '<div class="board-card" style="background:' + card.color + '"><strong>' + DreamApp.escapeHtml(card.title) + '</strong><div style="margin-top:6px">' + DreamApp.escapeHtml(card.text) + '</div><button class="btn btn-sm btn-secondary" style="margin-top:8px" onclick="removeCard(' + idx + ')">Remove</button></div>';
+            }).join('') : '<div class="text-sm text-muted" style="grid-column:1 / -1">Your mood board is empty. Add a colorful card above.</div>';
+        }
+
+        function removeCard(idx) { data.cards.splice(idx, 1); persist(); render(); }
+
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>

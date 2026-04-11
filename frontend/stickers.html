@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Sticker Maker - Digital Dream</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .wrap { padding: 0 16px 18px; }
+        .palette { display:grid; grid-template-columns: repeat(5, 1fr); gap:8px; margin-top:12px; }
+        .sticker-btn { font-size:24px; padding:10px 0; border:none; border-radius:14px; cursor:pointer; background:var(--bg-glass, rgba(255,255,255,0.45)); }
+        .pack-preview { min-height: 56px; font-size: 28px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:12px 0; }
+        .pack-item { padding:10px 0; border-bottom:1px solid var(--border-subtle, rgba(0,0,0,0.06)); }
+        .input-row { display:flex; gap:8px; margin-top:10px; }
+        .input-row input { flex:1; padding:10px 12px; border-radius:12px; border:1px solid var(--border-subtle, rgba(0,0,0,0.08)); background:var(--bg-input, rgba(120,120,128,0.08)); }
+    </style>
+</head>
+<body>
+    <div class="tablet-bg"></div>
+    <div class="status-bar"><div class="status-left"><span class="status-time" id="statusTime">12:00 PM</span></div><div class="status-right"><i class="fas fa-wifi"></i><i class="fas fa-signal"></i><div class="battery"><div class="battery-bar"><div class="battery-fill"></div></div></div></div></div>
+
+    <div class="app-container">
+        <div class="app-header">
+            <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+            <div class="app-title">Sticker Maker <small>Build your own cute packs</small></div>
+        </div>
+
+        <div class="wrap">
+            <div class="glass-card" style="padding:14px;margin-bottom:12px">
+                <div class="font-bold">Sticker palette</div>
+                <div class="palette" id="stickerPalette"></div>
+                <div class="pack-preview" id="currentPack"></div>
+                <div class="input-row">
+                    <input type="text" id="packName" placeholder="Sticker pack name..." maxlength="30">
+                    <button class="btn btn-sm btn-primary" onclick="savePack()">Save</button>
+                </div>
+            </div>
+
+            <div class="glass-card" style="padding:14px">
+                <div class="font-bold">Saved packs</div>
+                <div id="savedPacks" style="margin-top:8px"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="messages.html" class="nav-item"><i class="fas fa-comment"></i><span>Chat</span></a>
+        <a href="dreamstore.html" class="nav-item"><i class="fas fa-store"></i><span>Store</span></a>
+        <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/catalog.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        var data = { packs: [] };
+        var palette = ['⭐', '🌈', '💖', '✨', '🦋', '🍓', '🎀', '🌸', '☁️', '🎧', '🌙', '💎', '🫶', '🐾', '🍀'];
+        var current = [];
+
+        async function loadData() {
+            var saved = await DreamApp.loadAppData('stickers');
+            if (saved && typeof saved === 'object') data = saved;
+            renderPalette();
+            render();
+        }
+
+        function persist() { DreamApp.saveAppData('stickers', data); }
+
+        function renderPalette() {
+            document.getElementById('stickerPalette').innerHTML = palette.map(function (item) {
+                return '<button class="sticker-btn" onclick="addSticker(\'' + item + '\')">' + item + '</button>';
+            }).join('');
+        }
+
+        function addSticker(sticker) {
+            if (current.length >= 8) current.shift();
+            current.push(sticker);
+            document.getElementById('currentPack').innerHTML = current.join(' ');
+        }
+
+        function savePack() {
+            var name = document.getElementById('packName').value.trim() || 'Cute Pack';
+            if (!current.length) return;
+            data.packs.unshift({ name: name, stickers: current.slice(0) });
+            current = [];
+            document.getElementById('packName').value = '';
+            document.getElementById('currentPack').innerHTML = '';
+            persist();
+            render();
+            DreamApp.awardXp(6, 'Sticker pack created');
+            DreamApp.toast('Sticker pack saved!', 'success');
+        }
+
+        function render() {
+            document.getElementById('savedPacks').innerHTML = data.packs.length ? data.packs.map(function (pack, idx) {
+                return '<div class="pack-item"><strong>' + DreamApp.escapeHtml(pack.name) + '</strong><div style="font-size:24px;margin-top:4px">' + DreamApp.escapeHtml(pack.stickers.join(' ')) + '</div><button class="btn btn-sm btn-secondary" style="margin-top:6px" onclick="reusePack(' + idx + ')">Reuse</button></div>';
+            }).join('') : '<div class="text-sm text-muted">No sticker packs yet. Tap a few icons above to build one.</div>';
+        }
+
+        function reusePack(idx) {
+            current = data.packs[idx].stickers.slice(0);
+            document.getElementById('currentPack').innerHTML = current.join(' ');
+        }
+
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>

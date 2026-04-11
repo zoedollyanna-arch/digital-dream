@@ -7,25 +7,75 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        .installed-apps-label {
-            padding: 4px 20px 0; font-size: 11px; font-weight: 600;
+        body { animation: unlockIn 0.45s ease-out; }
+        @keyframes unlockIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        .installed-apps-label, .section-label {
+            padding: 6px 20px 0; font-size: 11px; font-weight: 600;
             color: var(--text-muted, #8E8E93); letter-spacing: 0.5px; text-transform: uppercase;
         }
+        .home-top { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+        .icon-round-btn {
+            width: 38px; height: 38px; border-radius: 50%; border: none; cursor: pointer;
+            background: var(--bg-glass-heavy, rgba(255,255,255,0.7)); color: var(--text-primary, #1C1C1E);
+            box-shadow: var(--shadow-sm);
+        }
+        .home-search-wrap { padding: 0 16px 6px; }
+        .home-search {
+            display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-radius: 16px;
+            background: var(--bg-glass, rgba(255,255,255,0.45)); border: 1px solid var(--border-glass, rgba(255,255,255,0.35));
+        }
+        .home-search input { flex: 1; border: none; outline: none; background: transparent; font-size: 14px; color: var(--text-primary, #1C1C1E); }
+        .folder-row { display:flex; gap:8px; padding: 6px 16px 8px; overflow-x:auto; scrollbar-width:none; }
+        .folder-row::-webkit-scrollbar { display:none; }
+        .folder-chip {
+            border:none; border-radius:999px; padding:8px 12px; white-space:nowrap; cursor:pointer;
+            background: var(--bg-glass-heavy, rgba(255,255,255,0.7)); color: var(--text-secondary, #3C3C43);
+            font-size:12px; font-weight:600;
+        }
+        .folder-chip.active { background: var(--primary, #007AFF); color:#fff; }
+        .mini-dock { display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; padding: 8px 16px; }
+        .mini-dock .app-icon { margin-bottom:0; }
+        .assistant-card { margin: 8px 16px 12px; padding: 16px; display:flex; gap:12px; align-items:flex-start; }
+        .assistant-avatar {
+            width: 48px; height: 48px; border-radius: 16px; display:flex; align-items:center; justify-content:center;
+            background: linear-gradient(135deg,#FFB6D5,#A78BFA); color:#fff; font-size: 24px; flex-shrink:0;
+        }
+        .assistant-meta { flex:1; }
+        .assistant-badges { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+        .assistant-badge { padding:4px 8px; border-radius:999px; background: rgba(0,122,255,0.08); color: var(--primary, #007AFF); font-size:10px; font-weight:700; }
+        .icon-circle { position: relative; overflow: hidden; }
+        .icon-circle .art-emoji {
+            position: absolute; bottom: -2px; right: -2px; font-size: 14px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+            line-height: 1; pointer-events: none;
+        }
+        .note-search { margin: 8px 16px 12px; padding: 14px; display:none; }
+        .note-search-item { padding: 8px 0; border-bottom:1px solid var(--border-subtle, rgba(0,0,0,0.06)); }
+        .note-search-item:last-child { border-bottom:none; }
+        .notif-overlay {
+            position: fixed; inset: 0; background: rgba(10,10,25,0.28); z-index: 1500; display: none;
+            align-items: flex-start; justify-content: center; padding-top: 48px;
+        }
+        .notif-overlay.show { display: flex; }
+        .notif-panel {
+            width: calc(100% - 24px); max-width: 360px; max-height: 70vh; overflow-y:auto;
+            background: var(--bg-glass-heavy, rgba(255,255,255,0.82)); backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glass, rgba(255,255,255,0.35)); border-radius: 20px; box-shadow: var(--shadow-lg);
+            padding: 14px;
+        }
+        .notif-item { padding: 10px 0; border-bottom:1px solid var(--border-subtle, rgba(0,0,0,0.06)); }
+        .notif-item:last-child { border-bottom:none; }
+        .stat-line { margin-top: 6px; font-size: 12px; color: var(--text-muted, #8E8E93); }
     </style>
     <script>
-        // First-time setup redirect (fallback if not coming from boot.html)
         if (localStorage.getItem('dd-onboarded') !== 'true') {
-            // Check backend first before redirecting to onboarding
             var qs = window.location.search;
             var sp = new URLSearchParams(qs);
             var uid = sp.get('uuid');
             if (uid) {
-                // Quick async check — if profile exists on server, we're good
                 fetch(window.location.origin + '/api/profile?uuid=' + encodeURIComponent(uid))
                     .then(function(r) { return r.json(); })
                     .then(function(d) {
                         if (d.found && d.profile && d.profile.onboarded) {
-                            // Restore profile from server
                             try {
                                 var p = d.profile;
                                 localStorage.setItem('dd-onboarded', 'true');
@@ -60,97 +110,113 @@
 <body>
     <div class="tablet-bg"></div>
 
-    <!-- Status Bar -->
     <div class="status-bar">
         <div class="status-left">
             <span class="status-time" id="statusTime">12:00 PM</span>
         </div>
         <div class="status-right">
+            <i class="fas fa-moon" id="dndStatusIcon" style="display:none"></i>
             <i class="fas fa-wifi"></i>
             <i class="fas fa-signal"></i>
-            <div class="battery">
-                <div class="battery-bar"><div class="battery-fill"></div></div>
-            </div>
+            <div class="battery"><div class="battery-bar"><div class="battery-fill"></div></div></div>
         </div>
     </div>
 
-    <!-- Main Content -->
     <div class="app-container" id="homeScreen">
-        <!-- Greeting -->
         <div class="home-greeting animate-fadeIn">
-            <h1>Digital Dream</h1>
-            <p id="greetingText">Good afternoon, Dreamer</p>
+            <div class="home-top">
+                <div>
+                    <h1>Digital Dream</h1>
+                    <p id="greetingText">Good afternoon, Dreamer</p>
+                </div>
+                <button class="icon-round-btn" onclick="toggleNotifications()" title="Notification Center">
+                    <i class="fas fa-bell"></i>
+                </button>
+            </div>
         </div>
 
-        <!-- App Grid -->
+        <div class="home-search-wrap">
+            <div class="home-search">
+                <i class="fas fa-search" style="color:var(--text-muted,#8E8E93)"></i>
+                <input id="appSearch" type="text" placeholder="Search apps and notes..." oninput="applyFilters()">
+                <button class="icon-round-btn" style="width:30px;height:30px" onclick="claimReward()" title="Claim reward"><i class="fas fa-gift"></i></button>
+            </div>
+        </div>
+
+        <div class="folder-row">
+            <button class="folder-chip active" data-folder="all" onclick="setFolder('all', this)">All</button>
+            <button class="folder-chip" data-folder="core" onclick="setFolder('core', this)">Core</button>
+            <button class="folder-chip" data-folder="study" onclick="setFolder('study', this)">Study</button>
+            <button class="folder-chip" data-folder="vibes" onclick="setFolder('vibes', this)">Vibes</button>
+            <button class="folder-chip" data-folder="fun" onclick="setFolder('fun', this)">Fun</button>
+            <button class="folder-chip" data-folder="creative" onclick="setFolder('creative', this)">Creative</button>
+        </div>
+
         <div class="app-grid" id="appGrid">
-            <a href="messages.html" class="app-icon animate-scaleIn animate-stagger-1">
-                <div class="icon-circle icon-dreamchat">
-                    <i class="fas fa-comment-dots"></i>
-                </div>
+            <a href="messages.html" class="app-icon animate-scaleIn animate-stagger-1 home-app" data-name="DreamChat" data-folder="core">
+                <div class="icon-circle icon-dreamchat"><i class="fas fa-comment-dots"></i></div>
                 <span class="icon-label">DreamChat</span>
                 <span class="notif-badge" id="chatBadge" style="display:none">0</span>
             </a>
-
-            <a href="youtube.html" class="app-icon animate-scaleIn animate-stagger-2">
-                <div class="icon-circle icon-dreamtube">
-                    <i class="fab fa-youtube"></i>
-                </div>
+            <a href="youtube.html" class="app-icon animate-scaleIn animate-stagger-2 home-app" data-name="DreamTube" data-folder="fun">
+                <div class="icon-circle icon-dreamtube"><i class="fab fa-youtube"></i></div>
                 <span class="icon-label">DreamTube</span>
             </a>
-
-            <a href="weather.html" class="app-icon animate-scaleIn animate-stagger-3">
-                <div class="icon-circle icon-weather">
-                    <i class="fas fa-cloud-sun"></i>
-                </div>
+            <a href="weather.html" class="app-icon animate-scaleIn animate-stagger-3 home-app" data-name="Weather" data-folder="core">
+                <div class="icon-circle icon-weather"><i class="fas fa-cloud-sun"></i></div>
                 <span class="icon-label">Weather</span>
             </a>
-
-            <a href="dreamstore.html" class="app-icon animate-scaleIn animate-stagger-4">
-                <div class="icon-circle icon-dreamstore">
-                    <i class="fas fa-store"></i>
-                </div>
+            <a href="dreamstore.html" class="app-icon animate-scaleIn animate-stagger-4 home-app" data-name="Dream Store" data-folder="core">
+                <div class="icon-circle icon-dreamstore"><i class="fas fa-store"></i></div>
                 <span class="icon-label">Dream Store</span>
             </a>
-
-            <a href="browser.html" class="app-icon animate-scaleIn animate-stagger-5">
-                <div class="icon-circle icon-browser">
-                    <i class="fas fa-globe"></i>
-                </div>
+            <a href="browser.html" class="app-icon animate-scaleIn animate-stagger-5 home-app" data-name="Browser" data-folder="core">
+                <div class="icon-circle icon-browser"><i class="fas fa-globe"></i></div>
                 <span class="icon-label">Browser</span>
             </a>
-
-            <a href="discord.html" class="app-icon animate-scaleIn animate-stagger-6">
-                <div class="icon-circle icon-discord">
-                    <i class="fab fa-discord"></i>
-                </div>
+            <a href="discord.html" class="app-icon animate-scaleIn animate-stagger-6 home-app" data-name="Discord" data-folder="social">
+                <div class="icon-circle icon-discord"><i class="fab fa-discord"></i></div>
                 <span class="icon-label">Discord</span>
             </a>
-
-            <a href="contacts.html" class="app-icon animate-scaleIn animate-stagger-7">
-                <div class="icon-circle icon-contacts">
-                    <i class="fas fa-address-book"></i>
-                </div>
+            <a href="contacts.html" class="app-icon animate-scaleIn animate-stagger-7 home-app" data-name="Contacts" data-folder="social">
+                <div class="icon-circle icon-contacts"><i class="fas fa-address-book"></i></div>
                 <span class="icon-label">Contacts</span>
             </a>
-
-            <a href="settings.html" class="app-icon animate-scaleIn animate-stagger-8">
-                <div class="icon-circle icon-settings">
-                    <i class="fas fa-cog"></i>
-                </div>
+            <a href="settings.html" class="app-icon animate-scaleIn animate-stagger-8 home-app" data-name="Settings" data-folder="core">
+                <div class="icon-circle icon-settings"><i class="fas fa-cog"></i></div>
                 <span class="icon-label">Settings</span>
             </a>
         </div>
 
-        <!-- Installed Apps from Dream Store -->
+        <div class="glass-card assistant-card animate-slideUp">
+            <div class="assistant-avatar">✨</div>
+            <div class="assistant-meta">
+                <div class="font-bold">Dream Genie</div>
+                <div class="text-sm" id="assistantQuote">Loading your daily vibe...</div>
+                <div class="stat-line" id="assistantStats">Level 1 • 0 XP</div>
+                <div class="assistant-badges" id="assistantBadges"></div>
+            </div>
+        </div>
+
+        <div id="noteSearchCard" class="glass-card note-search"></div>
+
+        <div id="favoritesSection" style="display:none">
+            <div class="section-label">Favorites Dock</div>
+            <div class="mini-dock" id="favoritesDock"></div>
+        </div>
+
+        <div id="recentSection" style="display:none">
+            <div class="section-label">Recent Apps</div>
+            <div class="mini-dock" id="recentGrid"></div>
+        </div>
+
         <div id="installedSection" style="display:none">
             <div class="installed-apps-label">My Apps</div>
             <div class="app-grid" id="installedGrid" style="padding-top:8px"></div>
         </div>
 
-        <!-- Quick Widget Area -->
         <div class="px-16 mt-16 animate-slideUp" style="animation-delay: 0.1s">
-            <div class="glass-card" id="quickWeather" style="cursor:pointer" onclick="location.href='weather.html'">
+            <div class="glass-card" id="quickWeather" style="cursor:pointer;margin-bottom:12px" onclick="location.href='weather.html'">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-12">
                         <span style="font-size:28px" id="weatherEmoji">🌤️</span>
@@ -166,43 +232,39 @@
                 </div>
             </div>
         </div>
+        <div style="height:16px"></div>
     </div>
 
-    <!-- Bottom Navigation -->
+    <div class="notif-overlay" id="notifOverlay" onclick="toggleNotifications(false)">
+        <div class="notif-panel" onclick="event.stopPropagation()">
+            <div class="font-bold" style="margin-bottom:8px">Notification Center</div>
+            <div id="notifList"></div>
+        </div>
+    </div>
+
     <div class="bottom-nav">
-        <a href="index.html" class="nav-item active">
-            <i class="fas fa-home"></i>
-            <span>Home</span>
-        </a>
-        <a href="messages.html" class="nav-item">
-            <i class="fas fa-comment"></i>
-            <span>Chat</span>
-            <div class="badge" id="navChatBadge" style="display:none"></div>
-        </a>
-        <a href="dreamstore.html" class="nav-item">
-            <i class="fas fa-store"></i>
-            <span>Store</span>
-        </a>
-        <a href="settings.html" class="nav-item">
-            <i class="fas fa-cog"></i>
-            <span>Settings</span>
-        </a>
+        <a href="index.html" class="nav-item active"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="messages.html" class="nav-item"><i class="fas fa-comment"></i><span>Chat</span><div class="badge" id="navChatBadge" style="display:none"></div></a>
+        <a href="dreamstore.html" class="nav-item"><i class="fas fa-store"></i><span>Store</span></a>
+        <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
     </div>
 
     <script src="js/config.js"></script>
+    <script src="js/catalog.js"></script>
     <script src="js/app.js"></script>
     <script>
-        // Update greeting based on time of day
+        var activeFolder = 'all';
+
         function updateGreeting() {
             const h = new Date().getHours();
             const name = DreamApp.getUserName();
             let greeting = 'Good evening';
             if (h < 12) greeting = 'Good morning';
             else if (h < 17) greeting = 'Good afternoon';
-            document.getElementById('greetingText').textContent = greeting + ', ' + DreamApp.escapeHtml(name);
+            document.getElementById('greetingText').textContent = greeting + ', ' + name;
+            document.getElementById('dndStatusIcon').style.display = DreamApp.isDndEnabled() ? '' : 'none';
         }
 
-        // Load quick weather widget
         async function loadQuickWeather() {
             try {
                 const data = await DreamApp.apiGet('/api/weather?city=' + encodeURIComponent(DDConfig.DEFAULT_CITY));
@@ -219,16 +281,13 @@
 
         function getWeatherEmoji(icon) {
             const map = {
-                '01d': '☀️', '01n': '🌙', '02d': '⛅', '02n': '☁️',
-                '03d': '☁️', '03n': '☁️', '04d': '☁️', '04n': '☁️',
-                '09d': '🌧️', '09n': '🌧️', '10d': '🌦️', '10n': '🌧️',
-                '11d': '⛈️', '11n': '⛈️', '13d': '🌨️', '13n': '🌨️',
-                '50d': '🌫️', '50n': '🌫️'
+                '01d': '☀️', '01n': '🌙', '02d': '⛅', '02n': '☁️', '03d': '☁️', '03n': '☁️',
+                '04d': '☁️', '04n': '☁️', '09d': '🌧️', '09n': '🌧️', '10d': '🌦️', '10n': '🌧️',
+                '11d': '⛈️', '11n': '⛈️', '13d': '🌨️', '13n': '🌨️', '50d': '🌫️', '50n': '🌫️'
             };
             return map[icon] || '🌤️';
         }
 
-        // Load unread message count
         async function loadUnreadCount() {
             try {
                 const data = await DreamApp.apiGet('/api/messages/unread?uuid=' + encodeURIComponent(DreamApp.getUserId()));
@@ -237,47 +296,154 @@
                     document.getElementById('chatBadge').style.display = '';
                     document.getElementById('navChatBadge').style.display = '';
                 }
-            } catch {
-                // Silent fail
-            }
+            } catch {}
         }
 
-        // Show installed Dream Store apps on home screen
-        var storeAppCatalog = {
-            notes:      { name: 'Notes',       icon: 'fas fa-sticky-note',   color: '#FF9F0A', page: 'notes.html' },
-            journal:    { name: 'Journal',     icon: 'fas fa-book',          color: '#5856D6', page: 'journal.html' },
-            todo:       { name: 'To-Do',       icon: 'fas fa-check-circle',  color: '#34C759', page: 'todo.html' },
-            calculator: { name: 'Calculator',  icon: 'fas fa-calculator',    color: '#8E8E93', page: 'calculator.html' },
-            trivia:     { name: 'Trivia',      icon: 'fas fa-brain',         color: '#FF2D55', page: 'trivia.html' },
-            memory:     { name: 'Memory',      icon: 'fas fa-th',            color: '#5AC8FA', page: 'memory.html' },
-            tictactoe:  { name: 'Tic-Tac-Toe', icon: 'fas fa-times',         color: '#007AFF', page: 'tictactoe.html' },
-            snake:      { name: 'Snake',       icon: 'fas fa-gamepad',       color: '#34C759', page: 'snake.html' },
-            doodle:     { name: 'Doodle',      icon: 'fas fa-paint-brush',   color: '#BF5AF2', page: 'doodle.html' },
-            photos:     { name: 'Photos',      icon: 'fas fa-camera',        color: '#FF6259', page: 'photos.html' }
-        };
+        function renderAppIcon(app, extraClass) {
+            if (!app) return '';
+            var art = (window.DDAppArt && window.DDAppArt[app.id]) || {};
+            var iconStyle = art.gradient || ('background:' + app.color);
+            var emojiOverlay = art.emoji ? '<span class="art-emoji">' + art.emoji + '</span>' : '';
+            return '<a href="' + app.page + '" class="app-icon home-app ' + (extraClass || '') + '" data-name="' + DreamApp.escapeHtml(app.name) + '" data-folder="' + DreamApp.escapeHtml(app.folder || 'study') + '">'
+                + '<div class="icon-circle" style="' + iconStyle + '"><i class="' + app.icon + '"></i>' + emojiOverlay + '</div>'
+                + '<span class="icon-label">' + DreamApp.escapeHtml(app.name) + '</span></a>';
+        }
 
         function renderInstalledApps() {
-            var installed = JSON.parse(localStorage.getItem('dd-installed-apps') || '[]');
+            var installed = DreamApp.getInstalledApps();
             var section = document.getElementById('installedSection');
             var grid = document.getElementById('installedGrid');
-            if (!installed.length) { section.style.display = 'none'; return; }
-
+            if (!installed.length) { section.style.display = 'none'; grid.innerHTML = ''; return; }
             section.style.display = '';
-            grid.innerHTML = installed.map(function(id) {
-                var app = storeAppCatalog[id];
-                if (!app) return '';
-                return '<a href="' + app.page + '" class="app-icon">'
-                    + '<div class="icon-circle" style="background:' + app.color + '">'
-                    + '<i class="' + app.icon + '"></i></div>'
-                    + '<span class="icon-label">' + app.name + '</span></a>';
+            grid.innerHTML = installed.map(function(id) { return renderAppIcon(DreamApp.findAppById(id)); }).join('');
+        }
+
+        function renderFavoritesDock() {
+            var ids = DreamApp.getFavoriteApps();
+            var section = document.getElementById('favoritesSection');
+            var dock = document.getElementById('favoritesDock');
+            if (!ids.length) { section.style.display = 'none'; dock.innerHTML = ''; return; }
+            section.style.display = '';
+            dock.innerHTML = ids.slice(0, 4).map(function(id) { return renderAppIcon(DreamApp.findAppById(id)); }).join('');
+        }
+
+        function renderRecentApps() {
+            var recent = DreamApp.getRecentApps();
+            var section = document.getElementById('recentSection');
+            var grid = document.getElementById('recentGrid');
+            if (!recent.length) { section.style.display = 'none'; grid.innerHTML = ''; return; }
+            section.style.display = '';
+            grid.innerHTML = recent.slice(0, 4).map(function(app) { return renderAppIcon(app); }).join('');
+        }
+
+        function renderAssistantCard() {
+            var quote = DreamApp.getDailyQuote();
+            var level = DreamApp.getLevelInfo();
+            var reward = DreamApp.getDailyReward();
+            var badges = DreamApp.getBadges();
+            var friend = parseInt(localStorage.getItem('dd-friendship-streak') || '0', 10) || 0;
+            document.getElementById('assistantQuote').textContent = quote.title + ' — ' + quote.text;
+            document.getElementById('assistantStats').textContent = 'Level ' + level.level + ' • ' + level.xp + ' XP • ' + friend + ' friendship streak';
+            document.getElementById('assistantBadges').innerHTML = (badges.length ? badges : ['Daily Reward ' + (reward.claimedToday ? 'Claimed' : 'Ready')]).map(function(item) {
+                return '<span class="assistant-badge">' + DreamApp.escapeHtml(item) + '</span>';
             }).join('');
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        function setFolder(folder, btn) {
+            activeFolder = folder;
+            document.querySelectorAll('.folder-chip').forEach(function(chip) { chip.classList.remove('active'); });
+            btn.classList.add('active');
+            applyFilters();
+        }
+
+        function applyFilters() {
+            var term = (document.getElementById('appSearch').value || '').toLowerCase().trim();
+            document.querySelectorAll('.home-app').forEach(function(app) {
+                var name = (app.getAttribute('data-name') || '').toLowerCase();
+                var folder = app.getAttribute('data-folder') || 'core';
+                var matchFolder = activeFolder === 'all' || folder === activeFolder;
+                var matchTerm = !term || name.indexOf(term) !== -1;
+                app.style.display = (matchFolder && matchTerm) ? '' : 'none';
+            });
+            renderNoteResults(term);
+        }
+
+        function renderNoteResults(term) {
+            var card = document.getElementById('noteSearchCard');
+            if (!term || term.length < 2) { card.style.display = 'none'; card.innerHTML = ''; return; }
+            var notes = [];
+            try { notes = JSON.parse(localStorage.getItem('dd-notes') || '[]'); } catch(e) { notes = []; }
+            var matches = notes.filter(function(note) {
+                var hay = ((note.title || '') + ' ' + (note.body || '')).toLowerCase();
+                return hay.indexOf(term) !== -1;
+            }).slice(0, 3);
+            if (!matches.length) { card.style.display = 'none'; card.innerHTML = ''; return; }
+            card.style.display = '';
+            card.innerHTML = '<div class="font-bold">Matching notes</div>' + matches.map(function(note) {
+                return '<div class="note-search-item"><div><strong>' + DreamApp.escapeHtml(note.title || 'Untitled') + '</strong></div><div class="text-xs text-muted">' + DreamApp.escapeHtml((note.body || '').slice(0, 80)) + '</div></div>';
+            }).join('');
+        }
+
+        function getUpcomingBirthdays() {
+            try {
+                var list = JSON.parse(localStorage.getItem('dd-birthday-list') || '[]');
+                return Array.isArray(list) ? list.slice(0, 3) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function renderNotifications() {
+            var reward = DreamApp.getDailyReward();
+            var birthdays = getUpcomingBirthdays();
+            var items = [];
+            items.push({ title: reward.claimedToday ? 'Daily reward claimed' : 'Daily reward ready', text: reward.claimedToday ? 'Come back tomorrow for more coins and XP.' : 'Tap the gift button to claim 25 coins today.' });
+            items.push({ title: DreamApp.isDndEnabled() ? 'Do Not Disturb is on' : 'Focus mode is available', text: DreamApp.isDndEnabled() ? 'Notifications are being kept quiet for now.' : 'Use Focus Mode to start a study sprint.' });
+            var badges = DreamApp.getBadges();
+            if (badges.length) items.push({ title: 'Badges unlocked', text: badges.join(', ') });
+            birthdays.forEach(function(item) {
+                items.push({ title: 'Birthday reminder', text: item.name + ' • ' + item.date });
+            });
+            var friend = parseInt(localStorage.getItem('dd-friendship-streak') || '0', 10) || 0;
+            if (friend > 0) items.push({ title: 'Friendship streak', text: 'Current streak: ' + friend });
+            document.getElementById('notifList').innerHTML = items.map(function(item) {
+                return '<div class="notif-item"><strong>' + DreamApp.escapeHtml(item.title) + '</strong><div class="text-sm text-muted">' + DreamApp.escapeHtml(item.text) + '</div></div>';
+            }).join('');
+        }
+
+        function toggleNotifications(forceOpen) {
+            var overlay = document.getElementById('notifOverlay');
+            var show = typeof forceOpen === 'boolean' ? forceOpen : !overlay.classList.contains('show');
+            if (show) {
+                renderNotifications();
+                overlay.classList.add('show');
+            } else {
+                overlay.classList.remove('show');
+            }
+        }
+
+        function claimReward() {
+            var reward = DreamApp.claimDailyReward();
+            if (!reward) {
+                DreamApp.toast('You already claimed today\'s reward.', 'info');
+                return;
+            }
+            DreamApp.toast('Daily reward claimed! +' + reward.coins + ' coins total', 'success');
+            renderAssistantCard();
+            renderNotifications();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('dd-setting-unlock') === 'false') document.body.style.animation = 'none';
             updateGreeting();
             loadQuickWeather();
             loadUnreadCount();
             renderInstalledApps();
+            renderFavoritesDock();
+            renderRecentApps();
+            renderAssistantCard();
+            renderNotifications();
+            applyFilters();
         });
     </script>
 </body>

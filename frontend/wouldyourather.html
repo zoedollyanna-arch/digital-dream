@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Would You Rather - Digital Dream</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .wrap { padding: 0 16px 18px; }
+        .option-btn { width:100%; padding:14px; border:none; border-radius:16px; margin-top:10px; font-size:15px; font-weight:600; cursor:pointer; }
+        .option-a { background:#D6ECFF; color:#163A63; }
+        .option-b { background:#FFE0F0; color:#5A2346; }
+    </style>
+</head>
+<body>
+    <div class="tablet-bg"></div>
+    <div class="status-bar"><div class="status-left"><span class="status-time" id="statusTime">12:00 PM</span></div><div class="status-right"><i class="fas fa-wifi"></i><i class="fas fa-signal"></i><div class="battery"><div class="battery-bar"><div class="battery-fill"></div></div></div></div></div>
+
+    <div class="app-container">
+        <div class="app-header">
+            <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+            <div class="app-title">Would You Rather <small>Clean and fun choices</small></div>
+        </div>
+
+        <div class="wrap">
+            <div class="glass-card" style="padding:18px;text-align:center">
+                <div class="text-sm text-muted">Pick your fave!</div>
+                <h3 style="margin:8px 0" id="questionTitle">Would you rather...</h3>
+                <button class="option-btn option-a" id="optionA" onclick="choose('A')"></button>
+                <button class="option-btn option-b" id="optionB" onclick="choose('B')"></button>
+                <div style="margin-top:12px"><button class="btn btn-sm btn-secondary" onclick="nextPrompt()"><i class="fas fa-arrow-rotate-right"></i> New prompt</button></div>
+                <div class="text-sm text-muted" id="statsText" style="margin-top:10px"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="messages.html" class="nav-item"><i class="fas fa-comment"></i><span>Chat</span></a>
+        <a href="dreamstore.html" class="nav-item"><i class="fas fa-store"></i><span>Store</span></a>
+        <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/catalog.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        var prompts = [
+            ['Have a rainbow room', 'Have a glow-in-the-dark room'],
+            ['Ace every test', 'Finish homework in 10 minutes'],
+            ['Adopt a dragon-sized pet', 'Have a pet that talks'],
+            ['Get free snacks forever', 'Get free music forever'],
+            ['Live by the beach', 'Live by the mountains'],
+            ['Have endless stickers', 'Have endless hoodies']
+        ];
+        var data = { a: 0, b: 0, last: 0 };
+
+        async function loadData() {
+            var saved = await DreamApp.loadAppData('wouldyourather');
+            if (saved && typeof saved === 'object') data = saved;
+            nextPrompt();
+            renderStats();
+        }
+
+        function persist() { DreamApp.saveAppData('wouldyourather', data); }
+
+        function nextPrompt() {
+            data.last = (data.last + 1) % prompts.length;
+            var prompt = prompts[data.last];
+            document.getElementById('optionA').textContent = prompt[0];
+            document.getElementById('optionB').textContent = prompt[1];
+        }
+
+        function choose(which) {
+            if (which === 'A') data.a++; else data.b++;
+            persist();
+            renderStats();
+            DreamApp.toast('Cute choice!', 'success');
+        }
+
+        function renderStats() {
+            document.getElementById('statsText').textContent = 'You picked A ' + data.a + ' times and B ' + data.b + ' times.';
+        }
+
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>

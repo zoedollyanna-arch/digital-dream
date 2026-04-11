@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Dream Planner - Digital Dream</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .wrap { padding: 0 16px 18px; }
+        .planner-card { padding: 14px; margin-bottom: 12px; }
+        .input-row { display:flex; gap:8px; margin-top:10px; }
+        .input-row input, .input-row select {
+            flex:1; padding:10px 12px; border-radius:12px; border:1px solid var(--border-subtle, rgba(0,0,0,0.08));
+            background:var(--bg-input, rgba(120,120,128,0.08)); color:var(--text-primary, #1C1C1E);
+        }
+        .list-item { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px solid var(--border-subtle, rgba(0,0,0,0.06)); }
+        .list-item:last-child { border-bottom:none; }
+        .mini-delete { background:none; border:none; color:var(--danger, #FF3B30); cursor:pointer; }
+        .top-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin-bottom:12px; }
+        .top-grid .glass-card { text-align:center; padding:12px; }
+        .tiny { font-size:11px; color:var(--text-muted, #8E8E93); }
+    </style>
+</head>
+<body>
+    <div class="tablet-bg"></div>
+    <div class="status-bar">
+        <div class="status-left"><span class="status-time" id="statusTime">12:00 PM</span></div>
+        <div class="status-right"><i class="fas fa-wifi"></i><i class="fas fa-signal"></i><div class="battery"><div class="battery-bar"><div class="battery-fill"></div></div></div></div>
+    </div>
+
+    <div class="app-container">
+        <div class="app-header">
+            <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+            <div class="app-title">Dream Planner <small>Goals, homework and milestones</small></div>
+        </div>
+
+        <div class="wrap">
+            <div class="top-grid">
+                <div class="glass-card"><strong id="goalCount">0</strong><div class="tiny">Goals</div></div>
+                <div class="glass-card"><strong id="homeworkCount">0</strong><div class="tiny">Homework</div></div>
+                <div class="glass-card"><strong id="friendStreak">0</strong><div class="tiny">Friend streak</div></div>
+            </div>
+
+            <div class="glass-card planner-card">
+                <div class="font-bold">Goals & wishlist</div>
+                <div id="goalList"></div>
+                <div class="input-row">
+                    <input type="text" id="goalInput" placeholder="Add a dream or wish..." maxlength="60">
+                    <button class="btn btn-sm btn-primary" onclick="addGoal()">Add</button>
+                </div>
+            </div>
+
+            <div class="glass-card planner-card">
+                <div class="font-bold">Homework planner</div>
+                <div id="homeworkList"></div>
+                <div class="input-row">
+                    <input type="text" id="homeworkInput" placeholder="Assignment name" maxlength="50">
+                    <input type="date" id="homeworkDate">
+                </div>
+                <div class="input-row">
+                    <select id="homeworkPriority">
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                    </select>
+                    <button class="btn btn-sm btn-primary" onclick="addHomework()">Save</button>
+                </div>
+            </div>
+
+            <div class="glass-card planner-card">
+                <div class="font-bold">Birthdays & friendship streaks</div>
+                <div id="birthdayList"></div>
+                <div class="input-row">
+                    <input type="text" id="birthdayName" placeholder="Friend name" maxlength="40">
+                    <input type="date" id="birthdayDate">
+                </div>
+                <div class="input-row">
+                    <button class="btn btn-sm btn-secondary" onclick="addBirthday()"><i class="fas fa-cake-candles"></i> Add birthday</button>
+                    <button class="btn btn-sm btn-primary" onclick="boostFriendship()"><i class="fas fa-heart"></i> +1 streak</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="messages.html" class="nav-item"><i class="fas fa-comment"></i><span>Chat</span></a>
+        <a href="dreamstore.html" class="nav-item"><i class="fas fa-store"></i><span>Store</span></a>
+        <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/catalog.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        var data = { goals: [], homework: [], birthdays: [], friendStreak: 0 };
+
+        async function loadData() {
+            var saved = await DreamApp.loadAppData('dreamplanner');
+            if (saved && typeof saved === 'object') data = saved;
+            render();
+        }
+
+        function persist() {
+            DreamApp.saveAppData('dreamplanner', data);
+            localStorage.setItem('dd-birthday-list', JSON.stringify(data.birthdays || []));
+            localStorage.setItem('dd-friendship-streak', String(data.friendStreak || 0));
+            DreamApp.updateStreak('friendshipStreak', data.friendStreak || 0);
+        }
+
+        function render() {
+            document.getElementById('goalCount').textContent = data.goals.length;
+            document.getElementById('homeworkCount').textContent = data.homework.length;
+            document.getElementById('friendStreak').textContent = data.friendStreak || 0;
+
+            document.getElementById('goalList').innerHTML = data.goals.length ? data.goals.map(function (item, idx) {
+                return '<div class="list-item"><span>' + DreamApp.escapeHtml(item) + '</span><button class="mini-delete" onclick="removeGoal(' + idx + ')"><i class="fas fa-trash"></i></button></div>';
+            }).join('') : '<div class="tiny" style="margin-top:8px">Add goals, affirmations, or a wish list item.</div>';
+
+            document.getElementById('homeworkList').innerHTML = data.homework.length ? data.homework.map(function (item, idx) {
+                return '<div class="list-item"><div><strong>' + DreamApp.escapeHtml(item.text) + '</strong><div class="tiny">Due ' + DreamApp.escapeHtml(item.date || 'soon') + ' • ' + DreamApp.escapeHtml(item.priority) + '</div></div><button class="mini-delete" onclick="removeHomework(' + idx + ')"><i class="fas fa-trash"></i></button></div>';
+            }).join('') : '<div class="tiny" style="margin-top:8px">Keep assignments and due dates here.</div>';
+
+            document.getElementById('birthdayList').innerHTML = data.birthdays.length ? data.birthdays.map(function (item, idx) {
+                return '<div class="list-item"><div><strong>' + DreamApp.escapeHtml(item.name) + '</strong><div class="tiny">Birthday: ' + DreamApp.escapeHtml(item.date) + '</div></div><button class="mini-delete" onclick="removeBirthday(' + idx + ')"><i class="fas fa-trash"></i></button></div>';
+            }).join('') : '<div class="tiny" style="margin-top:8px">Save birthdays and tap the streak button when you check in with friends.</div>';
+        }
+
+        function addGoal() {
+            var input = document.getElementById('goalInput');
+            var text = input.value.trim();
+            if (!text) return;
+            data.goals.unshift(text);
+            input.value = '';
+            persist();
+            render();
+        }
+
+        function removeGoal(idx) { data.goals.splice(idx, 1); persist(); render(); }
+
+        function addHomework() {
+            var text = document.getElementById('homeworkInput').value.trim();
+            var date = document.getElementById('homeworkDate').value;
+            var priority = document.getElementById('homeworkPriority').value;
+            if (!text) return;
+            data.homework.unshift({ text: text, date: date || 'Soon', priority: priority });
+            document.getElementById('homeworkInput').value = '';
+            document.getElementById('homeworkDate').value = '';
+            persist();
+            render();
+        }
+
+        function removeHomework(idx) { data.homework.splice(idx, 1); persist(); render(); }
+
+        function addBirthday() {
+            var name = document.getElementById('birthdayName').value.trim();
+            var date = document.getElementById('birthdayDate').value;
+            if (!name || !date) return;
+            data.birthdays.unshift({ name: name, date: date });
+            document.getElementById('birthdayName').value = '';
+            document.getElementById('birthdayDate').value = '';
+            persist();
+            render();
+        }
+
+        function removeBirthday(idx) { data.birthdays.splice(idx, 1); persist(); render(); }
+
+        function boostFriendship() {
+            data.friendStreak = (data.friendStreak || 0) + 1;
+            persist();
+            render();
+            DreamApp.awardXp(10, 'Friendship streak boosted');
+            DreamApp.toast('Friendship streak +1', 'success');
+        }
+
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>

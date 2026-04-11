@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Pet Buddy - Digital Dream</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .wrap { padding: 0 16px 18px; }
+        .pet-face { font-size: 80px; text-align:center; margin: 10px 0; }
+        .pet-name { text-align:center; font-size:20px; font-weight:700; }
+        .bar-row { margin-top:10px; }
+        .bar { height: 10px; border-radius:999px; background:var(--bg-input, rgba(120,120,128,0.08)); overflow:hidden; margin-top:4px; }
+        .bar > div { height:100%; border-radius:999px; }
+        .actions { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-top:12px; }
+        .actions button { border:none; border-radius:14px; padding:12px; cursor:pointer; font-weight:600; }
+        .pet-input { width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--border-subtle, rgba(0,0,0,0.08)); background:var(--bg-input, rgba(120,120,128,0.08)); margin-top:10px; }
+    </style>
+</head>
+<body>
+    <div class="tablet-bg"></div>
+    <div class="status-bar"><div class="status-left"><span class="status-time" id="statusTime">12:00 PM</span></div><div class="status-right"><i class="fas fa-wifi"></i><i class="fas fa-signal"></i><div class="battery"><div class="battery-bar"><div class="battery-fill"></div></div></div></div></div>
+
+    <div class="app-container">
+        <div class="app-header">
+            <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+            <div class="app-title">Pet Buddy <small>Feed, play and level up</small></div>
+        </div>
+
+        <div class="wrap">
+            <div class="glass-card" style="padding:18px">
+                <div class="pet-face" id="petFace">🐰</div>
+                <div class="pet-name" id="petNameLabel">Nova</div>
+                <input class="pet-input" id="petNameInput" placeholder="Name your buddy..." maxlength="20">
+                <button class="btn btn-sm btn-secondary" style="margin-top:8px" onclick="renamePet()">Rename</button>
+
+                <div class="bar-row"><div class="text-sm">Hunger</div><div class="bar"><div id="hungerBar" style="background:#FF9F0A;width:70%"></div></div></div>
+                <div class="bar-row"><div class="text-sm">Happiness</div><div class="bar"><div id="happyBar" style="background:#34C759;width:70%"></div></div></div>
+                <div class="bar-row"><div class="text-sm">Energy</div><div class="bar"><div id="energyBar" style="background:#5AC8FA;width:70%"></div></div></div>
+
+                <div class="actions">
+                    <button onclick="petAction('feed')" style="background:#FFF1B8">🍓 Feed</button>
+                    <button onclick="petAction('play')" style="background:#D6ECFF">🧸 Play</button>
+                    <button onclick="petAction('rest')" style="background:#E8D5FF">💤 Rest</button>
+                    <button onclick="petAction('style')" style="background:#FFE0F0">🎀 Decorate</button>
+                </div>
+                <div class="text-sm text-muted" id="petLevel" style="margin-top:10px;text-align:center"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="messages.html" class="nav-item"><i class="fas fa-comment"></i><span>Chat</span></a>
+        <a href="dreamstore.html" class="nav-item"><i class="fas fa-store"></i><span>Store</span></a>
+        <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/catalog.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        var pets = ['🐰', '🐱', '🐶', '🦊'];
+        var data = { name: 'Nova', face: '🐰', level: 1, xp: 0, hunger: 70, happy: 70, energy: 70 };
+
+        async function loadData() {
+            var saved = await DreamApp.loadAppData('petbuddy');
+            if (saved && typeof saved === 'object') data = saved;
+            render();
+        }
+
+        function persist() { DreamApp.saveAppData('petbuddy', data); }
+
+        function render() {
+            document.getElementById('petFace').textContent = data.face;
+            document.getElementById('petNameLabel').textContent = data.name;
+            document.getElementById('petLevel').textContent = 'Level ' + data.level + ' • ' + data.xp + ' XP';
+            document.getElementById('hungerBar').style.width = Math.max(10, data.hunger) + '%';
+            document.getElementById('happyBar').style.width = Math.max(10, data.happy) + '%';
+            document.getElementById('energyBar').style.width = Math.max(10, data.energy) + '%';
+        }
+
+        function renamePet() {
+            var text = document.getElementById('petNameInput').value.trim();
+            if (!text) return;
+            data.name = text;
+            document.getElementById('petNameInput').value = '';
+            persist();
+            render();
+        }
+
+        function petAction(type) {
+            if (type === 'feed') { data.hunger = Math.min(100, data.hunger + 15); data.energy = Math.max(20, data.energy - 5); }
+            if (type === 'play') { data.happy = Math.min(100, data.happy + 18); data.energy = Math.max(10, data.energy - 10); }
+            if (type === 'rest') { data.energy = Math.min(100, data.energy + 18); }
+            if (type === 'style') { data.face = pets[Math.floor(Math.random() * pets.length)]; data.happy = Math.min(100, data.happy + 10); }
+            data.xp += 12;
+            if (data.xp >= data.level * 40) {
+                data.level += 1;
+                data.xp = 0;
+                DreamApp.awardXp(20, 'Pet Buddy leveled up');
+                DreamApp.toast(data.name + ' leveled up!', 'success');
+            }
+            persist();
+            render();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>

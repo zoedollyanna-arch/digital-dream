@@ -340,6 +340,26 @@
                 if (p.installedApps && p.installedApps.length > 0) {
                     localStorage.setItem('dd-installed-apps', JSON.stringify(p.installedApps));
                 }
+
+                // Gamification
+                localStorage.setItem('dd-xp', String(p.xp || 0));
+                localStorage.setItem('dd-coins', String(p.coins || 0));
+                if (p.rewardLast) localStorage.setItem('dd-reward-last', p.rewardLast);
+                localStorage.setItem('dd-reward-streak', String(p.rewardStreak || 0));
+
+                // Streaks
+                localStorage.setItem('dd-focus-sessions', String(p.focusSessions || 0));
+                localStorage.setItem('dd-selfcare-streak', String(p.selfcareStreak || 0));
+                localStorage.setItem('dd-friendship-streak', String(p.friendshipStreak || 0));
+                localStorage.setItem('dd-mood-streak', String(p.moodStreak || 0));
+
+                // Lists
+                if (p.favoriteApps) localStorage.setItem('dd-favorite-apps', JSON.stringify(p.favoriteApps));
+                if (p.recentApps) localStorage.setItem('dd-recent-apps', JSON.stringify(p.recentApps));
+
+                // Settings
+                if (p.dnd !== undefined) localStorage.setItem('dd-setting-dnd', String(p.dnd));
+                if (p.unlock !== undefined) localStorage.setItem('dd-setting-unlock', String(p.unlock));
             } catch (e) { /* localStorage unavailable */ }
         }
 

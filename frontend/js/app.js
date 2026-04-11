@@ -1,8 +1,14 @@
 /* ============================================
    [Kyori] Digital Dream - Shared App Logic
+   Backend-first with localStorage cache
    ============================================ */
 
 const DreamApp = {
+    /* --- Profile cache (loaded from backend on init) --- */
+    _profile: null,
+    _profileLoaded: false,
+    _profilePromise: null,
+
     /* --- Skin Management (unified theme + wallpaper) --- */
     _skinGradients: {
         'default': 'linear-gradient(135deg, #C2E9FB 0%, #E8D5F5 25%, #FBE4D5 50%, #D5E8FB 75%, #E0F5E8 100%)',
@@ -16,7 +22,6 @@ const DreamApp = {
     },
 
     initSkin() {
-        // Migrate old theme/wallpaper to new skin system
         var skin = localStorage.getItem('dd-skin');
         if (!skin) {
             var oldWp = localStorage.getItem('dd-wallpaper');
@@ -46,9 +51,7 @@ const DreamApp = {
 
     applySkin(skin) {
         if (!skin || !this._skinGradients[skin]) skin = 'default';
-        // Set data-theme attribute for CSS variable overrides
         document.documentElement.setAttribute('data-theme', skin === 'default' ? 'light' : skin);
-        // Set inline gradient for MOAP/CEF compatibility
         var bg = document.querySelector('.tablet-bg');
         if (bg) {
             bg.style.background = this._skinGradients[skin];
@@ -109,7 +112,7 @@ const DreamApp = {
         if (!this.soundEnabled()) return;
         var ctx = this._getAudioCtx();
         if (!ctx) return;
-        var notes = [880, 1046.5]; // A5, C6
+        var notes = [880, 1046.5];
         notes.forEach(function(freq, i) {
             var osc = ctx.createOscillator();
             var gain = ctx.createGain();
@@ -129,7 +132,7 @@ const DreamApp = {
         if (!this.soundEnabled()) return;
         var ctx = this._getAudioCtx();
         if (!ctx) return;
-        var notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+        var notes = [523.25, 659.25, 783.99];
         notes.forEach(function(freq, i) {
             var osc = ctx.createOscillator();
             var gain = ctx.createGain();
@@ -145,7 +148,6 @@ const DreamApp = {
         });
     },
 
-    /* Attach tap sounds to all clickable elements */
     initSounds() {
         document.addEventListener('click', function(e) {
             var el = e.target.closest('a, button, .app-icon, .nav-item, .settings-item, .skin-swatch, .ob-btn, .ob-skin-chip, .ob-connect-card');
@@ -154,7 +156,9 @@ const DreamApp = {
     },
 
     /* --- Toast Notifications --- */
-    toast(message, type = 'info') {
+    toast(message, type) {
+        type = type || 'info';
+        if (this.isDndEnabled() && type !== 'error') return;
         let toast = document.getElementById('ddToast');
         if (!toast) {
             toast = document.createElement('div');
@@ -190,7 +194,7 @@ const DreamApp = {
 
     /* --- URL Param Helpers --- */
     getParam(name) {
-        const params = new URLSearchParams(window.location.search);
+        var params = new URLSearchParams(window.location.search);
         return params.get(name);
     },
 
@@ -208,18 +212,72 @@ const DreamApp = {
         if (name) localStorage.setItem('dd-name', name);
     },
 
-    /* --- Backend Profile Sync --- */
+    /* --- Backend Profile (source of truth) --- */
+
+    /** Load profile from backend, cache to localStorage. Returns profile object or null. */
+    async loadProfile() {
+        var uuid = this.getUserId();
+        if (!uuid || uuid === 'unknown') return null;
+        if (this._profilePromise) return this._profilePromise;
+        this._profilePromise = this._doLoadProfile(uuid);
+        return this._profilePromise;
+    },
+
+    async _doLoadProfile(uuid) {
+        try {
+            var data = await this.apiGet('/api/profile?uuid=' + encodeURIComponent(uuid));
+            if (data && data.found && data.profile) {
+                this._profile = data.profile;
+                this._profileLoaded = true;
+                this._cacheProfileToLocal(data.profile);
+                return data.profile;
+            }
+        } catch (e) {
+            // Offline fallback — use localStorage cache
+        }
+        this._profileLoaded = true;
+        return null;
+    },
+
+    /** Cache backend profile fields into localStorage for offline access */
+    _cacheProfileToLocal(p) {
+        if (!p) return;
+        if (p.name) localStorage.setItem('dd-name', p.name);
+        var skin = p.wallpaper || p.theme || 'default';
+        if (skin === 'light') skin = 'default';
+        else if (skin === 'dark') skin = 'space';
+        else if (skin === 'neon') skin = 'ocean';
+        localStorage.setItem('dd-skin', skin);
+        if (p.zoom) localStorage.setItem('dd-zoom', String(p.zoom));
+        if (p.notifications) {
+            localStorage.setItem('dd-setting-notifs', String(p.notifications.notifs !== false));
+            localStorage.setItem('dd-setting-discordNotifs', String(p.notifications.discordNotifs !== false));
+            localStorage.setItem('dd-setting-sound', String(p.notifications.sound === true));
+        }
+        if (p.discord && p.discord.webhook) localStorage.setItem('dd-discord-config', JSON.stringify(p.discord));
+        if (p.installedApps) localStorage.setItem('dd-installed-apps', JSON.stringify(p.installedApps));
+        if (p.favoriteApps) localStorage.setItem('dd-favorite-apps', JSON.stringify(p.favoriteApps));
+        if (p.recentApps) localStorage.setItem('dd-recent-apps', JSON.stringify(p.recentApps));
+        localStorage.setItem('dd-xp', String(p.xp || 0));
+        localStorage.setItem('dd-coins', String(p.coins || 0));
+        if (p.rewardLast) localStorage.setItem('dd-reward-last', p.rewardLast);
+        localStorage.setItem('dd-reward-streak', String(p.rewardStreak || 0));
+        localStorage.setItem('dd-focus-sessions', String(p.focusSessions || 0));
+        localStorage.setItem('dd-selfcare-streak', String(p.selfcareStreak || 0));
+        localStorage.setItem('dd-friendship-streak', String(p.friendshipStreak || 0));
+        localStorage.setItem('dd-mood-streak', String(p.moodStreak || 0));
+        localStorage.setItem('dd-setting-dnd', String(p.dnd === true));
+        localStorage.setItem('dd-setting-unlock', String(p.unlock !== false));
+    },
+
     _syncTimer: null,
 
-    /* Debounced save: batches rapid setting changes into one API call */
     syncSetting(key, value) {
-        // Guard: don't sync if no uuid
         if (this.getUserId() === 'unknown') return;
         if (this._syncTimer) clearTimeout(this._syncTimer);
         this._syncTimer = setTimeout(() => this._doSync(), 1500);
     },
 
-    /* Gather all current settings and push to backend */
     async _doSync() {
         var uuid = this.getUserId();
         if (!uuid || uuid === 'unknown') return;
@@ -228,6 +286,10 @@ const DreamApp = {
             try { dc = JSON.parse(localStorage.getItem('dd-discord-config')); } catch(e) {}
             var apps = [];
             try { apps = JSON.parse(localStorage.getItem('dd-installed-apps') || '[]'); } catch(e) {}
+            var favs = [];
+            try { favs = JSON.parse(localStorage.getItem('dd-favorite-apps') || '[]'); } catch(e) {}
+            var recents = [];
+            try { recents = JSON.parse(localStorage.getItem('dd-recent-apps') || '[]'); } catch(e) {}
 
             await this.apiPost('/api/profile', {
                 uuid: uuid,
@@ -236,20 +298,23 @@ const DreamApp = {
                 wallpaper: localStorage.getItem('dd-skin') || 'default',
                 zoom: parseInt(localStorage.getItem('dd-zoom'), 10) || 150,
                 onboarded: localStorage.getItem('dd-onboarded') === 'true',
+                dnd: localStorage.getItem('dd-setting-dnd') === 'true',
+                unlock: localStorage.getItem('dd-setting-unlock') !== 'false',
                 notifications: {
                     notifs: localStorage.getItem('dd-setting-notifs') !== 'false',
                     discordNotifs: localStorage.getItem('dd-setting-discordNotifs') !== 'false',
                     sound: localStorage.getItem('dd-setting-sound') === 'true'
                 },
                 discord: dc || { webhook: '', name: '', channel: 'general' },
-                installedApps: apps
+                installedApps: apps,
+                favoriteApps: favs,
+                recentApps: recents
             });
         } catch (e) {
             // Silent fail — offline or server issue
         }
     },
 
-    /* Force immediate sync (call after big changes like onboarding) */
     async saveProfile() {
         if (this._syncTimer) clearTimeout(this._syncTimer);
         await this._doSync();
@@ -268,7 +333,6 @@ const DreamApp = {
     /* --- YouTube URL Helpers --- */
     extractYouTubeId(url) {
         if (!url) return null;
-        // Direct video ID (11 chars)
         if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return url;
         const patterns = [
             /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
@@ -312,16 +376,195 @@ const DreamApp = {
         return h + ':' + m + ' ' + ampm;
     },
 
+    /* --- Tablet OS Helpers --- */
+    getAllApps(includeCore) {
+        if (typeof window.DDGetAllApps === 'function') return window.DDGetAllApps(includeCore);
+        return [];
+    },
+
+    findAppById(id) {
+        return this.getAllApps(true).find(function(app) { return app.id === id; }) || null;
+    },
+
+    getAppByPage(page) {
+        if (!page) return null;
+        var clean = String(page).split('?')[0].split('/').pop();
+        return this.getAllApps(true).find(function(app) { return app.page === clean; }) || null;
+    },
+
+    getInstalledApps() {
+        try {
+            var list = JSON.parse(localStorage.getItem('dd-installed-apps') || '[]');
+            return Array.from(new Set(Array.isArray(list) ? list : []));
+        } catch (e) {
+            return [];
+        }
+    },
+
+    setInstalledApps(list) {
+        var unique = Array.from(new Set(Array.isArray(list) ? list : []));
+        localStorage.setItem('dd-installed-apps', JSON.stringify(unique));
+        this.syncSetting('installedApps', unique);
+        return unique;
+    },
+
+    getFavoriteApps() {
+        try {
+            var list = JSON.parse(localStorage.getItem('dd-favorite-apps') || '[]');
+            return Array.from(new Set(Array.isArray(list) ? list : []));
+        } catch (e) {
+            return [];
+        }
+    },
+
+    toggleFavoriteApp(id) {
+        var list = this.getFavoriteApps();
+        if (list.indexOf(id) !== -1) list = list.filter(function(x) { return x !== id; });
+        else list.unshift(id);
+        localStorage.setItem('dd-favorite-apps', JSON.stringify(Array.from(new Set(list)).slice(0, 8)));
+        this.syncSetting('favoriteApps', list);
+        return this.getFavoriteApps();
+    },
+
+    getRecentApps() {
+        try {
+            var ids = JSON.parse(localStorage.getItem('dd-recent-apps') || '[]');
+            if (!Array.isArray(ids)) ids = [];
+            return ids.map((id) => this.findAppById(id)).filter(Boolean);
+        } catch (e) {
+            return [];
+        }
+    },
+
+    recordRecentApp() {
+        var page = window.location.pathname.split('/').pop() || 'index.html';
+        if (['', 'index.html', 'boot.html', 'onboarding.html'].indexOf(page) !== -1) return;
+        var app = this.getAppByPage(page);
+        if (!app) return;
+        var list = this.getRecentApps().map(function(item) { return item.id; }).filter(function(id) { return id !== app.id; });
+        list.unshift(app.id);
+        var trimmed = list.slice(0, 8);
+        localStorage.setItem('dd-recent-apps', JSON.stringify(trimmed));
+        this.syncSetting('recentApps', trimmed);
+    },
+
+    isDndEnabled() {
+        return localStorage.getItem('dd-setting-dnd') === 'true';
+    },
+
+    setDnd(enabled) {
+        localStorage.setItem('dd-setting-dnd', enabled ? 'true' : 'false');
+        this.syncSetting('dnd', enabled === true);
+    },
+
+    /* --- Gamification (backend-first, localStorage cache) --- */
+
+    getLevelInfo() {
+        var xp = parseInt(localStorage.getItem('dd-xp') || '0', 10) || 0;
+        var level = Math.floor(xp / 100) + 1;
+        return { xp: xp, level: level, current: xp % 100, next: 100 };
+    },
+
+    async awardXp(amount, reason) {
+        amount = parseInt(amount, 10) || 0;
+        if (amount <= 0) return this.getLevelInfo();
+        // Update localStorage cache immediately for responsive UI
+        var xp = (parseInt(localStorage.getItem('dd-xp') || '0', 10) || 0) + amount;
+        localStorage.setItem('dd-xp', String(xp));
+        if (reason && !this.isDndEnabled()) this.toast('+' + amount + ' XP - ' + reason, 'success');
+        // Push to backend (fire and forget)
+        var uuid = this.getUserId();
+        if (uuid && uuid !== 'unknown') {
+            this.apiPost('/api/profile/xp', { uuid: uuid, amount: amount }).catch(function() {});
+        }
+        return this.getLevelInfo();
+    },
+
+    getDailyReward() {
+        var today = new Date().toISOString().slice(0, 10);
+        return {
+            today: today,
+            claimedToday: localStorage.getItem('dd-reward-last') === today,
+            streak: parseInt(localStorage.getItem('dd-reward-streak') || '0', 10) || 0,
+            coins: parseInt(localStorage.getItem('dd-coins') || '0', 10) || 0
+        };
+    },
+
+    async claimDailyReward() {
+        var info = this.getDailyReward();
+        if (info.claimedToday) return null;
+        var uuid = this.getUserId();
+        if (uuid && uuid !== 'unknown') {
+            try {
+                var result = await this.apiPost('/api/profile/daily-reward', { uuid: uuid });
+                if (result && result.claimed) {
+                    localStorage.setItem('dd-reward-last', info.today);
+                    localStorage.setItem('dd-reward-streak', String(result.streak));
+                    localStorage.setItem('dd-coins', String(result.coins));
+                    localStorage.setItem('dd-xp', String(result.xp));
+                    return { streak: result.streak, coins: result.coins };
+                }
+                return null;
+            } catch (e) {
+                // Fallback to local
+            }
+        }
+        // Offline fallback
+        var yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+        var last = localStorage.getItem('dd-reward-last') || '';
+        var streak = (last === yesterday) ? info.streak + 1 : 1;
+        var coins = info.coins + 25;
+        localStorage.setItem('dd-reward-last', info.today);
+        localStorage.setItem('dd-reward-streak', String(streak));
+        localStorage.setItem('dd-coins', String(coins));
+        this.awardXp(15, 'Daily reward claimed');
+        return { streak: streak, coins: coins };
+    },
+
+    getDailyQuote() {
+        var quotes = [
+            { title: 'Glow gently', text: 'Small steps still sparkle. You are doing better than you think.' },
+            { title: 'Dream bigger', text: 'Your ideas deserve space to grow, even if they start tiny.' },
+            { title: 'Soft reset', text: 'Pause, breathe, and start fresh. That still counts as progress.' },
+            { title: 'Main character energy', text: 'Be kind, be curious, and keep your heart open today.' },
+            { title: 'Cozy focus', text: 'A little effort plus a calm vibe can move mountains.' },
+            { title: 'Light up the room', text: 'Your creativity makes the whole tablet feel brighter.' }
+        ];
+        var index = new Date().getDate() % quotes.length;
+        return quotes[index];
+    },
+
+    getBadges() {
+        var badges = [];
+        if (this.getInstalledApps().length >= 5) badges.push('Collector');
+        if ((parseInt(localStorage.getItem('dd-focus-sessions') || '0', 10) || 0) >= 3) badges.push('Focused');
+        if ((parseInt(localStorage.getItem('dd-selfcare-streak') || '0', 10) || 0) >= 2) badges.push('Glow Up');
+        if ((parseInt(localStorage.getItem('dd-friendship-streak') || '0', 10) || 0) >= 3) badges.push('Bestie');
+        if ((parseInt(localStorage.getItem('dd-mood-streak') || '0', 10) || 0) >= 2) badges.push('Vibes');
+        return badges;
+    },
+
+    /** Update a streak on backend */
+    async updateStreak(key, value) {
+        localStorage.setItem('dd-' + key.replace(/([A-Z])/g, '-$1').toLowerCase(), String(value));
+        var uuid = this.getUserId();
+        if (uuid && uuid !== 'unknown') {
+            this.apiPost('/api/profile/streak', { uuid: uuid, key: key, value: value }).catch(function() {});
+        }
+    },
+
     /* --- Init (call on every page) --- */
     init() {
         this.initSkin();
         this.initStatusBar();
         this.applyZoom();
         this.initSounds();
-        // Store user info from URL params if present
-        const uuid = this.getParam('uuid');
-        const name = this.getParam('name');
+        var uuid = this.getParam('uuid');
+        var name = this.getParam('name');
         if (uuid || name) this.setUser(uuid, name);
+        this.recordRecentApp();
+        // Background profile sync from backend
+        this.loadProfile();
     },
 
     /* --- Zoom Management --- */
@@ -366,7 +609,6 @@ const DreamApp = {
     saveAppData(appKey, data) {
         var uuid = this.getUserId();
         if (!uuid || uuid === 'unknown') return;
-        // Debounced save (1s)
         if (this._appDataTimers[appKey]) clearTimeout(this._appDataTimers[appKey]);
         this._appDataTimers[appKey] = setTimeout(async () => {
             try {
@@ -382,5 +624,4 @@ const DreamApp = {
     }
 };
 
-// Auto-initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => DreamApp.init());

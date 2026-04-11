@@ -7,6 +7,8 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const { connectDB } = require('./db');
 const Message = require('./models/Message');
 const SlAction = require('./models/SlAction');
@@ -23,17 +25,42 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // --- Middleware ---
+app.use(helmet({
+    contentSecurityPolicy: false,   // MOAP/CEF needs inline scripts
+    crossOriginEmbedderPolicy: false
+}));
 app.use(cors({
     origin: !process.env.ALLOWED_ORIGINS || process.env.ALLOWED_ORIGINS === '*' ? '*' : process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim())
 }));
 app.use(express.json({ limit: '1mb' }));
+
+// Rate limiting — general API
+const apiLimiter = rateLimit({
+    windowMs: 60 * 1000,           // 1 minute
+    max: 120,                       // 120 requests per minute per IP
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many requests, slow down.' }
+});
+app.use('/api/', apiLimiter);
+
+// Stricter rate limit for write endpoints
+const writeLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 30,
+    message: { error: 'Too many write requests.' }
+});
+app.use('/api/profile', writeLimiter);
+app.use('/api/appdata', writeLimiter);
+app.use('/api/messages/send', writeLimiter);
+app.use('/api/discord/send', writeLimiter);
 
 // Serve frontend static files
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
 // --- Health check ---
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', version: '1.0.0', timestamp: new Date().toISOString() });
+    res.json({ status: 'ok', version: '2.1.0', timestamp: new Date().toISOString() });
 });
 
 // --- LSL Bridge endpoint (receives data from SL scripts via llHTTPRequest) ---

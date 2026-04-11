@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Focus Mode - Digital Dream</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .focus-wrap { padding: 0 16px 18px; }
+        .focus-hero, .task-card { margin-bottom: 12px; }
+        .focus-hero { padding: 18px; text-align: center; }
+        .focus-timer { font-size: 42px; font-weight: 700; letter-spacing: 2px; margin: 12px 0; }
+        .focus-actions, .mode-row { display: flex; gap: 8px; flex-wrap: wrap; }
+        .mode-chip, .mini-btn {
+            border: none; border-radius: 999px; padding: 8px 12px; cursor: pointer;
+            background: var(--bg-input, rgba(120,120,128,0.08)); color: var(--text-primary, #1C1C1E);
+            font-weight: 600;
+        }
+        .mode-chip.active, .mini-btn.primary { background: var(--primary, #007AFF); color: #fff; }
+        .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; }
+        .stat-box { text-align: center; padding: 12px; }
+        .stat-box strong { display: block; font-size: 18px; }
+        .task-list { margin-top: 10px; }
+        .task-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border-subtle, rgba(0,0,0,0.06)); }
+        .task-item:last-child { border-bottom: none; }
+        .task-item input { margin-right: 8px; }
+    </style>
+</head>
+<body>
+    <div class="tablet-bg"></div>
+    <div class="status-bar">
+        <div class="status-left"><span class="status-time" id="statusTime">12:00 PM</span></div>
+        <div class="status-right">
+            <i class="fas fa-moon" id="dndState" style="display:none"></i>
+            <i class="fas fa-wifi"></i><i class="fas fa-signal"></i>
+            <div class="battery"><div class="battery-bar"><div class="battery-fill"></div></div></div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <div class="app-header">
+            <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+            <div class="app-title">Focus Mode <small>Study timer + rewards</small></div>
+        </div>
+
+        <div class="focus-wrap">
+            <div class="glass-card focus-hero glow">
+                <div class="text-sm text-muted">Stay locked in and earn rewards</div>
+                <div class="focus-timer" id="timerDisplay">25:00</div>
+                <div class="mode-row" style="justify-content:center;margin-bottom:10px">
+                    <button class="mode-chip active" onclick="setMode('focus', 25, this)">25 min Focus</button>
+                    <button class="mode-chip" onclick="setMode('break', 5, this)">5 min Break</button>
+                    <button class="mode-chip" onclick="setMode('deep', 45, this)">45 min Deep</button>
+                </div>
+                <div class="focus-actions" style="justify-content:center">
+                    <button class="mini-btn primary" id="startBtn" onclick="toggleTimer()"><i class="fas fa-play"></i> Start</button>
+                    <button class="mini-btn" onclick="resetTimer()"><i class="fas fa-rotate-left"></i> Reset</button>
+                    <button class="mini-btn" onclick="toggleDnd()"><i class="fas fa-moon"></i> <span id="dndLabel">Enable DND</span></button>
+                </div>
+            </div>
+
+            <div class="stat-row">
+                <div class="glass-card stat-box"><strong id="sessionCount">0</strong><span class="text-xs text-muted">Sessions</span></div>
+                <div class="glass-card stat-box"><strong id="coinCount">0</strong><span class="text-xs text-muted">Dream Coins</span></div>
+                <div class="glass-card stat-box"><strong id="xpCount">0</strong><span class="text-xs text-muted">XP</span></div>
+            </div>
+
+            <div class="glass-card task-card">
+                <div class="font-bold" style="margin-bottom:6px">Focus checklist</div>
+                <div class="task-list" id="taskList"></div>
+            </div>
+        </div>
+        <div style="height:20px"></div>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="messages.html" class="nav-item"><i class="fas fa-comment"></i><span>Chat</span></a>
+        <a href="dreamstore.html" class="nav-item"><i class="fas fa-store"></i><span>Store</span></a>
+        <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/catalog.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        var data = { sessions: 0, coins: 0, tasks: [
+            { text: 'Silence distractions', done: false },
+            { text: 'Set one clear goal', done: false },
+            { text: 'Keep water nearby', done: false }
+        ] };
+        var secondsLeft = 25 * 60;
+        var timerId = null;
+        var currentLabel = 'Focus';
+
+        async function loadData() {
+            var saved = await DreamApp.loadAppData('focus');
+            if (saved && typeof saved === 'object') data = saved;
+            render();
+            updateDndUi();
+        }
+
+        function persist() {
+            DreamApp.saveAppData('focus', data);
+            localStorage.setItem('dd-focus-sessions', String(data.sessions || 0));
+            localStorage.setItem('dd-coins', String(data.coins || 0));
+            DreamApp.updateStreak('focusSessions', data.sessions || 0);
+        }
+
+        function render() {
+            document.getElementById('sessionCount').textContent = data.sessions || 0;
+            document.getElementById('coinCount').textContent = data.coins || 0;
+            document.getElementById('xpCount').textContent = DreamApp.getLevelInfo().xp;
+            document.getElementById('taskList').innerHTML = (data.tasks || []).map(function(task, idx) {
+                return '<div class="task-item"><label style="display:flex;align-items:center;flex:1"><input type="checkbox" ' + (task.done ? 'checked' : '') + ' onchange="toggleTask(' + idx + ')">' + DreamApp.escapeHtml(task.text) + '</label><span class="text-xs text-muted">' + (task.done ? 'Done' : 'Todo') + '</span></div>';
+            }).join('');
+        }
+
+        function toggleTask(idx) {
+            data.tasks[idx].done = !data.tasks[idx].done;
+            persist();
+            render();
+        }
+
+        function setMode(label, minutes, btn) {
+            currentLabel = label;
+            secondsLeft = minutes * 60;
+            clearInterval(timerId);
+            timerId = null;
+            document.getElementById('startBtn').innerHTML = '<i class="fas fa-play"></i> Start';
+            document.querySelectorAll('.mode-chip').forEach(function(chip) { chip.classList.remove('active'); });
+            btn.classList.add('active');
+            updateTimer();
+        }
+
+        function updateTimer() {
+            var min = Math.floor(secondsLeft / 60);
+            var sec = secondsLeft % 60;
+            document.getElementById('timerDisplay').textContent = String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+        }
+
+        function toggleTimer() {
+            if (timerId) {
+                clearInterval(timerId);
+                timerId = null;
+                document.getElementById('startBtn').innerHTML = '<i class="fas fa-play"></i> Resume';
+                return;
+            }
+            timerId = setInterval(function() {
+                secondsLeft--;
+                updateTimer();
+                if (secondsLeft <= 0) finishSession();
+            }, 1000);
+            document.getElementById('startBtn').innerHTML = '<i class="fas fa-pause"></i> Pause';
+            if (currentLabel !== 'break') DreamApp.setDnd(true);
+            updateDndUi();
+        }
+
+        function finishSession() {
+            clearInterval(timerId);
+            timerId = null;
+            data.sessions = (data.sessions || 0) + 1;
+            data.coins = (data.coins || 0) + (currentLabel === 'deep' ? 25 : 12);
+            persist();
+            DreamApp.awardXp(currentLabel === 'deep' ? 30 : 20, 'Focus session complete');
+            DreamApp.toast((currentLabel === 'break' ? 'Break' : 'Focus') + ' session finished!', 'success');
+            document.getElementById('startBtn').innerHTML = '<i class="fas fa-play"></i> Start';
+            render();
+            resetTimer();
+        }
+
+        function resetTimer() {
+            clearInterval(timerId);
+            timerId = null;
+            var active = document.querySelector('.mode-chip.active');
+            if (!active) secondsLeft = 25 * 60;
+            else if (active.textContent.indexOf('5') !== -1) secondsLeft = 5 * 60;
+            else if (active.textContent.indexOf('45') !== -1) secondsLeft = 45 * 60;
+            else secondsLeft = 25 * 60;
+            updateTimer();
+            document.getElementById('startBtn').innerHTML = '<i class="fas fa-play"></i> Start';
+        }
+
+        function toggleDnd() {
+            DreamApp.setDnd(!DreamApp.isDndEnabled());
+            updateDndUi();
+            DreamApp.toast(DreamApp.isDndEnabled() ? 'Do Not Disturb is on' : 'Do Not Disturb is off', 'info');
+        }
+
+        function updateDndUi() {
+            var on = DreamApp.isDndEnabled();
+            document.getElementById('dndLabel').textContent = on ? 'Disable DND' : 'Enable DND';
+            document.getElementById('dndState').style.display = on ? '' : 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTimer();
+            loadData();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Self-Care - Digital Dream</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .wrap { padding: 0 16px 18px; }
+        .habit-item { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 0; border-bottom:1px solid var(--border-subtle, rgba(0,0,0,0.06)); }
+        .habit-item:last-child { border-bottom:none; }
+        .check-btn {
+            width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--success, #34C759); background: transparent; color: transparent;
+            cursor: pointer; font-size: 14px;
+        }
+        .check-btn.done { background: var(--success, #34C759); color:#fff; }
+        .top-grid { display:grid; grid-template-columns: repeat(2,1fr); gap:10px; margin-bottom:12px; }
+        .top-grid .glass-card { padding:14px; }
+        .affirm-box { margin-top:10px; font-size:14px; line-height:1.5; }
+        .input-row { display:flex; gap:8px; margin-top:10px; }
+        .input-row input { flex:1; padding:10px 12px; border-radius:12px; border:1px solid var(--border-subtle, rgba(0,0,0,0.08)); background:var(--bg-input, rgba(120,120,128,0.08)); }
+    </style>
+</head>
+<body>
+    <div class="tablet-bg"></div>
+    <div class="status-bar">
+        <div class="status-left"><span class="status-time" id="statusTime">12:00 PM</span></div>
+        <div class="status-right"><i class="fas fa-wifi"></i><i class="fas fa-signal"></i><div class="battery"><div class="battery-bar"><div class="battery-fill"></div></div></div></div>
+    </div>
+
+    <div class="app-container">
+        <div class="app-header">
+            <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+            <div class="app-title">Self-Care <small>Habits and happy reminders</small></div>
+        </div>
+
+        <div class="wrap">
+            <div class="top-grid">
+                <div class="glass-card"><strong id="carePercent">0%</strong><div class="text-xs text-muted">Today's care score</div></div>
+                <div class="glass-card"><strong id="habitStreak">0</strong><div class="text-xs text-muted">Habit streak</div></div>
+            </div>
+
+            <div class="glass-card" style="padding:14px;margin-bottom:12px">
+                <div class="font-bold">Daily self-care list</div>
+                <div id="habitList"></div>
+                <div class="input-row">
+                    <input type="text" id="newHabit" placeholder="Add a custom habit..." maxlength="40">
+                    <button class="btn btn-sm btn-primary" onclick="addHabit()">Add</button>
+                </div>
+            </div>
+
+            <div class="glass-card" style="padding:14px">
+                <div class="font-bold">Positivity boost</div>
+                <div class="affirm-box" id="affirmText">Loading a kind reminder...</div>
+                <div style="margin-top:10px"><button class="btn btn-sm btn-secondary" onclick="newAffirmation()"><i class="fas fa-sparkles"></i> New reminder</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="messages.html" class="nav-item"><i class="fas fa-comment"></i><span>Chat</span></a>
+        <a href="dreamstore.html" class="nav-item"><i class="fas fa-store"></i><span>Store</span></a>
+        <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/catalog.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        var affirmations = [
+            'Drink water, breathe deep, and be gentle with yourself.',
+            'You are allowed to rest without earning it first.',
+            'Tiny habits build big dreams.',
+            'Progress still counts on soft days.',
+            'A little kindness to yourself goes a long way.'
+        ];
+        var data = { streak: 0, lastDay: '', habits: [
+            { text: 'Drink water', done: false },
+            { text: 'Stretch for 5 minutes', done: false },
+            { text: 'Take a study break', done: false },
+            { text: 'Say one positive thing', done: false }
+        ] };
+
+        async function loadData() {
+            var saved = await DreamApp.loadAppData('selfcare');
+            if (saved && typeof saved === 'object') data = saved;
+            render();
+            newAffirmation();
+        }
+
+        function persist() {
+            DreamApp.saveAppData('selfcare', data);
+            localStorage.setItem('dd-selfcare-streak', String(data.streak || 0));
+            DreamApp.updateStreak('selfcareStreak', data.streak || 0);
+        }
+
+        function render() {
+            var completed = data.habits.filter(function (habit) { return habit.done; }).length;
+            var pct = data.habits.length ? Math.round((completed / data.habits.length) * 100) : 0;
+            document.getElementById('carePercent').textContent = pct + '%';
+            document.getElementById('habitStreak').textContent = data.streak || 0;
+            document.getElementById('habitList').innerHTML = data.habits.map(function (habit, idx) {
+                return '<div class="habit-item"><div>' + DreamApp.escapeHtml(habit.text) + '</div><button class="check-btn ' + (habit.done ? 'done' : '') + '" onclick="toggleHabit(' + idx + ')"><i class="fas fa-check"></i></button></div>';
+            }).join('');
+        }
+
+        function toggleHabit(idx) {
+            data.habits[idx].done = !data.habits[idx].done;
+            var today = new Date().toISOString().slice(0, 10);
+            if (data.habits.every(function (habit) { return habit.done; }) && data.lastDay !== today) {
+                var yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+                data.streak = data.lastDay === yesterday ? (data.streak || 0) + 1 : 1;
+                data.lastDay = today;
+                DreamApp.awardXp(12, 'Self-care streak boosted');
+            }
+            persist();
+            render();
+        }
+
+        function addHabit() {
+            var input = document.getElementById('newHabit');
+            var text = input.value.trim();
+            if (!text) return;
+            data.habits.push({ text: text, done: false });
+            input.value = '';
+            persist();
+            render();
+        }
+
+        function newAffirmation() {
+            document.getElementById('affirmText').textContent = affirmations[Math.floor(Math.random() * affirmations.length)];
+        }
+
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>

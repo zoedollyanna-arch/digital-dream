@@ -6,7 +6,7 @@ const DDConfig = {
     API_BASE: 'https://digital-dream-jbqb.onrender.com',
 
     // App version
-    VERSION: '2.0.0',
+    VERSION: '2.1.0',
 
     // Default skin (unified theme + wallpaper)
     DEFAULT_SKIN: 'default',
