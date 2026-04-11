@@ -197,12 +197,34 @@ html, body {
 }
 
 /* --- Wallpaper Overrides --- */
-.tablet-bg.wp-sunset { background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 25%, #FEC89A 50%, #FFD93D 75%, #FF6B6B 100%) !important; background-size: 400% 400% !important; }
-.tablet-bg.wp-ocean  { background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #6B8DD6 50%, #8E37D7 75%, #667eea 100%) !important; background-size: 400% 400% !important; }
-.tablet-bg.wp-forest { background: linear-gradient(135deg, #11998e 0%, #38ef7d 25%, #43B692 50%, #11998e 75%, #38ef7d 100%) !important; background-size: 400% 400% !important; }
-.tablet-bg.wp-candy  { background: linear-gradient(135deg, #f093fb 0%, #f5576c 25%, #fda085 50%, #f093fb 75%, #f5576c 100%) !important; background-size: 400% 400% !important; }
-.tablet-bg.wp-space  { background: linear-gradient(135deg, #0f0c29 0%, #302b63 25%, #24243e 50%, #0f0c29 75%, #302b63 100%) !important; background-size: 400% 400% !important; }
-.tablet-bg.wp-cotton { background: linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 25%, #F0E6FF 50%, #8EC5FC 75%, #E0C3FC 100%) !important; background-size: 400% 400% !important; }
+.tablet-bg.wp-sunset {
+    background-image: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 25%, #FEC89A 50%, #FFD93D 75%, #FF6B6B 100%) !important;
+    background-size: 400% 400% !important;
+}
+.tablet-bg.wp-ocean {
+    background-image: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #6B8DD6 50%, #8E37D7 75%, #667eea 100%) !important;
+    background-size: 400% 400% !important;
+}
+.tablet-bg.wp-forest {
+    background-image: linear-gradient(135deg, #11998e 0%, #38ef7d 25%, #43B692 50%, #11998e 75%, #38ef7d 100%) !important;
+    background-size: 400% 400% !important;
+}
+.tablet-bg.wp-candy {
+    background-image: linear-gradient(135deg, #f093fb 0%, #f5576c 25%, #fda085 50%, #f093fb 75%, #f5576c 100%) !important;
+    background-size: 400% 400% !important;
+}
+.tablet-bg.wp-pink {
+    background-image: linear-gradient(135deg, #FFB6C1 0%, #FF69B4 25%, #FF1493 50%, #FF69B4 75%, #FFB6C1 100%) !important;
+    background-size: 400% 400% !important;
+}
+.tablet-bg.wp-space {
+    background-image: linear-gradient(135deg, #0f0c29 0%, #302b63 25%, #24243e 50%, #0f0c29 75%, #302b63 100%) !important;
+    background-size: 400% 400% !important;
+}
+.tablet-bg.wp-cotton {
+    background-image: linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 25%, #F0E6FF 50%, #8EC5FC 75%, #E0C3FC 100%) !important;
+    background-size: 400% 400% !important;
+}
 
 /* --- Status Bar (iOS style) --- */
 .status-bar {

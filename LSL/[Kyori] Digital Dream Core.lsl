@@ -149,8 +149,26 @@ default
         key toucher = llDetectedKey(0);
         if (toucher != gOwner) return;
 
-        // Only respond to touches on the iPad HUD outline (link 1)
         integer link = llDetectedLinkNumber(0);
+
+        // HOME button prim — always returns to home screen
+        if (llGetLinkName(link) == "HOME")
+        {
+            if (gCurrentApp == "off" || gCurrentApp == "")
+            {
+                gCurrentApp = "boot";
+                setScreen("boot.html");
+                registerWithServer();
+            }
+            else
+            {
+                gCurrentApp = "home";
+                setScreen("index.html");
+            }
+            return;
+        }
+
+        // Only respond to other touches on the iPad HUD outline (link 1)
         if (link != IPAD_LINK) return;
 
         if (gCurrentApp == "off" || gCurrentApp == "")

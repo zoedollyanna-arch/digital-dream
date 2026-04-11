@@ -288,12 +288,32 @@ const DreamApp = {
     },
 
     /* --- Wallpaper --- */
+    _wallpaperGradients: {
+        'sunset': 'linear-gradient(135deg, #FF6B6B 0%, #FF8E53 25%, #FEC89A 50%, #FFD93D 75%, #FF6B6B 100%)',
+        'ocean':  'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #6B8DD6 50%, #8E37D7 75%, #667eea 100%)',
+        'forest': 'linear-gradient(135deg, #11998e 0%, #38ef7d 25%, #43B692 50%, #11998e 75%, #38ef7d 100%)',
+        'candy':  'linear-gradient(135deg, #f093fb 0%, #f5576c 25%, #fda085 50%, #f093fb 75%, #f5576c 100%)',
+        'pink':   'linear-gradient(135deg, #FFB6C1 0%, #FF69B4 25%, #FF1493 50%, #FF69B4 75%, #FFB6C1 100%)',
+        'space':  'linear-gradient(135deg, #0f0c29 0%, #302b63 25%, #24243e 50%, #0f0c29 75%, #302b63 100%)',
+        'cotton': 'linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 25%, #F0E6FF 50%, #8EC5FC 75%, #E0C3FC 100%)'
+    },
+
     applyWallpaper() {
         var wp = localStorage.getItem('dd-wallpaper') || '';
         var bg = document.querySelector('.tablet-bg');
         if (!bg) return;
+        // Remove any existing wp- class
         bg.className = bg.className.replace(/\bwp-\S+/g, '').trim();
-        if (wp) bg.classList.add('wp-' + wp);
+        if (wp && this._wallpaperGradients[wp]) {
+            bg.classList.add('wp-' + wp);
+            // Also set inline styles for MOAP/CEF compatibility
+            bg.style.backgroundImage = this._wallpaperGradients[wp];
+            bg.style.backgroundSize = '400% 400%';
+        } else {
+            // Clear inline styles so theme default takes over
+            bg.style.backgroundImage = '';
+            bg.style.backgroundSize = '';
+        }
     },
 
     /* --- Zoom Management --- */

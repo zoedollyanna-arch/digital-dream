@@ -31,7 +31,7 @@
                                 localStorage.setItem('dd-onboarded', 'true');
                                 if (p.name) localStorage.setItem('dd-name', p.name);
                                 if (p.theme) localStorage.setItem('dd-theme', p.theme);
-                                if (p.wallpaper !== undefined) localStorage.setItem('dd-wallpaper', p.wallpaper);
+                                localStorage.setItem('dd-wallpaper', p.wallpaper || '');
                                 if (p.zoom) localStorage.setItem('dd-zoom', String(p.zoom));
                                 if (p.notifications) {
                                     localStorage.setItem('dd-setting-notifs', String(p.notifications.notifs !== false));
